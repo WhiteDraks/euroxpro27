@@ -29,6 +29,37 @@ The website is a fully typed, responsive multi-page application with centralized
 
 ---
 
+## ✏️ Content Editor (`/admin`)
+
+All texts and photos of the **Home**, **The Congress** and **Explore Antalya** pages (plus the home gallery, previous editions and partners sections) live in [`content/site.json`](content/site.json) and can be edited from **`/admin`** without touching code.
+
+- Sign in with the shared admin password.
+- Edit any text; `**bold**` and `*italic*` are supported.
+- Upload photos from a computer or phone. They are resized (max 2000 px) and converted to WebP in the browser before upload, or paste an `images.unsplash.com` address.
+- Press **Kaydet** (Save). In production every save becomes one commit on the repository, and Vercel redeploys the site within a few minutes.
+
+### Environment variables
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `ADMIN_PASSWORD` | Yes | Password for `/admin`. Changing it signs every session out. |
+| `GITHUB_TOKEN` | In production | Fine-grained GitHub token with **Contents: Read and write** on this repository. Used to commit edits and uploaded photos. |
+| `GITHUB_REPO` | No | `owner/name`, defaults to `WhiteDraks/euroxpro27`. |
+| `GITHUB_BRANCH` | No | Branch Vercel deploys from, defaults to `main`. |
+
+Locally (`npm run dev` without `GITHUB_TOKEN`), saves are written straight to `content/site.json` and `public/uploads/`.
+
+---
+
+## ⚡ Performance on Slow Connections
+
+- Images are served as AVIF/WebP at quality 60, sized to the visitor's screen, and cached for 31 days.
+- Only each page's hero photo is preloaded; everything else lazy-loads.
+- The home gallery shows 6 photos first and loads the rest on request.
+- Editor uploads are compressed before they reach the server and are cached as immutable.
+
+---
+
 ## 🚀 Local Development Setup
 
 ### 1. Prerequisites
@@ -45,10 +76,10 @@ npm install
 ```
 
 ### 3. Environment Variables
-Create your local environment configuration:
+Create `.env.local` with at least an admin password for the content editor:
 
 ```bash
-cp .env.example .env.local
+echo "ADMIN_PASSWORD=choose-a-password" > .env.local
 ```
 
 ### 4. Run Development Server

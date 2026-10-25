@@ -1,0 +1,917 @@
+{
+  "home": {
+    "hero": {
+      "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=2400&q=85",
+      "imageAlt": "Antalya Mediterranean coastline and historic Roman harbor",
+      "eyebrow": "AIESEC in Europe Regional Conference · MC Türkiye Host",
+      "kicker": "EUROXPRO'27 ANTALYA",
+      "titleLine1": "WHERE EUROPE MEETS",
+      "titleLine2": "THE MEDITERRANEAN.",
+      "supportingLine": "One region. Different realities. A shared ambition to create more global opportunities.",
+      "themeNote": "Proposed Creative Direction · Unconfirmed Official Theme",
+      "primaryButton": "Explore Congress Vision",
+      "secondaryButton": "Delegate Preparation Hub",
+      "tertiaryButton": "Destination Guide →"
+    },
+    "bulletin": {
+      "label": "Official Bulletin",
+      "linkText": "Read communiqué"
+    },
+    "dimensions": {
+      "eyebrow": "Conference Foundation & Identity",
+      "title": "Three Dimensions Defining EUROXPRO'27",
+      "intro": "EUROXPRO is not a holiday or casual gathering; it is the strategic powerhouse of AIESEC in Europe. It combines purpose-driven leadership development, meaningful regional collaboration, and the authentic cultural atmosphere of the Mediterranean.",
+      "items": [
+        {
+          "label": "Dimension 01 · Purpose",
+          "title": "Strengthening AIESEC in Europe",
+          "text": "Aligning national leadership teams and local committees on regional priorities. Scaling cross-border exchange opportunities (*Global Volunteer, Global Talent, Global Teacher*) to create real impact.",
+          "focus": "Focus: Operations & Strategy"
+        },
+        {
+          "label": "Dimension 02 · Destination",
+          "title": "Antalya: Mediterranean Crossroads",
+          "text": "Where centuries of maritime history meet sweeping sea cliffs, historic Kaleiçi, and the dramatic Taurus mountains. A peerless setting that inspires visionary perspectives and forward momentum.",
+          "focus": "Focus: Heritage & Inspiration"
+        },
+        {
+          "label": "Dimension 03 · Experience",
+          "title": "Youth Unity & Turkish Hospitality",
+          "text": "Connecting hundreds of young leaders across 50+ countries. Experiencing the legendary warmth of Turkish culture, bilateral synergy, and building lifelong international friendships.",
+          "focus": "Focus: Culture & Community"
+        }
+      ]
+    },
+    "pillars": {
+      "eyebrow": "Congress Architecture",
+      "title": "Four Pillars of EUROXPRO'27",
+      "intro": "Carefully engineered to maximize regional alignment, organizational capacity, leadership growth, and cross-cultural unity.",
+      "cardFooter": "Core Conference Area",
+      "items": [
+        {
+          "title": "Regional Alignment",
+          "desc": "Bringing together national governing teams (MCs) and local presidents from over 50 entities to align on regional European priorities."
+        },
+        {
+          "title": "Exchange Expansion",
+          "desc": "Scaling operational capacity and delivery standards across Global Volunteer, Global Talent, and Global Teacher programs."
+        },
+        {
+          "title": "Mediterranean Plenaries",
+          "desc": "Inspiring keynote sessions and external partner symposia hosted along the Turkish Riviera coastline."
+        },
+        {
+          "title": "Turkish Night & Gala",
+          "desc": "The celebratory formal evening honoring regional leadership achievements, traditional Turkish cuisine, and cultural folklore."
+        }
+      ]
+    },
+    "destination": {
+      "eyebrow": "Destination Feature",
+      "title": "Antalya: The Host Destination",
+      "intro": "From the morning citrus scents to the turquoise waves lapping against ancient Roman harbors, Antalya welcomes international delegates with world-class hospitality and breathtaking coastal panoramas.",
+      "buttonText": "View Full Antalya Destination & Cultural Guide",
+      "items": [
+        {
+          "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Kaleiçi Roman marina in Antalya",
+          "label": "Historic Walled Quarter",
+          "title": "Kaleiçi & Roman Marina",
+          "text": "Restored Ottoman mansions and ancient stone bastions looking out over classical Roman sailing harbors."
+        },
+        {
+          "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Düden Waterfalls cascading into Mediterranean sea",
+          "label": "Natural Wonder",
+          "title": "Düden Coastal Cascades",
+          "text": "Spectacular cascades tumbling 40 meters directly from clifftop gardens into azure Mediterranean waters."
+        },
+        {
+          "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Konyaaltı Beach and Taurus Mountains",
+          "label": "Alpine & Coastal Panorama",
+          "title": "Konyaaltı & Taurus Range",
+          "text": "Sweeping Mediterranean shoreline framed by snow-capped limestone peaks plunging straight into the azure sea."
+        }
+      ]
+    },
+    "delegatePrep": {
+      "eyebrow": "Delegate Preparedness",
+      "title": "Preparing for Your Journey to Antalya",
+      "text": "Access verified entry requirements, official Turkish e-Visa links, Antalya Airport transit options (AYT), currency guidance, and an interactive packing checklist stored directly in your browser.",
+      "primaryButton": "Open Delegate Handbook",
+      "secondaryButton": "Interactive Packing Checklist"
+    },
+    "merch": {
+      "eyebrow": "Souvenirs & Memorabilia",
+      "title": "Limited-Edition Congress Collection",
+      "linkText": "Browse full demo storefront",
+      "badge": "Sample Preview",
+      "itemLinkText": "Configure Pre-Order Interest →"
+    },
+    "closing": {
+      "eyebrow": "Organizing Committee Secretariat",
+      "title": "Have Questions Regarding Participation?",
+      "text": "The EUROXPRO’27 Organizing Committee is actively available to assist national Member Committees, Local Committee presidents, and prospective partners.",
+      "primaryButton": "Contact Organizing Committee",
+      "secondaryButton": "Browse FAQ"
+    }
+  },
+  "congress": {
+    "hero": {
+      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=2000&q=80",
+      "imageAlt": "International congress auditorium in session",
+      "eyebrow": "Official Congress Dossier",
+      "title": "The Congress Experience",
+      "intro": "EUROXPRO'27 brings together national governing teams, local committee leaders, and young change-makers from across Europe and the Mediterranean. Hosted by MC Türkiye in the historic coastal city of Antalya, the congress is dedicated to regional alignment, organizational performance, and scaling high-impact youth exchanges.",
+      "datesLabel": "Congress Dates",
+      "cityLabel": "Host City",
+      "venueLabel": "Congress Venue"
+    },
+    "about": {
+      "eyebrow": "Vision & Mandate",
+      "title": "What is EUROXPRO'27?",
+      "description": "An immersive transcontinental forum convening youth leadership from across Europe and the global AIESEC network.",
+      "paragraphs": [
+        "**EUROXPRO** is the premier annual regional conference for **AIESEC in Europe**. It convenes national leadership teams (Member Committees), Local Committee presidents, functional vice presidents, and alumni from more than 50 participating entities.",
+        "The congress serves as the regional engine for strategic alignment, organizational performance, and youth leadership development. Delegates participate in functional breakout tracks to establish multilateral exchange partnerships (*Global Volunteer, Global Talent, Global Teacher*) and refine operational standards.",
+        "Hosted by **MC Türkiye** in Antalya, the 2027 edition draws inspiration from the Mediterranean crossroads under the proposed creative direction: *“Where Europe Meets the Mediterranean.”*"
+      ],
+      "objectivesTitle": "Core Conference Objectives",
+      "objectives": [
+        {
+          "title": "Actionable Leadership Development",
+          "desc": "Intensive functional tracks designed to build strategic thinking, crisis resilience, people management, and operational acumen."
+        },
+        {
+          "title": "Pan-European Exchange Scaling",
+          "desc": "Forging bilateral partnerships between national committees to expand cross-border mobility and youth exchange volume."
+        },
+        {
+          "title": "Regional Alignment & Governance",
+          "desc": "Uniting entity leadership to tackle common regional challenges, align on strategic priorities, and vote on legislative motions."
+        },
+        {
+          "title": "Cultural Unity & Mediterranean Immersion",
+          "desc": "Experiencing authentic Turkish hospitality and Antalya’s rich historical crossroads through curated social evenings and Global Village."
+        }
+      ]
+    },
+    "schedule": {
+      "eyebrow": "Congress Programme",
+      "title": "Congress Timetable & Agenda",
+      "description": "Day-by-day sequence of plenaries, breakout workshops, networking sessions, and social events.",
+      "showDraftNotice": true,
+      "draftNotice": "**Preliminary Timetable Notice:** The timetable below represents the indicative draft schedule structure. Final session timings, room assignments, and confirmed guest speakers will be ratified and published by the Organizing Committee.",
+      "days": [
+        {
+          "day": 1,
+          "date": "Wednesday, 31 March 2027",
+          "label": "Arrival & Opening",
+          "sessions": [
+            {
+              "id": "d1-1",
+              "time": "10:00 – 18:00",
+              "title": "Delegate Arrivals & AYT Airport Welcome Desk",
+              "type": "logistics",
+              "location": "Antalya Airport (AYT) & Congress Welcome Desk",
+              "description": "Official arrival period for international delegations. Organizing Committee welcome desks at AYT facilitate greeting and transit coordination to the official congress lodging."
+            },
+            {
+              "id": "d1-2",
+              "time": "14:00 – 18:30",
+              "title": "Delegate Accreditation & Badge Collection",
+              "type": "logistics",
+              "location": "Congress Accreditation Desk",
+              "description": "Accreditation and distribution of official EUROXPRO'27 delegate kits, credentials, and regional documentation."
+            },
+            {
+              "id": "d1-3",
+              "time": "19:00 – 20:30",
+              "title": "Mediterranean Welcome Dinner",
+              "type": "social",
+              "location": "Congress Dining Terrace",
+              "description": "Opening coastal dinner bringing together national teams, entity leaders, and the Organizing Committee.",
+              "dressCode": "Smart Casual"
+            },
+            {
+              "id": "d1-4",
+              "time": "20:45 – 22:30",
+              "title": "Opening Plenary: Mediterranean Assembly",
+              "type": "plenary",
+              "location": "Main Plenary Hall",
+              "description": "Official opening assembly of EUROXPRO'27. Formal flag ceremony, welcome addresses from AIESEC in Türkiye leadership, and orientation for the days ahead.",
+              "dressCode": "Smart Casual"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "date": "Thursday, 1 April 2027",
+          "label": "Regional Alignment",
+          "sessions": [
+            {
+              "id": "d2-1",
+              "time": "08:00 – 09:00",
+              "title": "Breakfast & Morning Briefing",
+              "type": "break",
+              "location": "Dining Hall",
+              "description": "Morning buffet and day orientation for all accredited delegates."
+            },
+            {
+              "id": "d2-2",
+              "time": "09:00 – 10:45",
+              "title": "Plenary 1: Regional Alignment & Priorities (Title TBA)",
+              "type": "plenary",
+              "location": "Main Plenary Hall",
+              "description": "Indicative morning plenary focused on European organizational priorities, regional performance metrics, and strategic direction. Official speaker lineup to be announced."
+            },
+            {
+              "id": "d2-3",
+              "time": "11:15 – 13:00",
+              "title": "Parallel Functional Tracks: Session 1 (Topics TBA)",
+              "type": "workshop",
+              "location": "Breakout Rooms",
+              "description": "Specialized capacity building tracks designed for local committee presidents, vice presidents, and functional leaders. Session topics to be announced."
+            },
+            {
+              "id": "d2-4",
+              "time": "14:30 – 17:30",
+              "title": "Entity Collaboration & Knowledge Exchange",
+              "type": "networking",
+              "location": "Congress Hall",
+              "description": "Structured bilateral meetings between national entities to establish exchange partnerships and share operational best practices."
+            },
+            {
+              "id": "d2-5",
+              "time": "20:30 – 23:30",
+              "title": "Global Village & Cultural Night",
+              "type": "social",
+              "location": "Congress Event Pavilion",
+              "description": "The signature AIESEC Global Village celebrating cultural diversity across Europe with national booths, authentic delicacies, and cultural performances.",
+              "dressCode": "Traditional / National Attire"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "date": "Friday, 2 April 2027",
+          "label": "Exchange & Growth",
+          "sessions": [
+            {
+              "id": "d3-1",
+              "time": "09:00 – 10:45",
+              "title": "Plenary 2: Expanding Global Opportunities (Title TBA)",
+              "type": "plenary",
+              "location": "Main Plenary Hall",
+              "description": "Strategic session dedicated to scaling international youth exchanges (Global Volunteer, Global Talent, Global Teacher) across European territories."
+            },
+            {
+              "id": "d3-2",
+              "time": "11:15 – 13:00",
+              "title": "Parallel Functional Tracks: Session 2 (Topics TBA)",
+              "type": "workshop",
+              "location": "Breakout Rooms",
+              "description": "Action-oriented workshops focusing on marketing, product delivery, customer experience, and talent management."
+            },
+            {
+              "id": "d3-3",
+              "time": "14:30 – 18:00",
+              "title": "Leadership Development & Partnership Forum",
+              "type": "workshop",
+              "location": "Congress Hall",
+              "description": "Collaborative forums exploring youth leadership competencies, external partnerships, and organizational sustainability."
+            },
+            {
+              "id": "d3-4",
+              "time": "20:30 – 23:00",
+              "title": "Mediterranean Evening Gathering",
+              "type": "social",
+              "location": "Seaside Venue",
+              "description": "Cultural evening providing delegates an informal setting to build lifelong connections and experience regional hospitality.",
+              "dressCode": "Smart Casual"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "date": "Saturday, 3 April 2027",
+          "label": "Governance & Gala",
+          "sessions": [
+            {
+              "id": "d4-1",
+              "time": "09:00 – 12:30",
+              "title": "Legislative Assembly & Regional Motions (Indicative)",
+              "type": "plenary",
+              "location": "Main Plenary Hall",
+              "description": "Formal regional governance session covering legislative votes, regional updates, and collaborative agreements among Member Committees."
+            },
+            {
+              "id": "d4-2",
+              "time": "14:00 – 17:00",
+              "title": "Strategic Commitments & Entity Goal Setting",
+              "type": "workshop",
+              "location": "Breakout Rooms",
+              "description": "Entities align on quantitative goals, exchange targets, and multilateral commitments for the upcoming operational cycle."
+            },
+            {
+              "id": "d4-3",
+              "time": "19:30 – 23:30",
+              "title": "Turkish Night & Regional Awards Gala",
+              "type": "social",
+              "location": "Grand Ballroom",
+              "description": "The signature gala banquet of EUROXPRO'27. Formal celebration of Turkish gastronomy, folklore, and recognition of outstanding regional achievements.",
+              "dressCode": "Black Tie / Formal Evening Attire"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "date": "Sunday, 4 April 2027",
+          "label": "Closing & Departures",
+          "sessions": [
+            {
+              "id": "d5-1",
+              "time": "09:30 – 11:30",
+              "title": "Closing Ceremony & Regional Declaration",
+              "type": "plenary",
+              "location": "Main Plenary Hall",
+              "description": "Official closing assembly: reflection on congress outcomes, presentation of the regional declaration, and ceremonial handover.",
+              "dressCode": "Smart Casual"
+            },
+            {
+              "id": "d5-2",
+              "time": "12:00 – 13:30",
+              "title": "Farewell Luncheon",
+              "type": "social",
+              "location": "Dining Hall & Terraces",
+              "description": "Final gathering for delegates to celebrate congress accomplishments and say farewell to European colleagues."
+            },
+            {
+              "id": "d5-3",
+              "time": "14:00 – 20:00",
+              "title": "Official Check-Out & Airport Transfers to AYT",
+              "type": "logistics",
+              "location": "Lobby & Transit Bays",
+              "description": "Coordinated delegate check-out and scheduled transfer departures to Antalya Airport (AYT) for international flights."
+            }
+          ]
+        }
+      ]
+    },
+    "evenings": {
+      "eyebrow": "Evenings & Culture",
+      "title": "Social Events & Gala Evenings",
+      "description": "Carefully designed evening gatherings celebrating Mediterranean cultural richness and delegates' shared journey.",
+      "dressCodeLabel": "Dress Code:",
+      "items": [
+        {
+          "title": "Mediterranean Welcome Dinner",
+          "tag": "Day 1 Evening",
+          "dress": "Smart Casual",
+          "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
+          "desc": "An informal welcoming dinner and icebreaking evening on arrival day. A warm, relaxed coastal setting to reconnect with colleagues and meet delegates from across the European network."
+        },
+        {
+          "title": "Global Village & Entity Night",
+          "tag": "Day 2 Evening",
+          "dress": "National / Cultural Attire",
+          "image": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+          "desc": "The celebratory AIESEC Global Village with national booths, culinary delicacies, folklore, and country pride from across Europe."
+        },
+        {
+          "title": "Turkish Night & Awards Gala",
+          "tag": "Day 4 Evening",
+          "dress": "Black Tie / Formal / Traditional",
+          "image": "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80",
+          "desc": "The signature formal evening of EUROXPRO'27 on Saturday, 3 April. A grand banquet celebrating Turkish heritage, regional cuisine, folkloric performances, and European Leadership Awards."
+        }
+      ]
+    }
+  },
+  "exploreAntalya": {
+    "hero": {
+      "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=2400&q=85",
+      "imageAlt": "Antalya Mediterranean coastline, cliffs, and ancient Roman harbor",
+      "eyebrow": "Host Destination Feature",
+      "title": "Explore Antalya",
+      "intro": "Where the azure Mediterranean touches the soaring peaks of the Taurus Mountains. An editorial delegate guide to ancient Roman harbors, clifftop waterfalls, and the rich culinary heritage of the Turkish Riviera."
+    },
+    "tabs": {
+      "attractions": "Iconic Landmarks",
+      "food": "Gastronomy & Culture",
+      "phrases": "Useful Phrases",
+      "map": "Congress & City Map",
+      "weather": "Mediterranean Climate"
+    },
+    "attractions": {
+      "eyebrow": "Turkish Riviera Heritage",
+      "title": "Must-See Sights in Antalya",
+      "description": "A curated selection of the most significant ancient, coastal, and cultural landmarks easily accessible to delegates.",
+      "notice": "**Cultural Exploration Notice:** The landmarks, museums, and natural sites below are curated suggestions for delegates seeking to experience Antalya independently before, during leisure periods, or following the congress. They are not mandatory excursions or included activities within the official conference fee.",
+      "tipLabel": "Delegate Recommendation:",
+      "items": [
+        {
+          "name": "Kaleiçi (Historic Old Town & Roman Marina)",
+          "category": "Historic Walled Quarter",
+          "period": "Roman, Seljuk & Ottoman",
+          "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
+          "description": "Antalya's ancient walled heart perched atop sea cliffs. Cobblestone alleyways lined with restored Ottoman mansions descend into the 2nd-century BC Roman harbor with traditional sailing boats.",
+          "tips": "Walk through the marble arches of Hadrian's Gate and take the panoramic glass elevator down to the harbor.",
+          "area": "Muratpaşa / Old Town"
+        },
+        {
+          "name": "Lower Düden Waterfalls (Aşağı Düden)",
+          "category": "Natural Wonder",
+          "period": "Timeless Coastal Geology",
+          "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+          "description": "One of the Mediterranean's most dramatic natural sights: the Düden River cascades 40 meters straight over rocky cliffs directly into the turquoise Mediterranean sea.",
+          "tips": "Visit the Düden Park clifftop promenade at sunset for breathtaking coastal photography and sea spray breezes.",
+          "area": "Lara Coastal Park"
+        },
+        {
+          "name": "Konyaaltı Coast & Taurus Mountains",
+          "category": "Mediterranean Shoreline",
+          "period": "Coastal Boulevard",
+          "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+          "description": "A sweeping 7-kilometer Mediterranean pebble beach framed dramatically by the snow-capped Beydağları (Taurus) mountain range plunging directly into crystal azure waters.",
+          "tips": "The pedestrian promenade features modern seaside cafes, cycling paths, and open-air seating for delegates.",
+          "area": "Konyaaltı"
+        },
+        {
+          "name": "Ancient Aspendos Amphitheater",
+          "category": "Classical Antiquity",
+          "period": "Roman (155 AD)",
+          "image": "https://images.unsplash.com/photo-1674715577456-49ae7a6945a8?auto=format&fit=crop&w=800&q=80",
+          "description": "Widely regarded as the best-preserved ancient Roman theater in the entire Mediterranean world, engineered with peerless acoustics that are still celebrated today.",
+          "tips": "Stand at the center of the orchestra floor to test the whispering acoustics carrying up to the 41st tier.",
+          "area": "Serik / Greater Antalya"
+        },
+        {
+          "name": "Hadrian's Gate (Üçkapılar)",
+          "category": "Monumental Gateway",
+          "period": "Roman (130 AD)",
+          "image": "https://images.unsplash.com/photo-1654162304103-6a273ca1fe7c?auto=format&fit=crop&w=800&q=80",
+          "description": "A triumphal triple-arched marble gateway constructed to honor Roman Emperor Hadrian's visit to Antalya. Deep ruts in the stone floor still bear the marks of ancient chariot wheels.",
+          "tips": "The gate serves as the grand pedestrian threshold transitioning modern Antalya into historic Kaleiçi.",
+          "area": "City Center Entrance"
+        },
+        {
+          "name": "Antalya Archaeological Museum",
+          "category": "World-Class Museum",
+          "period": "Pamphylian, Lycian & Roman",
+          "image": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=800&q=80",
+          "description": "One of Türkiye's premier antiquities museums, showcasing stunning classical Roman marble statues from Perge, monumental sarcophagi, and Bronze Age artifacts.",
+          "tips": "Accessible via the heritage Nostalgic Tram terminus right across from Konyaaltı beach.",
+          "area": "Bahçelievler"
+        }
+      ]
+    },
+    "food": {
+      "eyebrow": "Culinary Heritage",
+      "title": "Flavours of the Turkish Riviera",
+      "description": "Mediterranean flavors meet classical Anatolian culinary mastery. From citrus orchards to fresh harbor seafood, here is what delegates should sample.",
+      "items": [
+        {
+          "name": "Antalya-Style Piyaz",
+          "desc": "A regional culinary masterpiece: tender white beans tossed with a rich dressing of crushed sesame tahini, lemon juice, garlic, vinegar, and boiled farm eggs.",
+          "category": "Signature Regional Dish"
+        },
+        {
+          "name": "Fresh Mediterranean Catch (Levrek & Çipura)",
+          "desc": "Fresh sea bass or sea bream grilled over olive-wood coals, drizzled with local extra virgin olive oil and wild herbs.",
+          "category": "Mediterranean Seafood"
+        },
+        {
+          "name": "Citrus Preserves & Bergamot Jam",
+          "desc": "Antalya's citrus groves are legendary. Enjoy whole sweet orange, bitter orange, and bergamot jams served with morning cheeses.",
+          "category": "Breakfast Specialty"
+        },
+        {
+          "name": "Mediterranean Serpme Kahvaltı",
+          "desc": "An elaborate coastal breakfast spread with goat cheeses, garden-grown tomatoes, cucumbers, fresh olives, honey, and hot Turkish tea.",
+          "category": "Morning Experience"
+        },
+        {
+          "name": "Yanık Dondurma (Caramelized Goat Milk Ice Cream)",
+          "desc": "A historic Antalya dessert made from goat milk subtly scorched during boiling to create a complex, smoky caramel note.",
+          "category": "Traditional Sweet"
+        },
+        {
+          "name": "Turkish Tea & Coffee in the Roman Marina",
+          "desc": "Sipping traditional tea in delicate tulip glasses overlooking fishing sloops and cliffs as Mediterranean twilight descends.",
+          "category": "Beverages"
+        }
+      ],
+      "etiquetteTitle": "Dining Etiquette & Hospitality in Antalya",
+      "etiquette": [
+        "Saying *“Afiyet olsun”* (Bon appétit) before or after sharing food is polite and appreciated.",
+        "Mediterranean hospitality is legendary: complimentary Turkish tea (çay) is customarily offered after meals.",
+        "Local olive oils, citrus, and fresh seafood are seasonal staples celebrated along the Mediterranean coast.",
+        "Tipping around 10% in sit-down restaurants is standard and polite practice."
+      ]
+    },
+    "phrases": {
+      "eyebrow": "Language Essentials",
+      "title": "Helpful Turkish Expressions",
+      "description": "Locals in Antalya genuinely appreciate when international delegates use basic Turkish pleasantries.",
+      "pronunciationLabel": "Pronunciation:",
+      "items": [
+        {
+          "tr": "Merhaba",
+          "en": "Hello",
+          "pronunciation": "mehr-hah-bah"
+        },
+        {
+          "tr": "Günaydın",
+          "en": "Good morning",
+          "pronunciation": "goo-nahy-duhn"
+        },
+        {
+          "tr": "Teşekkür ederim",
+          "en": "Thank you",
+          "pronunciation": "teh-shek-kur eh-deh-reem"
+        },
+        {
+          "tr": "Sağol / Sağolun",
+          "en": "Thanks / Thank you (polite)",
+          "pronunciation": "sah-ol / sah-ol-oon"
+        },
+        {
+          "tr": "Lütfen",
+          "en": "Please",
+          "pronunciation": "loot-fehn"
+        },
+        {
+          "tr": "Evet / Hayır",
+          "en": "Yes / No",
+          "pronunciation": "eh-vet / hah-yuhr"
+        },
+        {
+          "tr": "Ne kadar?",
+          "en": "How much?",
+          "pronunciation": "neh kah-dahr"
+        },
+        {
+          "tr": "Hesap, lütfen",
+          "en": "The bill, please",
+          "pronunciation": "heh-sahp loot-fehn"
+        },
+        {
+          "tr": "Afiyet olsun",
+          "en": "Bon appétit / Enjoy your meal",
+          "pronunciation": "ah-fee-yet ohl-soon"
+        },
+        {
+          "tr": "Kolay gelsin",
+          "en": "May it be easy (courtesy greeting)",
+          "pronunciation": "koh-ly gehl-sin"
+        }
+      ]
+    },
+    "map": {
+      "eyebrow": "Key Locations",
+      "title": "Congress & Antalya Locations",
+      "description": "Important navigational reference points for delegates during EUROXPRO'27 in Antalya.",
+      "locations": [
+        {
+          "id": "hotel",
+          "name": "Congress Hotel Resort",
+          "description": "[CONGRESS HOTEL PROPERTY TO BE CONFIRMED]",
+          "category": "accommodation",
+          "address": "Antalya Coastal Zone, Türkiye",
+          "mapUrl": "https://maps.google.com/?q=Antalya+Turkey",
+          "placeholder": true
+        },
+        {
+          "id": "venue",
+          "name": "Congress Plenary Venue",
+          "description": "[CONGRESS VENUE TO BE CONFIRMED]",
+          "category": "venue",
+          "address": "Antalya, Türkiye",
+          "mapUrl": "https://maps.google.com/?q=Antalya+Turkey",
+          "placeholder": true
+        },
+        {
+          "id": "ayt-airport",
+          "name": "Antalya Airport (AYT)",
+          "description": "Main international gateway with Terminals 1, 2, and Domestic Terminal.",
+          "category": "transport",
+          "address": "Yeşilköy, Antalya Havalimanı, Muratpaşa/Antalya",
+          "mapUrl": "https://maps.google.com/?q=Antalya+Airport+AYT",
+          "placeholder": false
+        },
+        {
+          "id": "kaleici",
+          "name": "Kaleiçi (Historic Old Town & Roman Harbor)",
+          "description": "Antalya's historic walled center with Ottoman-era mansions and ancient Roman marina.",
+          "category": "attraction",
+          "address": "Selçuk, Muratpaşa/Antalya",
+          "mapUrl": "https://maps.google.com/?q=Kaleici+Antalya",
+          "placeholder": false
+        },
+        {
+          "id": "duden-waterfalls",
+          "name": "Lower Düden Waterfalls",
+          "description": "Spectacular cascade dropping 40 meters directly from cliffs into the Mediterranean.",
+          "category": "attraction",
+          "address": "Çağlayan, Muratpaşa/Antalya",
+          "mapUrl": "https://maps.google.com/?q=Duden+Waterfalls+Antalya",
+          "placeholder": false
+        },
+        {
+          "id": "aspendos",
+          "name": "Ancient Aspendos Amphitheater",
+          "description": "Best-preserved ancient Greco-Roman theater in the Mediterranean basin.",
+          "category": "attraction",
+          "address": "Serik, Antalya",
+          "mapUrl": "https://maps.google.com/?q=Aspendos+Antalya",
+          "placeholder": false
+        }
+      ],
+      "routingTitle": "Interactive Venue & Coast Routing",
+      "routingText": "Full interactive routing and venue-to-hotel directions will be enabled once official congress resort properties are formally ratified by the OC.",
+      "overviewTitle": "Antalya, Türkiye Overview",
+      "overviewText": "Official geo-pins will sync when addresses are released."
+    },
+    "weather": {
+      "eyebrow": "Climate & Packing",
+      "title": "Antalya Early Spring Climate Guide (31 March – 4 April)",
+      "description": "What to expect and how to pack for Antalya during the congress period.",
+      "notice": "**Confirmed Dates Notice:** EUROXPRO'27 takes place **31 March – 4 April 2027**. Early April on the Turkish Riviera features glorious, sunny Mediterranean spring weather with daytime highs averaging 20°C–22°C.",
+      "items": [
+        {
+          "season": "Congress Window (Late Mar–Early Apr)",
+          "temp": "18°C – 23°C",
+          "notes": "Sunny, mild coastal climate. Ideal for outdoor plenaries, walking Kaleiçi, and sea breezes. Light jacket for evening socials."
+        },
+        {
+          "season": "Spring (Apr–May)",
+          "temp": "20°C – 26°C",
+          "notes": "Warm, blossoming orange trees, pleasant humidity, long daylight hours."
+        },
+        {
+          "season": "Summer (Jun–Aug)",
+          "temp": "30°C – 38°C",
+          "notes": "Hot and sunny Mediterranean summer. High SPF and coastal swimming weather."
+        },
+        {
+          "season": "Autumn (Sep–Nov)",
+          "temp": "22°C – 28°C",
+          "notes": "Warm sea temperatures, golden autumn light, comfortable evening air."
+        }
+      ]
+    }
+  },
+  "gallery": {
+    "eyebrow": "Visual Archive & Destination Showcase",
+    "title": "Moments of Leadership & Coastline",
+    "intro": "Archival moments from past regional assemblies paired with the dramatic Mediterranean beauty of our 2027 host city, Antalya.",
+    "notice": "**Note on Photographic Sourcing:** Conference images depict documented previous editions of EUROXPRO and are labeled with their respective year and host country. Destination captures feature authentic locations across Antalya, Türkiye.",
+    "filterAll": "All Imagery",
+    "filterConferences": "Past Conferences",
+    "filterAntalya": "Antalya Riviera",
+    "showMoreButton": "Show more photos",
+    "items": [
+      {
+        "id": "gal-hist-1",
+        "title": "Plenary Assembly & Regional Alignment",
+        "category": "conferences",
+        "yearOrArea": "EUROXPRO 2026",
+        "location": "Greece",
+        "caption": "Plenary hall during the 2026 edition in Greece, convening over 500 young leaders under 'United in Exchanges'.",
+        "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-hist-2",
+        "title": "Cross-Cultural Collaboration & Networking",
+        "category": "conferences",
+        "yearOrArea": "EUROXPRO 2025",
+        "location": "Rimini, Italy",
+        "caption": "Delegates from across 50+ countries collaborating during parallel breakout tracks in Rimini, Italy.",
+        "image": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-hist-3",
+        "title": "Global Leadership Development & Teamwork",
+        "category": "conferences",
+        "yearOrArea": "EUROXPRO 2024",
+        "location": "Alanya, Türkiye",
+        "caption": "Participants engaged in intensive leadership simulation exercises on the Turkish Mediterranean coast in 2024.",
+        "image": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-hist-4",
+        "title": "Regional Governance & Legislative Assembly",
+        "category": "conferences",
+        "yearOrArea": "Archival Assembly",
+        "location": "AIESEC in Europe",
+        "caption": "National governing boards (Member Committees) deliberating regional legislation, policies, and collaborative motions.",
+        "image": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-hist-5",
+        "title": "Global Village & Cultural Unity",
+        "category": "conferences",
+        "yearOrArea": "Cultural Festival",
+        "location": "AIESEC Global Village",
+        "caption": "The celebrated Global Village evening where delegations showcase national customs, culinary dishes, and traditional attire.",
+        "image": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-hist-6",
+        "title": "Delegate Accreditation & Welcome Desks",
+        "category": "conferences",
+        "yearOrArea": "Conference Logistics",
+        "location": "Arrival Operations",
+        "caption": "Volunteers and organizing team members distributing conference credentials, badges, and delegate kits.",
+        "image": "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-hist-7",
+        "title": "Keynote Symposia & External Perspectives",
+        "category": "conferences",
+        "yearOrArea": "Plenary Forum",
+        "location": "Main Stage",
+        "caption": "Inspiring keynote speakers addressing youth delegates on global geopolitical trends and cross-border innovation.",
+        "image": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-hist-8",
+        "title": "Multicultural Youth Community & Leadership",
+        "category": "conferences",
+        "yearOrArea": "Youth Leadership",
+        "location": "European Network",
+        "caption": "A dynamic, diverse generation of young leaders building lifelong cross-border connections and partnerships.",
+        "image": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": true
+      },
+      {
+        "id": "gal-ayt-1",
+        "title": "Historic Kaleiçi & Ancient Roman Marina",
+        "category": "antalya",
+        "yearOrArea": "Old Town Heritage",
+        "location": "Kaleiçi, Antalya",
+        "caption": "Antalya's ancient clifftop walled quarter with restored Ottoman mansions descending into the 2nd-century BC Roman harbor.",
+        "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      },
+      {
+        "id": "gal-ayt-2",
+        "title": "Lower Düden Cascades into the Mediterranean",
+        "category": "antalya",
+        "yearOrArea": "Natural Landmark",
+        "location": "Lara Cliffs, Antalya",
+        "caption": "Spectacular 40-meter waterfall plunging straight over coastal cliffs directly into the turquoise Mediterranean sea.",
+        "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      },
+      {
+        "id": "gal-ayt-3",
+        "title": "Konyaaltı Beach & Snow-Capped Taurus Peaks",
+        "category": "antalya",
+        "yearOrArea": "Coastal Horizon",
+        "location": "Konyaaltı, Antalya",
+        "caption": "The sweeping Mediterranean shoreline of Konyaaltı set against the dramatic silhouette of the Beydağları (Taurus) mountain range.",
+        "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      },
+      {
+        "id": "gal-ayt-4",
+        "title": "Ancient Aspendos Amphitheater Architecture",
+        "category": "antalya",
+        "yearOrArea": "Classical Antiquity",
+        "location": "Serik, Antalya",
+        "caption": "Widely regarded as the best-preserved ancient Roman theater in the Mediterranean basin, famed for whispering acoustics.",
+        "image": "https://images.unsplash.com/photo-1674715577456-49ae7a6945a8?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      },
+      {
+        "id": "gal-ayt-5",
+        "title": "Historic Ottoman Alleyways & Bougainvillea",
+        "category": "antalya",
+        "yearOrArea": "Kaleiçi Architecture",
+        "location": "Muratpaşa, Antalya",
+        "caption": "Pedestrian cobblestone lanes lined with traditional timber-framed mansions, artisanal workshops, and quiet courtyard cafes.",
+        "image": "https://images.unsplash.com/photo-1654162304103-6a273ca1fe7c?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      },
+      {
+        "id": "gal-ayt-6",
+        "title": "Sunset Over Antalya Bay & Taurus Mountains",
+        "category": "antalya",
+        "yearOrArea": "Turkish Riviera",
+        "location": "Antalya Coast",
+        "caption": "Golden hour twilight casting amber tones across the Mediterranean sea and the towering limestone mountain ridge.",
+        "image": "https://images.unsplash.com/photo-1571753406356-fdb4e1cd204c?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      },
+      {
+        "id": "gal-ayt-7",
+        "title": "Palm Promenade & Seaside Coastal Park",
+        "category": "antalya",
+        "yearOrArea": "Urban Coastline",
+        "location": "Konyaaltı Coastal Park",
+        "caption": "Modern pedestrian seaside boulevard featuring open-air seating, palm tree parks, and cycling promenades along the sea.",
+        "image": "https://images.unsplash.com/photo-1663574628814-7806616e9ac1?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      },
+      {
+        "id": "gal-ayt-8",
+        "title": "Classical Antiquity & Temple Columns",
+        "category": "antalya",
+        "yearOrArea": "Pamphylian Heritage",
+        "location": "Perge & Side, Antalya",
+        "caption": "Ancient colonnaded streets and monumental marble architecture testifying to Antalya's deep classical heritage.",
+        "image": "https://images.unsplash.com/photo-1570939274717-7eda259b50ed?auto=format&fit=crop&w=1200&q=80",
+        "isHistorical": false
+      }
+    ]
+  },
+  "previousEditions": {
+    "eyebrow": "Historical Legacy & Precedent",
+    "title": "Previous Editions of EUROXPRO",
+    "intro": "A proven regional tradition uniting youth leadership across Europe to expand international exchanges and strengthen organizational performance.",
+    "disclaimerTitle": "Historical Reference Disclosure:",
+    "disclaimer": "The statistics, delegate counts, themes, and partner metrics presented below are documented historical records from past EUROXPRO conferences. They illustrate the regional scope and heritage of AIESEC in Europe, and are not claims, capacity targets, or confirmed partnerships for EUROXPRO’27.",
+    "items": [
+      {
+        "year": 2026,
+        "location": "Greece",
+        "country": "Greece",
+        "delegatesMetric": "500+ Young Leaders",
+        "delegatesCount": 500,
+        "partnersCount": 6,
+        "theme": "United in Exchanges",
+        "summary": "Publicly shared information highlighted more than 500 young leaders and 6+ partner organizations convening in Greece under the thematic rallying cry of 'United in Exchanges'. Focused on cross-border mobility, multilateral exchanges, and pan-European integration.",
+        "highlights": [
+          "Over 500 youth leaders convened across Europe",
+          "6+ institutional & corporate partners engaged",
+          "Keynote focus on scaling international exchange opportunities"
+        ],
+        "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        "year": 2025,
+        "location": "Rimini",
+        "country": "Italy",
+        "delegatesMetric": "380+ Delegates",
+        "delegatesCount": 380,
+        "countriesCount": 50,
+        "theme": "European Leadership Assembly",
+        "summary": "Public reporting documented more than 380 delegates representing 50+ countries gathering on the Adriatic coast in Rimini, Italy. Addressed organizational sustainability, cross-cultural leadership competencies, and national committee alignment.",
+        "highlights": [
+          "380+ delegates from across the European and global network",
+          "Representatives from 50+ diverse national entities",
+          "Intensive functional breakout tracks and plenary symposia"
+        ],
+        "image": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        "year": 2024,
+        "location": "Alanya",
+        "country": "Türkiye",
+        "delegatesMetric": "300+ Participants",
+        "delegatesCount": 300,
+        "theme": "Mediterranean Convergence",
+        "summary": "Public participant information recorded 300+ ambitious young participants gathering in the Mediterranean coastal haven of Alanya, Türkiye. Fostered collaborative strategies for local committee growth, membership development, and regional synergy.",
+        "highlights": [
+          "300+ enthusiastic participants on the Mediterranean coast",
+          "Strengthened regional collaboration across AIESEC in Europe",
+          "Celebrated cultural heritage through signature Turkish hospitality"
+        ],
+        "image": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=80"
+      }
+    ]
+  },
+  "partners": {
+    "eyebrow": "Institutional & Corporate Collaboration",
+    "title": "Partners & Collaborators",
+    "intro": "EUROXPRO connects visionary institutions, multinational employers, and regional innovators with the most dynamic youth leadership network across Europe.",
+    "statusBadge": "Partnership Announcements Coming Soon",
+    "statusTitle": "Official 2027 Partners Under Finalization",
+    "statusText": "The Organizing Committee and AIESEC in Türkiye are actively curating partner agreements for the Antalya edition. Confirmed partners and institutional sponsors will be formally announced here.",
+    "buttonText": "Partner with EUROXPRO'27",
+    "items": [
+      {
+        "title": "Pan-European Employer Branding",
+        "desc": "Engage directly with high-achieving student leaders, local presidents, and emerging professionals from over 50 countries."
+      },
+      {
+        "title": "Leadership Roundtables & Workshops",
+        "desc": "Host interactive capacity-building breakouts, share industry insights, and mentor tomorrow’s global change-makers."
+      },
+      {
+        "title": "Global Exchange Impact (SDGs)",
+        "desc": "Directly sponsor and enable cross-border youth mobility programs (Global Volunteer, Global Talent, Global Teacher)."
+      }
+    ]
+  }
+}

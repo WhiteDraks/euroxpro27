@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { Handshake, ArrowRight, ShieldCheck, Sparkles, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { content } from "@/lib/content";
+
+const cardIcons = [Building2, Sparkles, ShieldCheck];
 
 export function PartnersSection() {
+  const text = content.partners;
   return (
     <section className="py-24 bg-white border-b border-[#E5E1DA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,13 +15,13 @@ export function PartnersSection() {
         <div className="max-w-3xl mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-3">
             <Handshake size={14} />
-            Institutional &amp; Corporate Collaboration
+            {text.eyebrow}
           </div>
           <h2 className="font-serif-title text-4xl sm:text-5xl text-[#101B35] font-normal leading-tight">
-            Partners &amp; Collaborators
+            {text.title}
           </h2>
           <p className="text-sm sm:text-base text-[#5A6478] mt-4 leading-relaxed font-light">
-            EUROXPRO connects visionary institutions, multinational employers, and regional innovators with the most dynamic youth leadership network across Europe.
+            {text.intro}
           </p>
         </div>
 
@@ -27,20 +31,20 @@ export function PartnersSection() {
             <div className="space-y-3 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#E5E1DA] rounded-sm text-xs font-mono font-semibold text-[#741F3D]">
                 <span className="w-2 h-2 rounded-full bg-[#741F3D] animate-ping" />
-                Partnership Announcements Coming Soon
+                {text.statusBadge}
               </div>
               <h3 className="font-serif-title text-2xl sm:text-3xl text-[#101B35] font-normal">
-                Official 2027 Partners Under Finalization
+                {text.statusTitle}
               </h3>
               <p className="text-xs sm:text-sm text-[#5A6478] leading-relaxed">
-                The Organizing Committee and AIESEC in Türkiye are actively curating partner agreements for the Antalya edition. Confirmed partners and institutional sponsors will be formally announced here.
+                {text.statusText}
               </p>
             </div>
 
             <div className="flex-shrink-0">
               <Link href="/contact">
                 <Button size="lg" variant="primary" className="text-xs font-semibold tracking-wide">
-                  Partner with EUROXPRO&apos;27 <ArrowRight size={15} />
+                  {text.buttonText} <ArrowRight size={15} />
                 </Button>
               </Link>
             </div>
@@ -49,25 +53,11 @@ export function PartnersSection() {
 
         {/* Value Proposition Cards */}
         <div className="grid sm:grid-cols-3 gap-6">
-          {[
-            {
-              icon: Building2,
-              title: "Pan-European Employer Branding",
-              desc: "Engage directly with high-achieving student leaders, local presidents, and emerging professionals from over 50 countries.",
-            },
-            {
-              icon: Sparkles,
-              title: "Leadership Roundtables & Workshops",
-              desc: "Host interactive capacity-building breakouts, share industry insights, and mentor tomorrow’s global change-makers.",
-            },
-            {
-              icon: ShieldCheck,
-              title: "Global Exchange Impact (SDGs)",
-              desc: "Directly sponsor and enable cross-border youth mobility programs (Global Volunteer, Global Talent, Global Teacher).",
-            },
-          ].map(({ icon: Icon, title, desc }) => (
+          {text.items.map(({ title, desc }, i) => {
+            const Icon = cardIcons[i % cardIcons.length];
+            return (
             <div
-              key={title}
+              key={i}
               className="p-6 border border-[#E5E1DA] rounded-sm bg-white hover:border-[#741F3D] transition-colors group"
             >
               <div className="w-10 h-10 bg-[#101B35] rounded-sm flex items-center justify-center text-[#741F3D] mb-4">
@@ -80,7 +70,8 @@ export function PartnersSection() {
                 {desc}
               </p>
             </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>

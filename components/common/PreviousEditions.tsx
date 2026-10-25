@@ -1,8 +1,10 @@
 import Image from "next/image";
 import { historicalEditions } from "@/lib/historical";
+import { content } from "@/lib/content";
 import { Users2, Globe2, Briefcase, Info } from "lucide-react";
 
 export function PreviousEditions() {
+  const text = content.previousEditions;
   return (
     <section className="py-24 bg-[#F7F3ED] border-b border-[#E5E1DA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,14 +12,14 @@ export function PreviousEditions() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-[#E5E1DA] pb-8">
           <div>
             <span className="text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase block mb-3">
-              Historical Legacy &amp; Precedent
+              {text.eyebrow}
             </span>
             <h2 className="font-serif-title text-4xl sm:text-5xl text-[#101B35] font-normal leading-tight">
-              Previous Editions of EUROXPRO
+              {text.title}
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-[#5A6478] max-w-md mt-4 md:mt-0 leading-relaxed font-light">
-            A proven regional tradition uniting youth leadership across Europe to expand international exchanges and strengthen organizational performance.
+            {text.intro}
           </p>
         </div>
 
@@ -26,9 +28,9 @@ export function PreviousEditions() {
           <Info size={20} className="text-[#741F3D] flex-shrink-0 mt-0.5" />
           <div className="text-xs text-[#5A6478] leading-relaxed">
             <strong className="text-[#101B35] font-semibold block mb-0.5">
-              Historical Reference Disclosure:
+              {text.disclaimerTitle}
             </strong>
-            The statistics, delegate counts, themes, and partner metrics presented below are documented historical records from past EUROXPRO conferences. They illustrate the regional scope and heritage of AIESEC in Europe, and are not claims, capacity targets, or confirmed partnerships for EUROXPRO’27.
+            {text.disclaimer}
           </div>
         </div>
 
@@ -46,6 +48,7 @@ export function PreviousEditions() {
                     src={edition.image}
                     alt={`EUROXPRO ${edition.year} in ${edition.location}, ${edition.country}`}
                     fill
+                    quality={60}
                     sizes="(max-width: 1024px) 100vw, 33vw"
                     className="object-cover object-center img-zoom filter brightness-95"
                   />

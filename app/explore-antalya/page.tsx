@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { AntalyaGuide } from "@/components/antalya/AntalyaGuide";
+import { content } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Explore Antalya — The Mediterranean Host City | EUROXPRO'27",
@@ -8,6 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function ExploreAntalyaPage() {
+  const { hero, ...guide } = content.exploreAntalya;
+
   return (
     <div className="pt-20">
       {/* ── EDITORIAL TRAVEL MAGAZINE HERO ── */}
@@ -15,10 +18,11 @@ export default function ExploreAntalyaPage() {
         {/* Full-bleed scenic Antalya Mediterranean background */}
         <div className="absolute inset-0 z-0 opacity-35">
           <Image
-            src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=2400&q=85"
-            alt="Antalya Mediterranean coastline, cliffs, and ancient Roman harbor"
+            src={hero.image}
+            alt={hero.imageAlt}
             fill
-            priority
+            preload
+            quality={60}
             sizes="100vw"
             className="object-cover object-center filter brightness-95"
           />
@@ -29,18 +33,18 @@ export default function ExploreAntalyaPage() {
         <div className="relative z-10 max-w-7xl mx-auto w-full">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-4">
             <span className="w-8 h-px bg-[#741F3D]" />
-            Host Destination Feature
+            {hero.eyebrow}
           </div>
           <h1 className="font-serif-title font-normal text-4xl sm:text-6xl lg:text-7xl text-white max-w-4xl leading-tight">
-            Explore Antalya
+            {hero.title}
           </h1>
           <p className="mt-4 text-[#A7AFBF] text-lg sm:text-xl max-w-2xl font-light leading-relaxed">
-            Where the azure Mediterranean touches the soaring peaks of the Taurus Mountains. An editorial delegate guide to ancient Roman harbors, clifftop waterfalls, and the rich culinary heritage of the Turkish Riviera.
+            {hero.intro}
           </p>
         </div>
       </section>
 
-      <AntalyaGuide />
+      <AntalyaGuide guide={guide} />
     </div>
   );
 }

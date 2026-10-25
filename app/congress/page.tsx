@@ -6,6 +6,8 @@ import { PreviousEditions } from "@/components/common/PreviousEditions";
 import { PartnersSection } from "@/components/common/PartnersSection";
 import { siteConfig } from "@/lib/config";
 import { schedule, isDraftSchedule } from "@/lib/schedule";
+import { content } from "@/lib/content";
+import { RichText } from "@/components/ui/RichText";
 import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass, Globe2 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -14,6 +16,9 @@ export const metadata: Metadata = {
 };
 
 export default function CongressPage() {
+  const { hero, about, schedule: scheduleText, evenings } = content.congress;
+  const objectiveIcons = [Target, Globe2, Compass, Sparkles];
+
   return (
     <div className="pt-20">
       {/* ── CINEMATIC CONGRESS HERO ── */}
@@ -21,10 +26,11 @@ export default function CongressPage() {
         {/* Ambient auditorium background with deep gradient overlay */}
         <div className="absolute inset-0 z-0 opacity-25">
           <Image
-            src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=2000&q=80"
-            alt="International congress auditorium in session"
+            src={hero.image}
+            alt={hero.imageAlt}
             fill
-            priority
+            preload
+            quality={60}
             sizes="100vw"
             className="object-cover object-center filter brightness-90"
           />
@@ -36,30 +42,30 @@ export default function CongressPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
             <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase">
               <span className="w-8 h-px bg-[#741F3D]" />
-              Official Congress Dossier
+              {hero.eyebrow}
             </div>
             <div className="relative w-48 sm:w-60 aspect-[1024/320] drop-shadow-lg">
               <Image
                 src="/images/euroxpro-logo.png"
                 alt="EUROXPRO Türkiye Official Logo"
                 fill
-                priority
+                sizes="240px"
                 className="object-contain object-left sm:object-right"
               />
             </div>
           </div>
           <h1 className="font-serif-title font-normal text-4xl sm:text-6xl lg:text-7xl text-white max-w-4xl leading-tight">
-            The Congress Experience
+            {hero.title}
           </h1>
           <p className="mt-6 text-[#A7AFBF] text-lg sm:text-xl max-w-2xl font-light leading-relaxed">
-            {siteConfig.longDescription}
+            {hero.intro}
           </p>
 
           <div className="grid sm:grid-cols-3 gap-4 mt-12 max-w-3xl">
             {[
-              { icon: Calendar, label: "Congress Dates", value: siteConfig.datesLabel },
-              { icon: MapPin, label: "Host City", value: siteConfig.venueCity },
-              { icon: MapPin, label: "Congress Venue", value: siteConfig.venueName },
+              { icon: Calendar, label: hero.datesLabel, value: siteConfig.datesLabel },
+              { icon: MapPin, label: hero.cityLabel, value: siteConfig.venueCity },
+              { icon: MapPin, label: hero.venueLabel, value: siteConfig.venueName },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="bg-[#172443]/80 border border-[#233152] rounded-sm p-5 backdrop-blur-sm">
                 <Icon size={16} className="text-[#741F3D] mb-2" />
@@ -78,60 +84,38 @@ export default function CongressPage() {
             
             <div className="lg:col-span-6 space-y-6">
               <SectionHeader
-                eyebrow="Vision &amp; Mandate"
-                title="What is EUROXPRO'27?"
-                description="An immersive transcontinental forum convening youth leadership from across Europe and the global AIESEC network."
+                eyebrow={about.eyebrow}
+                title={about.title}
+                description={about.description}
               />
               <div className="space-y-4 text-sm text-[#374151] leading-relaxed font-light">
-                <p>
-                  <strong>EUROXPRO</strong> is the premier annual regional conference for <strong>AIESEC in Europe</strong>. It convenes national leadership teams (Member Committees), Local Committee presidents, functional vice presidents, and alumni from more than 50 participating entities.
-                </p>
-                <p>
-                  The congress serves as the regional engine for strategic alignment, organizational performance, and youth leadership development. Delegates participate in functional breakout tracks to establish multilateral exchange partnerships (*Global Volunteer, Global Talent, Global Teacher*) and refine operational standards.
-                </p>
-                <p>
-                  Hosted by <strong>MC Türkiye</strong> in Antalya, the 2027 edition draws inspiration from the Mediterranean crossroads under the proposed creative direction: <em>&ldquo;Where Europe Meets the Mediterranean.&rdquo;</em>
-                </p>
+                {about.paragraphs.map((paragraph, i) => (
+                  <p key={i}>
+                    <RichText text={paragraph} />
+                  </p>
+                ))}
               </div>
             </div>
 
             <div className="lg:col-span-6 space-y-4">
               <span className="text-xs font-mono font-bold tracking-[0.2em] text-[#741F3D] uppercase block mb-4">
-                Core Conference Objectives
+                {about.objectivesTitle}
               </span>
 
-              {[
-                {
-                  icon: Target,
-                  title: "Actionable Leadership Development",
-                  desc: "Intensive functional tracks designed to build strategic thinking, crisis resilience, people management, and operational acumen."
-                },
-                {
-                  icon: Globe2,
-                  title: "Pan-European Exchange Scaling",
-                  desc: "Forging bilateral partnerships between national committees to expand cross-border mobility and youth exchange volume."
-                },
-                {
-                  icon: Compass,
-                  title: "Regional Alignment & Governance",
-                  desc: "Uniting entity leadership to tackle common regional challenges, align on strategic priorities, and vote on legislative motions."
-                },
-                {
-                  icon: Sparkles,
-                  title: "Cultural Unity & Mediterranean Immersion",
-                  desc: "Experiencing authentic Turkish hospitality and Antalya’s rich historical crossroads through curated social evenings and Global Village."
-                }
-              ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="p-6 bg-white border border-[#E5E1DA] rounded-sm shadow-sm space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-[#101B35] rounded-sm flex items-center justify-center text-[#741F3D] flex-shrink-0">
-                      <Icon size={16} />
+              {about.objectives.map(({ title, desc }, i) => {
+                const Icon = objectiveIcons[i % objectiveIcons.length];
+                return (
+                  <div key={i} className="p-6 bg-white border border-[#E5E1DA] rounded-sm shadow-sm space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-[#101B35] rounded-sm flex items-center justify-center text-[#741F3D] flex-shrink-0">
+                        <Icon size={16} />
+                      </div>
+                      <h3 className="font-serif-title text-lg text-[#101B35] font-normal">{title}</h3>
                     </div>
-                    <h3 className="font-serif-title text-lg text-[#101B35] font-normal">{title}</h3>
+                    <p className="text-xs text-[#5A6478] leading-relaxed pl-11">{desc}</p>
                   </div>
-                  <p className="text-xs text-[#5A6478] leading-relaxed pl-11">{desc}</p>
-                </div>
-              ))}
+                  );
+              })}
             </div>
 
           </div>
@@ -145,9 +129,9 @@ export default function CongressPage() {
       <section id="schedule" className="py-24 bg-[#101B35] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
-            eyebrow="Congress Programme"
-            title="Congress Timetable & Agenda"
-            description="Day-by-day sequence of plenaries, breakout workshops, networking sessions, and social events."
+            eyebrow={scheduleText.eyebrow}
+            title={scheduleText.title}
+            description={scheduleText.description}
             light
           />
 
@@ -155,7 +139,7 @@ export default function CongressPage() {
             <div className="mb-10 flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-sm p-4">
               <AlertTriangle size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-amber-200 leading-relaxed">
-                <strong>Preliminary Timetable Notice:</strong> The timetable below represents the indicative draft schedule structure. Final session timings, room assignments, and confirmed guest speakers will be ratified and published by the Organizing Committee.
+                <RichText text={scheduleText.draftNotice} />
               </div>
             </div>
           )}
@@ -168,42 +152,21 @@ export default function CongressPage() {
       <section className="py-24 bg-[#F7F3ED] border-t border-[#E5E1DA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
-            eyebrow="Evenings &amp; Culture"
-            title="Social Events &amp; Gala Evenings"
-            description="Carefully designed evening gatherings celebrating Mediterranean cultural richness and delegates' shared journey."
+            eyebrow={evenings.eyebrow}
+            title={evenings.title}
+            description={evenings.description}
           />
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Mediterranean Welcome Dinner",
-                tag: "Day 1 Evening",
-                dress: "Smart Casual",
-                image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
-                desc: "An informal welcoming dinner and icebreaking evening on arrival day. A warm, relaxed coastal setting to reconnect with colleagues and meet delegates from across the European network."
-              },
-              {
-                title: "Global Village & Entity Night",
-                tag: "Day 2 Evening",
-                dress: "National / Cultural Attire",
-                image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
-                desc: "The celebratory AIESEC Global Village with national booths, culinary delicacies, folklore, and country pride from across Europe."
-              },
-              {
-                title: "Turkish Night & Awards Gala",
-                tag: "Day 4 Evening",
-                dress: "Black Tie / Formal / Traditional",
-                image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80",
-                desc: "The signature formal evening of EUROXPRO'27 on Saturday, 3 April. A grand banquet celebrating Turkish heritage, regional cuisine, folkloric performances, and European Leadership Awards."
-              }
-            ].map((event) => (
-              <div key={event.title} className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm flex flex-col justify-between group">
+            {evenings.items.map((event, i) => (
+              <div key={i} className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm flex flex-col justify-between group">
                 <div>
                   <div className="aspect-[16/10] relative overflow-hidden bg-[#101B35]">
                     <Image
                       src={event.image}
                       alt={event.title}
                       fill
+                      quality={60}
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover object-center img-zoom"
                     />
@@ -219,7 +182,7 @@ export default function CongressPage() {
                   </div>
                 </div>
                 <div className="px-6 py-3.5 bg-[#F7F3ED]/80 border-t border-[#E5E1DA] flex items-center justify-between text-xs">
-                  <span className="text-[#8F9AA0] uppercase font-mono tracking-wider text-[10px]">Dress Code:</span>
+                  <span className="text-[#8F9AA0] uppercase font-mono tracking-wider text-[10px]">{evenings.dressCodeLabel}</span>
                   <span className="font-semibold text-[#741F3D]">{event.dress}</span>
                 </div>
               </div>
