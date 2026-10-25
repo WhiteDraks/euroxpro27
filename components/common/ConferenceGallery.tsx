@@ -145,8 +145,8 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
               </div>
 
               <div className="px-5 py-3 border-t border-[#233152] bg-[#101B35]/40 flex items-center justify-between text-[10px] font-mono text-[#8F9AA0]">
-                <span>{item.isHistorical ? "Archival Conference Record" : "Antalya Host Destination"}</span>
-                <span className="text-[#E5E1DA]">Verified Asset</span>
+                <span>{item.isHistorical ? "Conference Moments" : "Antalya Host Destination"}</span>
+                <span className="text-[#E5E1DA]">{item.isHistorical ? "Illustrative" : "Antalya, Türkiye"}</span>
               </div>
             </div>
           ))}
