@@ -80,6 +80,11 @@ export type SiteContent = {
       eyebrow: string;
       title: string;
       description: string;
+      published: boolean;
+      comingSoonBadge: string;
+      comingSoonTitle: string;
+      comingSoonText: string;
+      comingSoonButton: string;
       showDraftNotice: boolean;
       draftNotice: string;
       days: ScheduleDay[];

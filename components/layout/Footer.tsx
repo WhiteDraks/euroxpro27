@@ -2,13 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { Mail, MapPin, Heart, Share2 } from "lucide-react";
 import { siteConfig } from "@/lib/config";
+import { isSchedulePublished } from "@/lib/schedule";
 
 const footerLinks = [
   {
     title: "Congress",
     links: [
       { href: "/congress", label: "The Congress" },
-      { href: "/congress#schedule", label: "Schedule" },
+      { href: "/congress#schedule", label: isSchedulePublished ? "Schedule" : "Agenda (coming soon)" },
       { href: "/team", label: "Organizing Team" },
       { href: "/announcements", label: "Announcements" },
       { href: "/contact", label: "Contact OC" },

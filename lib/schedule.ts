@@ -8,6 +8,8 @@ import { content } from "./content";
 // ============================================================
 
 // Days and sessions are stored in content/site.json (congress.schedule) and edited from /admin.
+// While `published` is off, the site shows a "Coming soon" notice instead of the days.
+export const isSchedulePublished = content.congress.schedule.published;
 export const isDraftSchedule = content.congress.schedule.showDraftNotice;
 export const scheduleStatusLabel = "Program to be announced";
 

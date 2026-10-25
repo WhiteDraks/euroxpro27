@@ -42,7 +42,7 @@ Follow our official channels for real-time bulletins and delegate resources.
     content: `
 Welcome to the official digital hub for EUROXPRO'27 in Antalya, Türkiye!
 
-This website is your central hub for all congress logistics, including the complete 5-day schedule framework, airport and transit guidance, packing checklists, and the merchandise preview store.
+This website is your central hub for all congress logistics, including congress dates and venue updates (the full agenda is coming soon), airport and transit guidance, packing checklists, and the merchandise preview store.
 
 Follow our social media channels for real-time updates and announcements.
 
