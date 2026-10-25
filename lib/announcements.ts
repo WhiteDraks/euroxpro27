@@ -8,24 +8,25 @@ import type { Announcement } from "./types";
 export const announcements: Announcement[] = [
   {
     id: "ann-000",
-    title: "Official Announcement: EUROXPRO'27 Confirmed for Antalya, 31 March – 4 April 2027",
+    title: "Official Host Destination: Antalya, Türkiye — Provisional Dates 31 March – 4 April 2027",
     summary:
-      "The Organizing Committee is thrilled to officially announce that EUROXPRO'27 will take place in the coastal paradise of Antalya, Türkiye from 31 March to 4 April 2027.",
+      "AIESEC in Türkiye and the Organizing Committee announce Antalya as the host destination for EUROXPRO'27, with provisional dates set for 31 March to 4 April 2027.",
     content: `
-We are proud to officially confirm the host city and dates for EUROXPRO'27!
+We are proud to announce the host destination for EUROXPRO'27!
 
-**Location**: Antalya, Türkiye  
-**Dates**: 31 March – 4 April 2027 (5 Days: Wednesday to Sunday)
+**Host Destination**: Antalya, Türkiye  
+**Host Entity**: AIESEC in Türkiye (MC Türkiye)  
+**Provisional Framework Dates**: 31 March – 4 April 2027 (5 Days: Wednesday to Sunday)  
+**Proposed Creative Direction**: "Where Europe Meets the Mediterranean"
 
-Antalya offers an extraordinary setting on the Turkish Riviera where the turquoise Mediterranean meets the dramatic Taurus Mountains. Delegates will experience world-class congress facilities, inspiring seaside plenary halls, and rich Mediterranean culture.
+Antalya offers an extraordinary setting on the Turkish Riviera where the azure Mediterranean meets the dramatic Taurus Mountains. The congress brings together youth leaders from over 50 entities across Europe to drive regional alignment, enhance organizational performance, and expand international youth exchange opportunities.
 
-**Key Milestones & What to Expect Next:**
-- 31 March 2027: Arrival Day, Welcome Desk at Antalya Airport (AYT) & Opening Ceremony
-- 1–3 April 2027: Plenaries, Impact Workshops, Bilateral Networking, Kaleiçi Cultural Afternoon & Turkish Night Gala
-- 4 April 2027: Closing Plenary, Farewell Lunch & Departures
-- Registration opening dates and official delegate package pricing will be released shortly.
+**Next Milestones & Operational Updates:**
+- Official venue convention center and delegate accommodation partners will be ratified and announced following final contract approvals.
+- Delegation quotas and registration procedure briefings will be transmitted directly to national Member Committees.
+- Detailed keynote speaker lineups, plenary agendas, and functional workshop allocations will be published closer to the event.
 
-Stay tuned for upcoming announcements regarding speaker lineups and registration links!
+Follow our official channels for real-time bulletins and delegate resources.
 
 — The EUROXPRO'27 Organizing Committee
     `.trim(),

@@ -66,6 +66,26 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
 
   return (
     <div>
+      {/* Official Program Status Banner */}
+      <div className="mb-8 p-5 bg-[#172443] border border-[#2A3556] rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
+          <div>
+            <span className="text-xs font-mono font-bold tracking-wider text-amber-300 uppercase block">
+              Program Status: Indicative Schedule Framework
+            </span>
+            <p className="text-xs text-[#A7AFBF] mt-0.5 font-light">
+              Official detailed program, keynote speakers, and room allocations to be announced.
+            </p>
+          </div>
+        </div>
+        <div className="text-left sm:text-right flex-shrink-0">
+          <span className="inline-block px-3 py-1 bg-[#101B35] border border-[#2A3556] rounded-sm text-[11px] font-mono text-[#E5E1DA]">
+            5-Day Congress Framework
+          </span>
+        </div>
+      </div>
+
       {/* Day Tabs */}
       <div className="flex flex-wrap gap-2 mb-8">
         {days.map((day, index) => (
@@ -87,11 +107,14 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
 
       {/* Day Content */}
       {currentDay && (
-        <div className="bg-[#172443] border border-[#2A3556] rounded-lg p-6">
+        <div className="bg-[#172443] border border-[#2A3556] rounded-sm p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#2A3556]">
             <div>
-              <h3 className="font-display font-bold text-white text-xl">{currentDay.label}</h3>
-              <p className="text-[#A7AFBF] text-sm">{currentDay.date}</p>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#741F3D] block mb-1">
+                Day {currentDay.day} Focus
+              </span>
+              <h3 className="font-serif-title text-white text-2xl font-normal">{currentDay.label}</h3>
+              <p className="text-[#A7AFBF] text-xs font-mono mt-1">{currentDay.date}</p>
             </div>
             <Clock size={18} className="text-[#741F3D]" />
           </div>
@@ -99,6 +122,11 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
             {currentDay.sessions.map((session) => (
               <SessionCard key={session.id} session={session} />
             ))}
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-[#2A3556] flex items-center justify-between text-[11px] font-mono text-[#8F9AA0]">
+            <span>Times and flow subject to minor operational adjustments</span>
+            <span className="text-[#A7AFBF]">Antalya Local Time (UTC+3)</span>
           </div>
         </div>
       )}

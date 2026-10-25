@@ -5,33 +5,38 @@
 
 export const siteConfig = {
   name: "EUROXPRO'27",
-  tagline: "Where Mediterranean Horizons Inspire Tomorrow’s Leadership.",
+  tagline: "Where Europe Meets the Mediterranean",
+  proposedTheme: "Where Europe Meets the Mediterranean",
+  proposedSupportingLine:
+    "One region. Different realities. A shared ambition to create more global opportunities.",
+  isThemeProposed: true, // Editable creative direction; subject to official ratification
   shortDescription:
-    "An international AIESEC congress bringing together driven young leaders from across Europe and beyond, hosted on the turquoise coast of Antalya, Türkiye.",
+    "The premier annual regional congress of AIESEC in Europe, convening young leaders from 50+ entities to align on regional priorities, expand international exchange opportunities, and develop transformative leadership in Antalya, Türkiye.",
   longDescription:
-    "EUROXPRO'27 is a premier international congress organized under the AIESEC network, gathering ambitious young leaders from across Europe and the world. Over five transformative days, delegates will engage in high-impact sessions, workshops, and cultural experiences along the Mediterranean coast in Antalya, Türkiye.",
+    "EUROXPRO'27 brings together national governing teams, local committee leaders, and young change-makers from across Europe and the Mediterranean. Hosted by MC Türkiye in the historic coastal city of Antalya, the congress is dedicated to regional alignment, organizational performance, and scaling high-impact youth exchanges.",
 
-  // Confirmed Event Dates
+  // Event Dates (Provisional Framework / Subject to Official Ratification)
   startDate: new Date("2027-03-31T09:00:00+03:00"),
   endDate: new Date("2027-04-04T18:00:00+03:00"),
-  datesLabel: "31 March – 4 April 2027",
+  datesLabel: "31 March – 4 April 2027 (Provisional)",
+  isDatesProvisional: true, // Clearly indicated until officially ratified
 
-  // Venue
-  venueName: "[CONGRESS VENUE TO BE CONFIRMED]",
-  venueAddress: "[ANTALYA VENUE ADDRESS TO BE CONFIRMED]",
+  // Venue & Accommodation
+  venueName: "[Official Congress Venue to be Announced]",
+  venueAddress: "[Antalya Venue Location to be Announced]",
   venueCity: "Antalya, Türkiye",
 
   // Hotel
-  hotelName: "[CONGRESS RESORT TO BE CONFIRMED]",
-  hotelAddress: "[ANTALYA RESORT ADDRESS TO BE CONFIRMED]",
-  hotelCheckIn: "14:00 (31 March 2027)",
-  hotelCheckOut: "12:00 (4 April 2027)",
-  hotelPhone: "[HOTEL PHONE TO BE CONFIRMED]",
+  hotelName: "[Official Congress Accommodation to be Announced]",
+  hotelAddress: "[Antalya Accommodation to be Announced]",
+  hotelCheckIn: "14:00 (Arrival Day)",
+  hotelCheckOut: "12:00 (Departure Day)",
+  hotelPhone: "[Official Support Line to be Announced]",
 
   // Registration
-  registrationUrl: null as string | null, // Set to your form URL when ready
+  registrationUrl: null as string | null,
   registrationOpen: false,
-  registrationLabel: "Registration Opening Soon",
+  registrationLabel: "Registration to be Announced",
 
   // Contact
   contactEmail: "[contact@euroxpro27.com]",

@@ -4,15 +4,18 @@ import Image from "next/image";
 import {
   ArrowRight, Calendar, MapPin, ShoppingBag,
   BookOpen, ChevronDown, CheckSquare, Globe2,
-  Users2, Landmark, Waves
+  Landmark, Waves, Target
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/config";
 import { announcements } from "@/lib/announcements";
 import { products, CURRENCY_SYMBOL } from "@/lib/products";
+import { PreviousEditions } from "@/components/common/PreviousEditions";
+import { ConferenceGallery } from "@/components/common/ConferenceGallery";
+import { PartnersSection } from "@/components/common/PartnersSection";
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — Antalya, Türkiye | 31 March – 4 April 2027`,
+  title: `${siteConfig.name} — Antalya, Türkiye | Where Europe Meets the Mediterranean`,
   description: siteConfig.shortDescription,
 };
 
@@ -35,7 +38,7 @@ export default function HomePage() {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-center filter brightness-[0.75] contrast-[1.08] scale-105 transition-transform duration-10000"
+            className="object-cover object-center filter brightness-[0.72] contrast-[1.08] scale-105 transition-transform duration-10000"
           />
           {/* Deep Navy & Midnight Tonal Gradient Overlays for High Legibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#101B35] via-[#101B35]/75 to-[#101B35]/50 mix-blend-multiply" />
@@ -55,7 +58,7 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-3 px-4 py-2 border border-[#233152] bg-[#101B35]/80 backdrop-blur-md rounded-sm">
               <span className="w-2 h-2 rounded-full bg-[#741F3D] animate-pulse" />
               <span className="text-[11px] font-mono tracking-[0.28em] text-[#E5E1DA] uppercase">
-                International AIESEC Congress · Antalya, Türkiye
+                AIESEC in Europe Regional Conference · MC Türkiye Host
               </span>
             </div>
 
@@ -65,19 +68,23 @@ export default function HomePage() {
                 <span className="w-8 h-px bg-[#741F3D]" />
                 EUROXPRO&apos;27
               </p>
-              <h1 className="font-serif-title text-5xl sm:text-7xl lg:text-8xl font-normal tracking-tight text-white leading-[1.03]">
-                ONE HORIZON.
+              <h1 className="font-serif-title text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-white leading-[1.06]">
+                WHERE EUROPE MEETS
                 <br />
-                <span className="text-[#F7F3ED] italic font-light">DIFFERENT PERSPECTIVES.</span>
-                <br />
-                <span className="text-[#741F3D] font-bold">ONE SHARED FUTURE.</span>
+                <span className="text-[#F7F3ED] italic font-light">THE MEDITERRANEAN.</span>
               </h1>
             </div>
 
-            {/* Editorial Lead In */}
-            <p className="text-base sm:text-xl text-[#E5E1DA] font-light max-w-2xl leading-relaxed">
-              Where the azure Mediterranean meets the dramatic Taurus Mountains. Hundreds of ambitious European youth leaders converging for a defining congress of dialogue, cross-border development, and lasting unity.
-            </p>
+            {/* Editorial Supporting Line */}
+            <div className="space-y-3">
+              <p className="text-base sm:text-xl text-[#E5E1DA] font-light max-w-2xl leading-relaxed">
+                {siteConfig.proposedSupportingLine}
+              </p>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-sm text-[10px] font-mono uppercase tracking-widest text-[#A7AFBF]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#741F3D]" />
+                Proposed Creative Direction · Unconfirmed Official Theme
+              </div>
+            </div>
 
             {/* Date & Location Badges */}
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
@@ -95,12 +102,17 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center gap-4 pt-4">
               <Link href="/congress">
                 <Button size="lg" variant="primary" className="shadow-xl shadow-[#741F3D]/30 text-sm font-semibold tracking-wide">
-                  Explore Congress Agenda <ArrowRight size={16} />
+                  Explore Congress Vision <ArrowRight size={16} />
                 </Button>
               </Link>
               <Link href="/delegate-guide">
                 <Button size="lg" variant="outline" className="border-[#E5E1DA]/40 text-[#E5E1DA] hover:bg-white/10 hover:text-white backdrop-blur-sm text-sm font-semibold tracking-wide">
-                  Delegate Preparation Guide
+                  Delegate Preparation Hub
+                </Button>
+              </Link>
+              <Link href="/explore-antalya">
+                <Button size="lg" variant="ghost" className="text-[#E5E1DA] hover:text-white hover:bg-white/5 text-sm font-semibold tracking-wide">
+                  Destination Guide &rarr;
                 </Button>
               </Link>
             </div>
@@ -124,7 +136,7 @@ export default function HomePage() {
             <Link href="/announcements" className="flex items-center justify-between gap-4 group">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="px-2 py-0.5 bg-white text-[#741F3D] text-[10px] font-bold tracking-wider uppercase rounded-sm flex-shrink-0">
-                  Official Update
+                  Official Bulletin
                 </span>
                 <span className="text-sm font-medium truncate text-[#F7F3ED]">
                   {pinnedAnnouncement.title}
@@ -138,75 +150,99 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ── 3. EDITORIAL MANIFESTO: THE MEDITERRANEAN CROSSROADS ── */}
+      {/* ── 3. RESEARCH-INFORMED MESSAGING: THE THREE PILLARS (IVORY SECTION) ── */}
       <section className="py-28 bg-[#F7F3ED] text-[#101B35] border-b border-[#E5E1DA] bosphorus-grid">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          
+          <div className="max-w-3xl mb-16">
+            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-3">
+              <span className="w-6 h-px bg-[#741F3D]" />
+              Conference Foundation &amp; Identity
+            </div>
+            <h2 className="font-serif-title text-4xl sm:text-5xl font-normal leading-[1.12]">
+              Three Dimensions Defining EUROXPRO&apos;27
+            </h2>
+            <div className="w-12 h-1 bg-[#741F3D] my-4" />
+            <p className="text-base sm:text-lg text-[#374151] leading-relaxed font-light">
+              EUROXPRO is not a holiday or casual gathering; it is the strategic powerhouse of AIESEC in Europe. It combines purpose-driven leadership development, meaningful regional collaboration, and the authentic cultural atmosphere of the Mediterranean.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
             
-            {/* Left Narrative */}
-            <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase">
-                <span className="w-6 h-px bg-[#741F3D]" />
-                The Congress Philosophy
+            {/* Pillar 1: Purpose */}
+            <div className="bg-white border border-[#E5E1DA] p-8 rounded-sm shadow-sm flex flex-col justify-between group hover:border-[#741F3D] transition-colors">
+              <div>
+                <div className="w-12 h-12 bg-[#101B35] text-[#741F3D] rounded-sm flex items-center justify-center mb-6">
+                  <Target size={22} />
+                </div>
+                <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-2">
+                  Dimension 01 · Purpose
+                </span>
+                <h3 className="font-serif-title text-2xl font-normal text-[#101B35] mb-3">
+                  Strengthening AIESEC in Europe
+                </h3>
+                <p className="text-xs sm:text-sm text-[#5A6478] leading-relaxed font-light mb-4">
+                  Aligning national leadership teams and local committees on regional priorities. Scaling cross-border exchange opportunities (*Global Volunteer, Global Talent, Global Teacher*) to create real impact.
+                </p>
               </div>
-              <h2 className="font-serif-title text-4xl sm:text-5xl font-normal leading-[1.12]">
-                Where Mediterranean Horizons Inspire Tomorrow’s Leadership
-              </h2>
-              <div className="w-12 h-1 bg-[#741F3D]" />
-              <p className="text-base sm:text-lg text-[#374151] leading-relaxed font-light">
-                For millennia, the Mediterranean coast of Antalya has stood as the crossroads of seafaring civilizations, cultural dialogue, and enduring ideas. EUROXPRO’27 channels this timeless coastal energy to create an extraordinary gathering distinct from standard conference halls.
-              </p>
-              <p className="text-sm text-[#5A6478] leading-relaxed">
-                Over five transformative days, delegates will participate in rigorous plenary discussions, skill-building breakout tracks, and profound cultural exchanges tailored to strengthen local committees across the international network.
-              </p>
-              <div className="pt-2">
-                <Link href="/congress">
-                  <Button variant="secondary" size="md">
-                    Read Congress Vision &amp; Pillars <ArrowRight size={15} />
-                  </Button>
-                </Link>
+              <div className="pt-4 border-t border-[#E5E1DA]">
+                <span className="text-[11px] font-mono text-[#8F9AA0]">Focus: Operations &amp; Strategy</span>
               </div>
             </div>
 
-            {/* Right Asymmetrical Photography Composition */}
-            <div className="lg:col-span-6 relative">
-              <div className="relative border border-[#E5E1DA] bg-white p-3 sm:p-4 rounded-sm shadow-xl group">
-                <div className="aspect-[4/3] relative overflow-hidden rounded-sm bg-[#101B35]">
-                  <Image
-                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
-                    alt="Antalya Mediterranean cliffs and coastline"
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover object-center img-zoom"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#101B35]/80 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span className="text-[10px] font-mono tracking-widest text-[#E5E1DA] uppercase block">
-                      Mediterranean Coast · Antalya Riviera
-                    </span>
-                    <p className="font-serif-title text-lg font-normal">Classical Pamphylian &amp; Mediterranean Heritage</p>
-                  </div>
+            {/* Pillar 2: Destination */}
+            <div className="bg-white border border-[#E5E1DA] p-8 rounded-sm shadow-sm flex flex-col justify-between group hover:border-[#741F3D] transition-colors">
+              <div>
+                <div className="w-12 h-12 bg-[#101B35] text-[#741F3D] rounded-sm flex items-center justify-center mb-6">
+                  <Waves size={22} />
                 </div>
-              </div>
-
-              {/* Overlapping Floating Detail Card */}
-              <div className="hidden sm:block absolute -bottom-8 -left-8 bg-[#101B35] text-white p-6 rounded-sm border border-[#233152] shadow-2xl max-w-xs">
-                <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-1">
-                  Riviera Dimension
+                <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-2">
+                  Dimension 02 · Destination
                 </span>
-                <p className="text-xs text-[#E5E1DA] font-serif-title italic leading-relaxed">
-                  &ldquo;Where the turquoise sea meets towering peaks, inspiring leaders who bridge cultures.&rdquo;
+                <h3 className="font-serif-title text-2xl font-normal text-[#101B35] mb-3">
+                  Antalya: Mediterranean Crossroads
+                </h3>
+                <p className="text-xs sm:text-sm text-[#5A6478] leading-relaxed font-light mb-4">
+                  Where centuries of maritime history meet sweeping sea cliffs, historic Kaleiçi, and the dramatic Taurus mountains. A peerless setting that inspires visionary perspectives and forward momentum.
                 </p>
+              </div>
+              <div className="pt-4 border-t border-[#E5E1DA]">
+                <span className="text-[11px] font-mono text-[#8F9AA0]">Focus: Heritage &amp; Inspiration</span>
+              </div>
+            </div>
+
+            {/* Pillar 3: Experience */}
+            <div className="bg-white border border-[#E5E1DA] p-8 rounded-sm shadow-sm flex flex-col justify-between group hover:border-[#741F3D] transition-colors">
+              <div>
+                <div className="w-12 h-12 bg-[#101B35] text-[#741F3D] rounded-sm flex items-center justify-center mb-6">
+                  <Globe2 size={22} />
+                </div>
+                <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-2">
+                  Dimension 03 · Experience
+                </span>
+                <h3 className="font-serif-title text-2xl font-normal text-[#101B35] mb-3">
+                  Youth Unity &amp; Turkish Hospitality
+                </h3>
+                <p className="text-xs sm:text-sm text-[#5A6478] leading-relaxed font-light mb-4">
+                  Connecting hundreds of young leaders across 50+ countries. Experiencing the legendary warmth of Turkish culture, bilateral synergy, and building lifelong international friendships.
+                </p>
+              </div>
+              <div className="pt-4 border-t border-[#E5E1DA]">
+                <span className="text-[11px] font-mono text-[#8F9AA0]">Focus: Culture &amp; Community</span>
               </div>
             </div>
 
           </div>
+
         </div>
       </section>
 
-      {/* ── 4. THE FOUR PILLARS (DEEP NAVY EDITORIAL SECTION) ── */}
+      {/* ── 4. HISTORICAL EDITIONS RETROSPECTIVE (IVORY SECTION) ── */}
+      <PreviousEditions />
+
+      {/* ── 5. THE FOUR PILLARS OF REGIONAL IMPACT (NAVY EDITORIAL SECTION) ── */}
       <section className="py-28 bg-[#101B35] text-white relative overflow-hidden">
-        {/* Subtle background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#741F3D]/10 rounded-full blur-[150px] pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -216,11 +252,11 @@ export default function HomePage() {
                 Congress Architecture
               </span>
               <h2 className="font-serif-title text-4xl sm:text-5xl font-normal text-white">
-                The Four Pillars of EUROXPRO&apos;27
+                Four Pillars of EUROXPRO&apos;27
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-[#A7AFBF] max-w-md mt-4 md:mt-0 leading-relaxed font-light">
-              Structured to maximize delegate learning, peer networking, leadership capability, and unforgettable memories.
+              Carefully engineered to maximize regional alignment, organizational capacity, leadership growth, and cross-cultural unity.
             </p>
           </div>
 
@@ -229,26 +265,26 @@ export default function HomePage() {
               {
                 num: "01",
                 icon: Globe2,
-                title: "Pan-European Gathering",
-                desc: "Connecting local committee presidents, vice presidents, and alumni from dozens of European territories."
+                title: "Regional Alignment",
+                desc: "Bringing together national governing teams (MCs) and local presidents from over 50 entities to align on regional European priorities."
               },
               {
                 num: "02",
-                icon: Users2,
-                title: "Impact Workshops",
-                desc: "Action-oriented parallel breakout tracks focusing on operational resilience, marketing, and leadership."
+                icon: Target,
+                title: "Exchange Expansion",
+                desc: "Scaling operational capacity and delivery standards across Global Volunteer, Global Talent, and Global Teacher programs."
               },
               {
                 num: "03",
                 icon: Waves,
-                title: "Mediterranean Forum",
-                desc: "Plenary discussions and leadership symposia overlooking the turquoise waters of the Turkish Riviera."
+                title: "Mediterranean Plenaries",
+                desc: "Inspiring keynote sessions and external partner symposia hosted along the Turkish Riviera coastline."
               },
               {
                 num: "04",
                 icon: Landmark,
-                title: "Turkish Night Gala",
-                desc: "The celebratory signature gala highlighting authentic Turkish cuisine, regional rhythms, and traditional attire."
+                title: "Turkish Night & Gala",
+                desc: "The celebratory formal evening honoring regional leadership achievements, traditional Turkish cuisine, and cultural folklore."
               }
             ].map(({ num, icon: Icon, title, desc }) => (
               <div
@@ -267,7 +303,7 @@ export default function HomePage() {
                 </div>
                 <div className="pt-6 border-t border-[#233152] mt-6">
                   <span className="text-[10px] font-mono tracking-widest text-[#E5E1DA] uppercase">
-                    Core Experience
+                    Core Conference Area
                   </span>
                 </div>
               </div>
@@ -276,25 +312,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 5. DESTINATION MAGAZINE FEATURE (ANTALYA SPREAD) ── */}
+      {/* ── 6. IMAGE-LED GALLERY: CONFERENCES & ANTALYA ── */}
+      <ConferenceGallery />
+
+      {/* ── 7. PARTNERS & SPONSORSHIP SECTION ── */}
+      <PartnersSection />
+
+      {/* ── 8. DESTINATION MAGAZINE FEATURE (ANTALYA SPREAD) ── */}
       <section className="py-28 bg-[#F7F3ED] border-b border-[#E5E1DA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="max-w-2xl mb-16">
             <span className="text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase block mb-3">
-              Destination Magazine Feature
+              Destination Feature
             </span>
             <h2 className="font-serif-title text-4xl sm:text-5xl text-[#101B35] font-normal leading-tight">
-              The Turkish Riviera: An Unrivaled Host Destination
+              Antalya: The Host Destination
             </h2>
             <p className="text-sm sm:text-base text-[#5A6478] mt-4 leading-relaxed font-light">
-              From the morning citrus scents of orange groves to the turquoise waves lapping against ancient Roman harbors, Antalya welcomes international delegates with world-class hospitality and breathtaking coastal panoramas.
+              From the morning citrus scents to the turquoise waves lapping against ancient Roman harbors, Antalya welcomes international delegates with world-class hospitality and breathtaking coastal panoramas.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             
-            {/* Feature 1: Kaleiçi Roman Marina */}
+            {/* Feature 1: Kaleiçi */}
             <div className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
               <div className="aspect-[4/3] relative overflow-hidden bg-[#101B35]">
                 <Image
@@ -316,7 +358,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Feature 2: Düden Coastal Waterfalls */}
+            {/* Feature 2: Düden */}
             <div className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
               <div className="aspect-[4/3] relative overflow-hidden bg-[#101B35]">
                 <Image
@@ -338,12 +380,12 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Feature 3: Youth Collaboration */}
+            {/* Feature 3: Konyaaltı */}
             <div className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
               <div className="aspect-[4/3] relative overflow-hidden bg-[#101B35]">
                 <Image
-                  src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80"
-                  alt="Young leaders collaborating in an international congress"
+                  src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+                  alt="Konyaaltı Beach and Taurus Mountains"
                   fill
                   sizes="(max-width: 1024px) 100vw, 33vw"
                   className="object-cover object-center img-zoom"
@@ -351,11 +393,11 @@ export default function HomePage() {
               </div>
               <div className="p-6">
                 <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-1">
-                  Youth Collaboration
+                  Alpine &amp; Coastal Panorama
                 </span>
-                <h3 className="font-serif-title text-xl text-[#101B35] mb-2">Global Community</h3>
+                <h3 className="font-serif-title text-xl text-[#101B35] mb-2">Konyaaltı &amp; Taurus Range</h3>
                 <p className="text-xs text-[#5A6478] leading-relaxed">
-                  A dynamic, supportive environment where lifelong friendships and cross-cultural leadership networks are forged.
+                  Sweeping Mediterranean shoreline framed by snow-capped limestone peaks plunging straight into the azure sea.
                 </p>
               </div>
             </div>
@@ -365,7 +407,7 @@ export default function HomePage() {
           <div className="mt-12 text-center">
             <Link href="/explore-antalya">
               <Button variant="secondary" size="lg">
-                View Full Antalya City &amp; Culture Guide <ArrowRight size={16} />
+                View Full Antalya Destination &amp; Cultural Guide <ArrowRight size={16} />
               </Button>
             </Link>
           </div>
@@ -373,7 +415,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 6. DELEGATE PREPARATION (DEEP BURGUNDY FEATURE STRIP) ── */}
+      {/* ── 9. DELEGATE PREPARATION (DEEP BURGUNDY FEATURE STRIP) ── */}
       <section className="py-24 bg-gradient-to-r from-[#51152D] via-[#741F3D] to-[#51152D] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-10 items-center">
@@ -407,20 +449,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 7. MERCHANDISE CAPSULE PREVIEW ── */}
+      {/* ── 10. MERCHANDISE CAPSULE PREVIEW (DEMO NOTICE) ── */}
       <section className="py-28 bg-white border-t border-[#E5E1DA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 border-b border-[#E5E1DA] pb-6">
             <div>
               <span className="text-xs font-mono font-semibold tracking-widest text-[#741F3D] uppercase block mb-1">
-                Official Souvenirs
+                Souvenirs &amp; Memorabilia
               </span>
               <h2 className="font-serif-title text-3xl sm:text-4xl text-[#101B35]">
                 Limited-Edition Congress Collection
               </h2>
             </div>
             <Link href="/merch" className="text-xs font-semibold text-[#741F3D] hover:underline flex items-center gap-1.5 mt-4 sm:mt-0">
-              Browse full storefront <ArrowRight size={14} />
+              Browse full demo storefront <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -455,7 +497,7 @@ export default function HomePage() {
                 <div className="pt-4 border-t border-[#E5E1DA] flex items-center justify-between">
                   <span className="font-bold text-[#741F3D] text-sm">{CURRENCY_SYMBOL}{p.price}</span>
                   <Link href="/merch" className="text-xs text-[#101B35] hover:text-[#741F3D] font-semibold">
-                    Configure Pre-Order &rarr;
+                    Configure Pre-Order Interest &rarr;
                   </Link>
                 </div>
               </div>
@@ -464,17 +506,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 8. CLOSING ARCHITECTURAL BANNER ── */}
+      {/* ── 11. CLOSING CALLOUT & OC SUPPORT ── */}
       <section className="py-24 bg-[#101B35] text-white border-t border-[#233152] relative overflow-hidden bosphorus-grid-dark">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6 relative z-10">
           <span className="text-xs font-mono tracking-widest text-[#741F3D] uppercase block">
-            The Organizing Committee
+            Organizing Committee Secretariat
           </span>
           <h2 className="font-serif-title text-3xl sm:text-5xl font-normal text-white">
             Have Questions Regarding Participation?
           </h2>
           <p className="text-sm sm:text-base text-[#A7AFBF] max-w-xl mx-auto leading-relaxed font-light">
-            The EUROXPRO’27 Organizing Committee is actively available to assist national delegates, local committee presidents, and international participants.
+            The EUROXPRO’27 Organizing Committee is actively available to assist national Member Committees, Local Committee presidents, and prospective partners.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
             <Link href="/contact">

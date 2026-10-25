@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { CongressSchedule } from "@/components/congress/CongressSchedule";
+import { PreviousEditions } from "@/components/common/PreviousEditions";
+import { PartnersSection } from "@/components/common/PartnersSection";
 import { siteConfig } from "@/lib/config";
 import { schedule, isDraftSchedule } from "@/lib/schedule";
-import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass } from "lucide-react";
+import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass, Globe2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "The Congress — Programme, Schedule & Evenings | EUROXPRO'27",
-  description: "Explore the EUROXPRO'27 congress programme in Antalya: international plenaries, breakout workshops, Riviera social evenings, and the signature Turkish Night Gala.",
+  title: "The Congress — Purpose, Schedule & Evenings | EUROXPRO'27",
+  description: "Explore the EUROXPRO'27 congress purpose in Antalya: regional alignment for AIESEC in Europe, leadership capacity tracks, indicative schedule, and signature evening galas.",
 };
 
 export default function CongressPage() {
@@ -71,37 +73,42 @@ export default function CongressPage() {
               />
               <div className="space-y-4 text-sm text-[#374151] leading-relaxed font-light">
                 <p>
-                  EUROXPRO’27 represents a milestone regional congress bringing together motivated local committee presidents, vice presidents, national team leaders, and distinguished alumni. It combines professional capacity building with profound cross-cultural appreciation.
+                  <strong>EUROXPRO</strong> is the premier annual regional conference for <strong>AIESEC in Europe</strong>. It convenes national leadership teams (Member Committees), Local Committee presidents, functional vice presidents, and alumni from more than 50 participating entities.
                 </p>
                 <p>
-                  Through an integrated sequence of keynote plenaries, interactive workshops, peer-exchange circles, and curated social evenings, delegates gain actionable leadership frameworks and build a lifelong pan-European network.
+                  The congress serves as the regional engine for strategic alignment, organizational performance, and youth leadership development. Delegates participate in functional breakout tracks to establish multilateral exchange partnerships (*Global Volunteer, Global Talent, Global Teacher*) and refine operational standards.
                 </p>
                 <p>
-                  Hosted in Antalya, Türkiye, the congress leverages the unique Mediterranean coastal setting where ancient civilizations meet dynamic European youth leadership to foster broader perspectives and strategic clarity.
+                  Hosted by <strong>MC Türkiye</strong> in Antalya, the 2027 edition draws inspiration from the Mediterranean crossroads under the proposed creative direction: <em>&ldquo;Where Europe Meets the Mediterranean.&rdquo;</em>
                 </p>
               </div>
             </div>
 
             <div className="lg:col-span-6 space-y-4">
               <span className="text-xs font-mono font-bold tracking-[0.2em] text-[#741F3D] uppercase block mb-4">
-                Core Objectives
+                Core Conference Objectives
               </span>
 
               {[
                 {
                   icon: Target,
                   title: "Actionable Leadership Development",
-                  desc: "Equipping entity leaders with practical tools, management frameworks, and resilient leadership skills."
+                  desc: "Intensive functional tracks designed to build strategic thinking, crisis resilience, people management, and operational acumen."
+                },
+                {
+                  icon: Globe2,
+                  title: "Pan-European Exchange Scaling",
+                  desc: "Forging bilateral partnerships between national committees to expand cross-border mobility and youth exchange volume."
                 },
                 {
                   icon: Compass,
-                  title: "Multilateral Regional Synergy",
-                  desc: "Uniting delegates from diverse national committees to identify shared challenges and co-create cross-border initiatives."
+                  title: "Regional Alignment & Governance",
+                  desc: "Uniting entity leadership to tackle common regional challenges, align on strategic priorities, and vote on legislative motions."
                 },
                 {
                   icon: Sparkles,
-                  title: "Cultural & Mediterranean Immersion",
-                  desc: "Experiencing Turkish hospitality, traditions, and the cultural richness of Antalya through bespoke evening events."
+                  title: "Cultural Unity & Mediterranean Immersion",
+                  desc: "Experiencing authentic Turkish hospitality and Antalya’s rich historical crossroads through curated social evenings and Global Village."
                 }
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="p-6 bg-white border border-[#E5E1DA] rounded-sm shadow-sm space-y-2">
@@ -119,6 +126,9 @@ export default function CongressPage() {
           </div>
         </div>
       </section>
+
+      {/* ── PREVIOUS EDITIONS RETROSPECTIVE ── */}
+      <PreviousEditions />
 
       {/* ── CONGRESS SCHEDULE & TIMETABLE (DEEP NAVY) ── */}
       <section id="schedule" className="py-24 bg-[#101B35] text-white">
@@ -206,6 +216,9 @@ export default function CongressPage() {
           </div>
         </div>
       </section>
+
+      {/* ── PARTNERS SECTION ── */}
+      <PartnersSection />
     </div>
   );
 }

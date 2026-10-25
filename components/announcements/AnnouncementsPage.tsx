@@ -109,8 +109,14 @@ export function AnnouncementsPage({
         </div>
 
         {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-[#5A6478] text-lg">No announcements in this category yet.</p>
+          <div className="text-center py-20 bg-white border border-[#E3E0DC] rounded-sm p-10">
+            <div className="w-12 h-12 bg-[#F7F3ED] rounded-full flex items-center justify-center mx-auto mb-4 text-[#741F3D]">
+              <Calendar size={22} />
+            </div>
+            <h4 className="font-serif-title text-xl text-[#101B35] mb-2">No Announcements in this Category</h4>
+            <p className="text-xs text-[#5A6478] max-w-sm mx-auto leading-relaxed">
+              There are no announcements currently published under this filter. Please check &ldquo;All Updates&rdquo; or return closer to the congress dates.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">

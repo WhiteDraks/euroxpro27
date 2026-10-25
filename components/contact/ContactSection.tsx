@@ -137,10 +137,10 @@ export function ContactSection({
                 </div>
                 <h4 className="font-display font-bold text-lg text-[#101B35] mb-2">Message Recorded</h4>
                 <p className="text-xs text-[#5A6478] leading-relaxed mb-6">
-                  Thank you, {formData.name}. In this demonstration configuration, messages are routed via centralized OC webhooks once production SMTP / Resend API variables are integrated.
+                  Thank you, {formData.name}. Your inquiry has been registered in the demonstration portal. The Organizing Committee will respond to {formData.email} once official pre-conference communication lines open.
                 </p>
                 <Button variant="outline" size="sm" onClick={() => setStatus("idle")}>
-                  Send Another Inquiry
+                  Submit Another Inquiry
                 </Button>
               </div>
             ) : (
@@ -212,7 +212,7 @@ export function ContactSection({
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-sm p-3 flex items-start gap-2 text-[11px] text-amber-900">
                   <AlertCircle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
                   <span>
-                    Note: Backend message delivery requires external transactional email configuration (see .env.example).
+                    Inquiries submitted during the pre-conference phase are reviewed by the Organizing Committee secretariat. For urgent bilateral questions, contact your Member Committee.
                   </span>
                 </div>
 

@@ -96,8 +96,8 @@ export function MerchStore({
         <div className="mb-10 bg-amber-500/10 border border-amber-500/30 rounded-sm p-5 flex items-start gap-4">
           <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-amber-900 leading-relaxed">
-            <strong className="font-semibold block mb-1">Illustrative Preview &amp; Pre-Order Interest System</strong>
-            The official EUROXPRO&apos;27 merchandise collection is in active development. All items, designs, and prices below are illustrative representations. Submitting an order here records your interest with the Organizing Committee — no payment or financial transaction occurs until official pre-orders open.
+            <strong className="font-semibold block mb-1">DEMO STORE — Illustrative Collection &amp; Pre-Order Interest System</strong>
+            The official EUROXPRO&apos;27 capsule collection is currently in development. All designs, product specifications, and prices below are illustrative representations. Submitting an inquiry records your size and item interest for the Organizing Committee — no payment or financial transaction is processed on this website. Official payment channels will be communicated separately by AIESEC in Türkiye.
             {instructions && (
               <p className="mt-2 text-xs text-amber-800 border-t border-amber-500/20 pt-2">
                 {instructions.trim().split("\n")[0]}
@@ -200,9 +200,9 @@ export function MerchStore({
                 <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check size={24} />
                 </div>
-                <h4 className="font-serif-title font-bold text-lg text-[#101B35] mb-2">Order Request Recorded!</h4>
+                <h4 className="font-serif-title font-bold text-lg text-[#101B35] mb-2">Pre-Order Interest Recorded!</h4>
                 <p className="text-xs text-[#5A6478] leading-relaxed mb-4">
-                  Thank you, {formData.name}. Your expression of interest has been saved. The Organizing Committee will contact {formData.email} when official congress merchandise orders open.
+                  Thank you, {formData.name}. Your expression of interest has been registered with the Organizing Committee. Please note this is a pre-order interest record (no payment was processed). Official ordering details and invoices will be issued to {formData.email} once production begins.
                 </p>
                 <Button
                   variant="outline"

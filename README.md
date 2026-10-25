@@ -5,25 +5,26 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-741F3D)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
 
-Official web portal and delegate operations hub for **EUROXPRO’27**, an international AIESEC congress hosted in Antalya, Türkiye (31 March – 4 April 2027).
+Official web portal and delegate operations hub for **EUROXPRO’27**, the premier regional conference of **AIESEC in Europe**, hosted by **MC Türkiye** in Antalya, Türkiye (Provisional Dates: 31 March – 4 April 2027).
 
-> **Congress Motto:** *Where Mediterranean Horizons Inspire Tomorrow’s Leadership.*
+> **Proposed Creative Positioning:** *Where Europe Meets the Mediterranean*  
+> **Supporting Line:** *One region. Different realities. A shared ambition to create more global opportunities.*
 
 ---
 
 ## 🏛️ Project Architecture & Implemented Routes
 
-The website is a fully typed, responsive multi-page application with centralized content models:
+The website is a fully typed, responsive multi-page application with centralized content models and verified AIESEC in Europe context:
 
-- **`/` — Home**: Cinematic Mediterranean hero, editorial layout, confirmed dates & Antalya city badge, delegate tool cards, Turkish Riviera destination showcase, and capsule merch preview.
-- **`/congress` — The Congress**: Congress vision, Mediterranean leadership tracks, social evenings (Turkish Night Gala & Global Village dress codes), and an interactive 5-day timetable (31 March – 4 April 2027).
-- **`/delegate-guide` — Delegate Guide**: Audited travel logistics, verified passport & official e-Visa links (`evisa.gov.tr`), Antalya Airport (AYT) transit, AntRay light rail & AntalyaKart rules, currency (TRY/₺) & banking advice, connectivity/eSIM, 112 emergency services, and an interactive `localStorage` packing checklist.
-- **`/explore-antalya` — Explore Antalya**: Curated landmarks (Kaleiçi historic old town, Düden Waterfalls, Konyaaltı & Taurus Mountains, Aspendos), Mediterranean gastronomy & dining etiquette, practical Turkish phrases with pronunciations, and useful city locations.
+- **`/` — Home**: Cinematic Mediterranean hero, editorial layout, proposed creative positioning, three core dimensions (Purpose, Destination, Experience), historical retrospective (**Previous Editions: Greece 2026, Rimini 2025, Alanya 2024**), image-led conference & destination gallery, official partners placeholder, capsule merch preview, and delegate preparation banner.
+- **`/congress` — The Congress**: In-depth narrative on AIESEC in Europe's regional mission, organizational alignment, and exchange growth (*Global Volunteer, Global Talent, Global Teacher*); Previous Editions retrospective; 5-day indicative schedule framework (*Program to be announced*); and curated cultural evenings (*Global Village, Turkish Night Gala*).
+- **`/delegate-guide` — Delegate Guide**: Practical information hub covering registration & participation criteria, accommodation status (TBA), arrival/departure via Antalya Airport (AYT), AntRay light rail & AntalyaKart rules, currency (TRY/₺) & banking advice, connectivity/eSIM, 112 emergency services, interactive `localStorage` packing checklist, and bulletin/FAQ links.
+- **`/explore-antalya` — Explore Antalya**: Verified cultural highlights (Kaleiçi historic old town & Roman harbor, Lower Düden Waterfalls, Konyaaltı beach & Taurus Mountains, Aspendos theater), Mediterranean culinary traditions (Antalya piyaz, fresh seafood, citrus preserves), and transit routes.
 - **`/explore-istanbul` — Legacy Route**: Automatically redirects to `/explore-antalya`.
-- **`/merch` — Merch Store**: Congress capsule collection, interactive modal for size/color/quantity selection, real-time cart subtotal calculation, and an expression-of-interest pre-order flow.
-- **`/faq` — FAQ**: Real-time search and categorized accordions (Registration, Visas, Accommodation, Transportation, Payments, Schedule, Merch, Safety).
-- **`/announcements` — Announcements**: News bulletin with pinned announcements (including Antalya host city notice), category filtering, and expandable read-more views.
-- **`/contact` — Contact & OC**: Organizing Committee leadership profiles and a validated contact form routed by department.
+- **`/merch` — Merch Store**: Capsule collection with explicit DEMO pre-order & expression-of-interest status (no live payments).
+- **`/faq` — FAQ**: Real-time search and categorized accordions (Registration, Travel & Visas, Accommodation, Transportation, Payments, Schedule, Merch, Safety).
+- **`/announcements` — Announcements**: News bulletin with pinned updates, category filtering, and polished empty-state handling.
+- **`/contact` — Contact & OC**: Organizing Committee leadership profiles and validated inquiry form with client validation.
 - **`/_not-found` — 404**: Branded custom not-found page.
 
 ---

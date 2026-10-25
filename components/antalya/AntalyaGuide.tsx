@@ -155,6 +155,12 @@ export function AntalyaGuide() {
               title="Must-See Sights in Antalya"
               description="A curated selection of the most significant ancient, coastal, and cultural landmarks easily accessible to delegates."
             />
+            <div className="mb-8 p-4 bg-white border border-[#E5E1DA] rounded-sm flex items-start gap-3 text-xs text-[#5A6478]">
+              <Info size={16} className="text-[#741F3D] flex-shrink-0 mt-0.5" />
+              <span>
+                <strong>Cultural Exploration Notice:</strong> The landmarks, museums, and natural sites below are curated suggestions for delegates seeking to experience Antalya independently before, during leisure periods, or following the congress. They are not mandatory excursions or included activities within the official conference fee.
+              </span>
+            </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {attractions.map((item) => (
                 <Card key={item.name} className="flex flex-col h-full bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm group">

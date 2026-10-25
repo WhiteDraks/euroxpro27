@@ -109,3 +109,28 @@ export type LocationCategory =
   | "attraction"
   | "food"
   | "health";
+
+export type HistoricalEdition = {
+  year: number;
+  location: string;
+  country: string;
+  delegatesMetric: string;
+  delegatesCount?: number;
+  countriesCount?: number;
+  partnersCount?: number;
+  theme?: string;
+  summary: string;
+  highlights: string[];
+  image: string;
+};
+
+export type GalleryItem = {
+  id: string;
+  title: string;
+  category: "conferences" | "antalya";
+  yearOrArea: string;
+  location: string;
+  caption: string;
+  image: string;
+  isHistorical: boolean;
+};

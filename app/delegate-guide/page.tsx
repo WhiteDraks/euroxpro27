@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/config";
 import {
   Plane, Hotel, CreditCard, HeartPulse, CheckSquare,
   FileText, Wifi, Zap, Clock, ExternalLink, ShieldCheck,
-  Bus, Train, Info, AlertTriangle
+  Bus, Train, Info, AlertTriangle, UserCheck, Bell, HelpCircle, ArrowRight
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 };
 
 const guideSections = [
+  { id: "registration-info", label: "Registration & Profile", icon: UserCheck },
   { id: "travel-visa", label: "Travel & e-Visa", icon: FileText },
   { id: "airports-transit", label: "Airports & Transit", icon: Plane },
   { id: "accommodation", label: "Accommodation Status", icon: Hotel },
@@ -23,6 +24,7 @@ const guideSections = [
   { id: "connectivity", label: "SIM, eSIM & Power", icon: Wifi },
   { id: "health-safety", label: "Health & Emergency", icon: HeartPulse },
   { id: "checklist", label: "Packing Checklist", icon: CheckSquare },
+  { id: "announcements-faq", label: "Bulletins & FAQ", icon: Bell },
 ];
 
 export default function DelegateGuidePage() {
@@ -57,6 +59,97 @@ export default function DelegateGuidePage() {
                 {label}
               </a>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 0. REGISTRATION & PARTICIPATION INFORMATION ── */}
+      <section id="registration-info" className="py-20 bg-white border-b border-[#E5E1DA]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            eyebrow="Delegation Process"
+            title="Registration &amp; Participation Criteria"
+            description="Guidelines on who attends EUROXPRO'27, national allocation procedures, and pre-conference accreditation."
+          />
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="border border-[#E5E1DA] bg-[#F7F3ED] p-6 rounded-sm space-y-4">
+              <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block">
+                Delegate Profile
+              </span>
+              <h3 className="font-serif-title text-xl text-[#101B35] font-normal">
+                Who Attends EUROXPRO?
+              </h3>
+              <p className="text-xs text-[#5A6478] leading-relaxed">
+                EUROXPRO is convened specifically for <strong>AIESEC in Europe</strong> entity leadership:
+              </p>
+              <ul className="space-y-1.5 text-xs text-[#374151]">
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>Member Committee (MC) Presidents &amp; VPs</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>Local Committee (LC) Presidents &amp; Executive Boards</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>National functional managers &amp; team leaders</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>Invited international partners, trainers &amp; alumni</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="border border-[#E5E1DA] bg-[#F7F3ED] p-6 rounded-sm space-y-4">
+              <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block">
+                Application Flow
+              </span>
+              <h3 className="font-serif-title text-xl text-[#101B35] font-normal">
+                National Quotas &amp; Allocations
+              </h3>
+              <p className="text-xs text-[#5A6478] leading-relaxed">
+                Participation spots are managed via national delegations. Individual members apply through their respective <strong>Member Committee</strong> delegation manager:
+              </p>
+              <div className="p-3 bg-white border border-[#E5E1DA] rounded-sm text-xs text-[#374151] space-y-1">
+                <span className="font-semibold block text-[#101B35]">Status: Registration Opening Soon</span>
+                <p className="text-[#5A6478]">
+                  Official registration fees, rooming tiers, and national allocation quotas will be announced in official communiqués to all MCs.
+                </p>
+              </div>
+            </div>
+
+            <div className="border border-[#E5E1DA] bg-[#F7F3ED] p-6 rounded-sm space-y-4">
+              <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block">
+                Package Inclusions
+              </span>
+              <h3 className="font-serif-title text-xl text-[#101B35] font-normal">
+                Standard Delegate Package
+              </h3>
+              <p className="text-xs text-[#5A6478] leading-relaxed">
+                Once confirmed, official delegate packages typically cover:
+              </p>
+              <ul className="space-y-1.5 text-xs text-[#374151]">
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>Accreditation &amp; access to all plenary and breakout tracks</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>Congress accommodation according to chosen tier</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>Daily meals (breakfast, lunch, dinner &amp; coffee breaks)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#741F3D] font-bold">•</span>
+                  <span>Global Village &amp; Turkish Night Gala Dinner</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -449,7 +542,7 @@ export default function DelegateGuidePage() {
       </section>
 
       {/* ── 8. INTERACTIVE PACKING CHECKLIST ── */}
-      <section id="checklist" className="py-20 bg-[#F7F3ED]">
+      <section id="checklist" className="py-20 bg-[#F7F3ED] border-b border-[#E5E1DA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Interactive Preparation"
@@ -457,6 +550,63 @@ export default function DelegateGuidePage() {
             description="Interactive progress tracker stored safely in your device browser storage. Check off requirements as you pack."
           />
           <DelegateChecklist />
+        </div>
+      </section>
+
+      {/* ── 9. IMPORTANT ANNOUNCEMENTS & FAQ LINKS ── */}
+      <section id="announcements-faq" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            eyebrow="Support & Updates"
+            title="Official Bulletins & Knowledge Base"
+            description="Stay informed with real-time communiqués and find answers to all delegate operations questions."
+          />
+
+          <div className="grid sm:grid-cols-2 gap-8">
+            <div className="border border-[#E5E1DA] bg-[#F7F3ED] p-8 rounded-sm flex flex-col justify-between group hover:border-[#741F3D] transition-colors">
+              <div>
+                <div className="w-10 h-10 bg-[#101B35] text-[#741F3D] rounded-sm flex items-center justify-center mb-4">
+                  <Bell size={18} />
+                </div>
+                <h3 className="font-serif-title text-2xl text-[#101B35] font-normal mb-2">
+                  Official Announcements Bulletin
+                </h3>
+                <p className="text-xs text-[#5A6478] leading-relaxed mb-6 font-light">
+                  Read official circulars from the Organizing Committee, including host destination updates, schedule releases, and logistics briefings.
+                </p>
+              </div>
+              <div>
+                <a
+                  href="/announcements"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-[#741F3D] hover:underline"
+                >
+                  View all announcements <ArrowRight size={14} />
+                </a>
+              </div>
+            </div>
+
+            <div className="border border-[#E5E1DA] bg-[#F7F3ED] p-8 rounded-sm flex flex-col justify-between group hover:border-[#741F3D] transition-colors">
+              <div>
+                <div className="w-10 h-10 bg-[#101B35] text-[#741F3D] rounded-sm flex items-center justify-center mb-4">
+                  <HelpCircle size={18} />
+                </div>
+                <h3 className="font-serif-title text-2xl text-[#101B35] font-normal mb-2">
+                  Frequently Asked Questions
+                </h3>
+                <p className="text-xs text-[#5A6478] leading-relaxed mb-6 font-light">
+                  Browse categorized answers covering travel visas, Antalya Airport transit, card payments, packing necessities, and emergency contacts.
+                </p>
+              </div>
+              <div>
+                <a
+                  href="/faq"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-[#741F3D] hover:underline"
+                >
+                  Search delegate FAQ <ArrowRight size={14} />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
