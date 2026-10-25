@@ -31,6 +31,10 @@ export function Navbar() {
 
   const closeMenu = () => setIsOpen(false);
 
+  // Only the home page has a full-bleed dark hero behind the header; every
+  // other page starts on a light background, so the bar must be solid there.
+  const solid = isScrolled || pathname !== "/";
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -41,7 +45,7 @@ export function Navbar() {
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          isScrolled
+          solid
             ? "bg-[#101B35]/97 backdrop-blur-md shadow-lg shadow-black/20"
             : "bg-transparent"
         )}
