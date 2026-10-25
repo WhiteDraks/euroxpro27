@@ -15,6 +15,7 @@ import { products, CURRENCY_SYMBOL } from "@/lib/products";
 import { PreviousEditions } from "@/components/common/PreviousEditions";
 import { ConferenceGallery } from "@/components/common/ConferenceGallery";
 import { PartnersSection } from "@/components/common/PartnersSection";
+import { Countdown } from "@/components/common/Countdown";
 
 export const metadata: Metadata = {
   title: `${siteConfig.name} — Antalya, Türkiye | Where Europe Meets the Mediterranean`,
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   const pinnedAnnouncement = announcements.find((a) => a.isPinned);
   const featuredProducts = products.slice(0, 3);
-  const { hero, bulletin, dimensions, pillars, destination, delegatePrep, merch, closing } = content.home;
+  const { hero, countdown, bulletin, dimensions, pillars, destination, delegatePrep, merch, closing } = content.home;
   const dimensionIcons = [Target, Waves, Globe2];
   const pillarIcons = [Globe2, Target, Waves, Landmark];
 
@@ -44,7 +45,7 @@ export default function HomePage() {
             preload
             quality={60}
             sizes="100vw"
-            className="object-cover object-center filter brightness-[0.72] contrast-[1.08] scale-105 transition-transform duration-10000"
+            className="object-cover object-center filter brightness-[0.72] contrast-[1.08] hero-zoom"
           />
           {/* Deep Navy & Midnight Tonal Gradient Overlays for High Legibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#101B35] via-[#101B35]/75 to-[#101B35]/50 mix-blend-multiply" />
@@ -93,6 +94,13 @@ export default function HomePage() {
                 <span className="text-[#F7F3ED] italic font-light">{hero.titleLine2}</span>
               </h1>
             </div>
+
+            {/* Countdown to the opening day */}
+            <Countdown
+              start={siteConfig.startDate.toISOString()}
+              end={siteConfig.endDate.toISOString()}
+              labels={countdown}
+            />
 
             {/* Editorial Supporting Line */}
             <div className="space-y-3">
@@ -173,7 +181,7 @@ export default function HomePage() {
       <section className="py-28 bg-[#F7F3ED] text-[#101B35] border-b border-[#E5E1DA] bosphorus-grid">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="max-w-3xl mb-16">
+          <div className="reveal max-w-3xl mb-16">
             <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-3">
               <span className="w-6 h-px bg-[#741F3D]" />
               {dimensions.eyebrow}
@@ -192,7 +200,7 @@ export default function HomePage() {
             {dimensions.items.map((item, i) => {
               const Icon = dimensionIcons[i % dimensionIcons.length];
               return (
-                <div key={i} className="bg-white border border-[#E5E1DA] p-8 rounded-sm shadow-sm flex flex-col justify-between group hover:border-[#741F3D] transition-colors">
+                <div key={i} className="reveal bg-white border border-[#E5E1DA] p-8 rounded-sm shadow-sm flex flex-col justify-between group hover:border-[#741F3D] transition-colors">
                   <div>
                     <div className="w-12 h-12 bg-[#101B35] text-[#741F3D] rounded-sm flex items-center justify-center mb-6">
                       <Icon size={22} />
@@ -248,7 +256,7 @@ export default function HomePage() {
               return (
                 <div
                   key={num}
-                  className="border border-[#233152] bg-[#172443]/70 p-8 rounded-sm hover:border-[#741F3D] transition-colors duration-300 flex flex-col justify-between group"
+                  className="reveal border border-[#233152] bg-[#172443]/70 p-8 rounded-sm hover:border-[#741F3D] transition-colors duration-300 flex flex-col justify-between group"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-6">
@@ -282,7 +290,7 @@ export default function HomePage() {
       <section className="py-28 bg-[#F7F3ED] border-b border-[#E5E1DA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="max-w-2xl mb-16">
+          <div className="reveal max-w-2xl mb-16">
             <span className="text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase block mb-3">
               {destination.eyebrow}
             </span>
@@ -297,7 +305,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-3 gap-8">
             
             {destination.items.map((item, i) => (
-              <div key={i} className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
+              <div key={i} className="reveal bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
                 <div className="aspect-[4/3] relative overflow-hidden bg-[#101B35]">
                   <Image
                     src={item.image}
@@ -386,7 +394,7 @@ export default function HomePage() {
 
           <div className="grid sm:grid-cols-3 gap-8">
             {featuredProducts.map((p) => (
-              <div key={p.id} className="border border-[#E5E1DA] rounded-sm p-6 flex flex-col justify-between hover:border-[#741F3D] transition-colors group">
+              <div key={p.id} className="reveal border border-[#E5E1DA] rounded-sm p-6 flex flex-col justify-between hover:border-[#741F3D] transition-colors group">
                 <div>
                   <div className="aspect-[4/3] bg-[#F7F3ED] overflow-hidden mb-5 rounded-sm relative">
                     {p.image ? (
@@ -427,7 +435,7 @@ export default function HomePage() {
 
       {/* ── 11. CLOSING CALLOUT & OC SUPPORT ── */}
       <section className="py-24 bg-[#101B35] text-white border-t border-[#233152] relative overflow-hidden bosphorus-grid-dark">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-6 relative z-10">
+        <div className="reveal max-w-4xl mx-auto px-4 text-center space-y-6 relative z-10">
           <span className="text-xs font-mono tracking-widest text-[#741F3D] uppercase block">
             {closing.eyebrow}
           </span>

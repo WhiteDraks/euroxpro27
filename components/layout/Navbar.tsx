@@ -11,6 +11,7 @@ import { siteConfig } from "@/lib/config";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/congress", label: "The Congress" },
+  { href: "/team", label: "Team" },
   { href: "/delegate-guide", label: "Delegate Guide" },
   { href: "/explore-antalya", label: "Explore Antalya" },
   { href: "/faq", label: "FAQ" },
@@ -69,7 +70,7 @@ export function Navbar() {
                   className="h-8 sm:h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
                 />
               </div>
-              <div className="hidden sm:flex flex-col border-l border-[#2A3556] pl-2.5 py-0.5">
+              <div className="hidden sm:flex lg:hidden xl:flex flex-col border-l border-[#2A3556] pl-2.5 py-0.5">
                 <span className="font-display text-white font-bold text-sm leading-none tracking-tight">
                   EUROXPRO<span className="text-[#741F3D]">&apos;27</span>
                 </span>
@@ -80,13 +81,13 @@ export function Navbar() {
             </Link>
 
             {/* Desktop Nav */}
-            <div className="hidden lg:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-0.5 xl:gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-sm",
+                    "px-2.5 xl:px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-200 rounded-sm",
                     pathname === link.href
                       ? "text-white bg-white/10"
                       : "text-[#A7AFBF] hover:text-white hover:bg-white/5"

@@ -105,7 +105,7 @@ export default function CongressPage() {
               {about.objectives.map(({ title, desc }, i) => {
                 const Icon = objectiveIcons[i % objectiveIcons.length];
                 return (
-                  <div key={i} className="p-6 bg-white border border-[#E5E1DA] rounded-sm shadow-sm space-y-2">
+                  <div key={i} className="reveal p-6 bg-white border border-[#E5E1DA] rounded-sm shadow-sm space-y-2">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-[#101B35] rounded-sm flex items-center justify-center text-[#741F3D] flex-shrink-0">
                         <Icon size={16} />
@@ -159,7 +159,7 @@ export default function CongressPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {evenings.items.map((event, i) => (
-              <div key={i} className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm flex flex-col justify-between group">
+              <div key={i} className="reveal bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm flex flex-col justify-between group">
                 <div>
                   <div className="aspect-[16/10] relative overflow-hidden bg-[#101B35]">
                     <Image

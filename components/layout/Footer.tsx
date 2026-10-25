@@ -9,6 +9,7 @@ const footerLinks = [
     links: [
       { href: "/congress", label: "The Congress" },
       { href: "/congress#schedule", label: "Schedule" },
+      { href: "/team", label: "Organizing Team" },
       { href: "/announcements", label: "Announcements" },
       { href: "/contact", label: "Contact OC" },
     ],
@@ -19,6 +20,7 @@ const footerLinks = [
       { href: "/delegate-guide", label: "Delegate Guide" },
       { href: "/delegate-guide#checklist", label: "Packing Checklist" },
       { href: "/explore-antalya", label: "Explore Antalya" },
+      { href: "/faq#travel", label: "Airport, Hotel & Visa" },
       { href: "/faq", label: "FAQ" },
     ],
   },

@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { siteConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.siteUrl),
   title: {
     default: `${siteConfig.name} — Antalya, Türkiye | 31 March – 4 April 2027`,
     template: `%s | ${siteConfig.name}`,
@@ -15,14 +16,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: siteConfig.siteUrl,
-    title: `${siteConfig.name} — Antalya, Türkiye`,
+    url: "/",
+    title: `${siteConfig.name} — Antalya, Türkiye | ${siteConfig.datesLabel}`,
     description: siteConfig.shortDescription,
     siteName: siteConfig.name,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — Antalya, Türkiye`,
+    title: `${siteConfig.name} — Antalya, Türkiye | ${siteConfig.datesLabel}`,
     description: siteConfig.shortDescription,
   },
   robots: {

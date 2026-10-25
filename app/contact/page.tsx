@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ContactSection } from "@/components/contact/ContactSection";
-import { organizingCommittee, siteConfig } from "@/lib/config";
+import { siteConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Contact & Organizing Committee — EUROXPRO'27",
@@ -27,7 +27,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <ContactSection committee={organizingCommittee} config={siteConfig} />
+      <ContactSection config={siteConfig} />
     </div>
   );
 }

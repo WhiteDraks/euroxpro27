@@ -67,7 +67,7 @@ export function AntalyaGuide({ guide }: AntalyaGuideProps) {
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {attractions.items.map((item, i) => (
-                <Card key={i} className="flex flex-col h-full bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm group">
+                <Card key={i} className="reveal flex flex-col h-full bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm group">
                   <div className="aspect-[16/10] relative overflow-hidden bg-[#101B35]">
                     <Image
                       src={item.image}

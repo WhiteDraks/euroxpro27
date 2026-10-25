@@ -25,6 +25,8 @@ const TABS: { key: keyof SiteContent; label: string; href: string }[] = [
   { key: "gallery", label: "Galeri (Ana Sayfa)", href: "/" },
   { key: "previousEditions", label: "Önceki Edisyonlar", href: "/congress" },
   { key: "partners", label: "Partnerler", href: "/" },
+  { key: "team", label: "Ekip", href: "/team" },
+  { key: "faq", label: "SSS ve Ulaşım", href: "/faq" },
 ];
 
 // Tabs whose top-level keys are page sections (shown as collapsible cards).
@@ -48,9 +50,11 @@ const SECTION_LABELS: Record<string, string> = {
   phrases: "Türkçe ifadeler",
   map: "Harita ve konumlar",
   weather: "İklim",
+  countdown: "Geri sayım sayacı",
 };
 
 const FIELD_LABELS: Record<string, string> = {
+  hero: "Sayfa başı",
   image: "Fotoğraf",
   imageAlt: "Fotoğraf açıklaması (alt metin)",
   eyebrow: "Üst etiket",
@@ -141,6 +145,32 @@ const FIELD_LABELS: Record<string, string> = {
   statusBadge: "Durum rozeti",
   statusTitle: "Durum başlığı",
   statusText: "Durum metni",
+  daysLabel: "Gün etiketi",
+  hoursLabel: "Saat etiketi",
+  minutesLabel: "Dakika etiketi",
+  secondsLabel: "Saniye etiketi",
+  liveText: "Kongre sırasında gösterilen yazı",
+  endedText: "Kongre bittikten sonra gösterilen yazı",
+  comingSoonLabel: "İsim boşken gösterilen yazı",
+  members: "Ekip üyeleri",
+  role: "Görev",
+  department: "Birim",
+  bio: "Kısa tanıtım",
+  contactTitle: "İletişim kutusu başlığı",
+  contactText: "İletişim kutusu metni",
+  contactButton: "İletişim butonu",
+  travel: "Ulaşım bilgileri (havalimanı, otel, vize)",
+  link: "Bağlantı adresi",
+  categories: "Soru kategorileri",
+  question: "Soru",
+  answer: "Cevap",
+  searchPlaceholder: "Arama kutusu yazısı",
+  allLabel: "Filtre: tümü",
+  emptyTitle: "Sonuç yok başlığı",
+  emptyText: "Sonuç yok metni",
+  ctaTitle: "Alt kutu başlığı",
+  ctaText: "Alt kutu metni",
+  ctaButton: "Alt kutu butonu",
 };
 
 const ENUM_OPTIONS: Record<string, string[]> = {
@@ -152,10 +182,13 @@ const ENUM_OPTIONS: Record<string, string[]> = {
 const LONG_TEXT_KEYS = new Set([
   "intro", "description", "desc", "text", "notice", "draftNotice", "summary", "caption",
   "disclaimer", "statusText", "tips", "notes", "routingText", "supportingLine",
+  "bio", "answer", "contactText", "ctaText", "emptyText",
 ]);
 
-const SUMMARY_KEYS = ["title", "name", "label", "season", "tr", "date", "time"];
+const SUMMARY_KEYS = ["title", "name", "role", "question", "label", "season", "tr", "date", "time"];
 const HIDDEN_KEYS = new Set(["id"]);
+// Lists whose photo may stay empty (a placeholder is shown on the site).
+const OPTIONAL_IMAGE_LISTS = new Set(["team.members"]);
 const MAX_IMAGE_SIDE = 2000;
 
 function isImageKey(key: string | number | undefined) {
@@ -185,7 +218,7 @@ function setIn(target: Json, path: Path, value: Json): Json {
 }
 
 // Builds an empty list item with every field the existing items use.
-function blankItem(siblings: Json[]): Json {
+function blankItem(siblings: Json[], emptyImages = false): Json {
   const sample = siblings[0];
   if (typeof sample === "string" || sample === undefined) return "";
   if (typeof sample === "number") return 0;
@@ -198,7 +231,7 @@ function blankItem(siblings: Json[]): Json {
     for (const [key, value] of Object.entries(sibling)) {
       if (key in item) continue;
       if (key === "id") item[key] = `item-${Date.now().toString(36)}`;
-      else if (isImageKey(key)) item[key] = value; // keep a valid photo until a new one is uploaded
+      else if (isImageKey(key)) item[key] = emptyImages ? "" : value; // otherwise keep a valid photo until a new one is uploaded
       else if (typeof value === "string") item[key] = "";
       else if (typeof value === "number") item[key] = 0;
       else if (typeof value === "boolean") item[key] = value;
@@ -521,13 +554,16 @@ function ListField({ items, path, ctx }: { items: Json[]; path: Path; ctx: Edito
     if (!window.confirm("Bu öğe silinsin mi?")) return;
     ctx.update(path, items.filter((_, i) => i !== index));
   };
-  const add = () => ctx.update(path, [...items, blankItem(items)]);
+  const add = () => ctx.update(path, [...items, blankItem(items, OPTIONAL_IMAGE_LISTS.has(schemaPath(path)))]);
 
   return (
     <div className="space-y-3">
       {items.map((item, index) => {
         const isObject = item !== null && typeof item === "object" && !Array.isArray(item);
-        const summaryKey = isObject ? SUMMARY_KEYS.find((k) => typeof (item as Record<string, Json>)[k] === "string") : undefined;
+        const summaryKey = isObject ? SUMMARY_KEYS.find((k) => {
+          const v = (item as Record<string, Json>)[k];
+          return typeof v === "string" && v.trim() !== "";
+        }) : undefined;
         const summary = summaryKey ? String((item as Record<string, Json>)[summaryKey]) : "";
         const controls = (
           <div className="flex items-center gap-1 flex-shrink-0">

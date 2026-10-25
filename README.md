@@ -24,14 +24,16 @@ The website is a fully typed, responsive multi-page application with centralized
 - **`/merch` — Merch Store**: Capsule collection with explicit DEMO pre-order & expression-of-interest status (no live payments).
 - **`/faq` — FAQ**: Real-time search and categorized accordions (Registration, Travel & Visas, Accommodation, Transportation, Payments, Schedule, Merch, Safety).
 - **`/announcements` — Announcements**: News bulletin with pinned updates, category filtering, and polished empty-state handling.
-- **`/contact` — Contact & OC**: Organizing Committee leadership profiles and validated inquiry form with client validation.
+- **`/team` — Organizing Committee**: Team members with photos, roles and short bios, edited from `/admin` (empty names and photos show a placeholder).
+- **`/contact` — Contact & OC**: Link to the team page and validated inquiry form with client validation.
+- **Share previews**: `app/opengraph-image.tsx` builds a 1200×630 JPEG from the home hero photo at deploy time for WhatsApp, Instagram, LinkedIn and X.
 - **`/_not-found` — 404**: Branded custom not-found page.
 
 ---
 
 ## ✏️ Content Editor (`/admin`)
 
-All texts and photos of the **Home**, **The Congress** and **Explore Antalya** pages (plus the home gallery, previous editions and partners sections) live in [`content/site.json`](content/site.json) and can be edited from **`/admin`** without touching code.
+All texts and photos of the **Home** (including the countdown labels), **The Congress**, **Explore Antalya**, **Team** and **FAQ** pages (plus the home gallery, previous editions, partners and the airport/hotel/visa travel cards) live in [`content/site.json`](content/site.json) and can be edited from **`/admin`** without touching code.
 
 - Sign in with the shared admin password.
 - Edit any text; `**bold**` and `*italic*` are supported.
