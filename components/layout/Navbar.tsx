@@ -28,9 +28,7 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+  const closeMenu = () => setIsOpen(false);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -52,6 +50,7 @@ export function Navbar() {
             {/* Logo */}
             <Link
               href="/"
+              onClick={closeMenu}
               className="flex items-center gap-3 group"
               aria-label="EUROXPRO'27 - Go to homepage"
             >
@@ -91,6 +90,7 @@ export function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/merch"
+                onClick={closeMenu}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-sm transition-all duration-200",
                   pathname === "/merch"
@@ -126,7 +126,7 @@ export function Navbar() {
       >
         <div
           className="absolute inset-0 bg-black/60"
-          onClick={() => setIsOpen(false)}
+          onClick={closeMenu}
         />
         <div
           className={cn(
@@ -139,7 +139,7 @@ export function Navbar() {
               EUROXPRO<span className="text-[#741F3D]">&apos;27</span>
             </span>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={closeMenu}
               className="p-1 text-[#A7AFBF] hover:text-white"
               aria-label="Close menu"
             >
@@ -152,6 +152,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={closeMenu}
                 className={cn(
                   "px-4 py-3 text-base font-medium rounded-sm transition-colors duration-200",
                   pathname === link.href
@@ -164,6 +165,7 @@ export function Navbar() {
             ))}
             <Link
               href="/merch"
+              onClick={closeMenu}
               className="mt-4 flex items-center gap-2 px-4 py-3 bg-[#741F3D] text-white rounded-sm font-medium"
             >
               <ShoppingBag size={16} />

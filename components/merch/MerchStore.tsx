@@ -97,6 +97,11 @@ export function MerchStore({
           <div className="text-sm text-amber-900 leading-relaxed">
             <strong className="font-semibold block mb-1">Illustrative Preview &amp; Pre-Order Interest System</strong>
             The official EUROXPRO&apos;27 merchandise collection is in active development. All items, designs, and prices below are illustrative representations. Submitting an order here records your interest with the Organizing Committee — no payment or financial transaction occurs until official pre-orders open.
+            {instructions && (
+              <p className="mt-2 text-xs text-amber-800 border-t border-amber-500/20 pt-2">
+                {instructions.trim().split("\n")[0]}
+              </p>
+            )}
           </div>
         </div>
 

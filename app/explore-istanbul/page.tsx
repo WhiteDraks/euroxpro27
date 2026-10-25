@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import { IstanbulGuide } from "@/components/istanbul/IstanbulGuide";
 
 export const metadata: Metadata = {

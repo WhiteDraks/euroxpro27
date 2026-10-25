@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { usefulLocations } from "@/lib/config";
 import {
   Compass, Utensils, MapPin, CloudSun, ExternalLink,
-  Info, AlertCircle, Clock, Check
+  Info, AlertCircle, Check
 } from "lucide-react";
 
 const attractions = [
@@ -107,8 +107,10 @@ const turkishPhrases = [
   { tr: "Kolay gelsin", en: "May it be easy (wishing good work)", pronunciation: "koh-ly gehl-sin" },
 ];
 
+type TabId = "attractions" | "food" | "phrases" | "map" | "weather";
+
 export function IstanbulGuide() {
-  const [activeTab, setActiveTab] = useState<"attractions" | "food" | "phrases" | "map" | "weather">("attractions");
+  const [activeTab, setActiveTab] = useState<TabId>("attractions");
 
   return (
     <div className="py-16 bg-[#F7F3ED]">
@@ -116,15 +118,15 @@ export function IstanbulGuide() {
         {/* Navigation Tabs */}
         <div className="flex flex-wrap gap-2 mb-12 border-b border-[#E3E0DC] pb-4">
           {[
-            { id: "attractions", label: "Must-See Attractions", icon: Compass },
-            { id: "food", label: "Food & Culture", icon: Utensils },
-            { id: "phrases", label: "Useful Phrases", icon: Info },
-            { id: "map", label: "Congress & City Map", icon: MapPin },
-            { id: "weather", label: "Seasonal Weather", icon: CloudSun },
+            { id: "attractions" as TabId, label: "Must-See Attractions", icon: Compass },
+            { id: "food" as TabId, label: "Food & Culture", icon: Utensils },
+            { id: "phrases" as TabId, label: "Useful Phrases", icon: Info },
+            { id: "map" as TabId, label: "Congress & City Map", icon: MapPin },
+            { id: "weather" as TabId, label: "Seasonal Weather", icon: CloudSun },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id as any)}
+              onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-medium transition-colors ${
                 activeTab === id
                   ? "bg-[#741F3D] text-white"
@@ -275,7 +277,7 @@ export function IstanbulGuide() {
               </p>
               <div className="aspect-[16/9] w-full rounded-md overflow-hidden bg-[#172443] border border-[#2A3556] flex items-center justify-center">
                 <div className="text-center p-6">
-                  <MapPin size={36} className="text-[#741F3D] mx-auto mb-3" />
+                  <MapPin size={36} className="text-[#741F3D]" />
                   <p className="text-white font-medium text-sm">Istanbul, Türkiye Overview</p>
                   <p className="text-xs text-[#A7AFBF] mt-1">Official pins will sync when addresses are released.</p>
                 </div>

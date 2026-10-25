@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Calendar, MapPin, Compass, Sparkles, ShoppingBag, BookOpen, Layers, ShieldCheck, ChevronRight } from "lucide-react";
+import { ArrowRight, Calendar, MapPin, Compass, ShoppingBag, BookOpen, Layers, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { siteConfig } from "@/lib/config";
 import { announcements } from "@/lib/announcements";
 import { products, CURRENCY_SYMBOL } from "@/lib/products";

@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/Badge";
 import { siteConfig } from "@/lib/config";
 import {
   Plane, Hotel, CreditCard, HeartPulse, CheckSquare,
-  FileText, Phone, Wifi, Zap, AlertCircle, Compass,
-  Clock, ExternalLink, ShieldCheck, Bus, Train, Info, AlertTriangle
+  FileText, Wifi, Zap, Clock, ExternalLink, ShieldCheck,
+  Bus, Train, Info, AlertTriangle
 } from "lucide-react";
 
 export const metadata: Metadata = {
