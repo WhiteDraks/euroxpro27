@@ -5,6 +5,7 @@ import { products, productCategories, orderInstructions } from "@/lib/products";
 export const metadata: Metadata = {
   title: "Merch Store — Official Capsule Collection",
   description: "EUROXPRO'27 Limited Edition Congress Merchandise — preview items, configure sizes and colors, and register pre-order interests.",
+  alternates: { canonical: "/merch" },
 };
 
 export default function MerchPage() {

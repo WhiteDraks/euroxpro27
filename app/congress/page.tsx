@@ -12,8 +12,9 @@ import Link from "next/link";
 import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass, Globe2, Clock, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "The Congress — Purpose, Schedule & Evenings | EUROXPRO'27",
+  title: "The Congress — Purpose, Schedule & Evenings",
   description: "Explore the EUROXPRO'27 congress purpose in Antalya: regional alignment for AIESEC in Europe, leadership capacity tracks, the upcoming agenda, and signature evening galas.",
+  alternates: { canonical: "/congress" },
 };
 
 export default function CongressPage() {

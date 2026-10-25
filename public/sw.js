@@ -89,6 +89,7 @@ function isBypassed(url) {
   return (
     url.pathname.startsWith("/admin") ||
     url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_vercel/") ||
     url.pathname === "/sw.js" ||
     url.searchParams.has("_rsc")
   );

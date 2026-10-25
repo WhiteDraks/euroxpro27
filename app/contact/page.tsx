@@ -3,8 +3,9 @@ import { ContactSection } from "@/components/contact/ContactSection";
 import { siteConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Contact & Organizing Committee — EUROXPRO'27",
+  title: "Contact & Organizing Committee",
   description: "Direct communications with the EUROXPRO'27 Organizing Committee leadership, delegate relations, partnerships, and logistics.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

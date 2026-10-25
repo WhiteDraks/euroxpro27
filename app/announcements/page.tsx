@@ -5,6 +5,7 @@ import { announcements, categories } from "@/lib/announcements";
 export const metadata: Metadata = {
   title: "Official Announcements & Communiqués",
   description: "Official dispatches, press releases, and delegate advisories from the EUROXPRO'27 Organizing Committee.",
+  alternates: { canonical: "/announcements" },
 };
 
 export default function Announcements() {

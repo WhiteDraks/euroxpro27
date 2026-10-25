@@ -16,10 +16,14 @@ import { PreviousEditions } from "@/components/common/PreviousEditions";
 import { ConferenceGallery } from "@/components/common/ConferenceGallery";
 import { PartnersSection } from "@/components/common/PartnersSection";
 import { Countdown } from "@/components/common/Countdown";
+import { EventStructuredData } from "@/components/common/EventStructuredData";
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — Antalya, Türkiye | Where Europe Meets the Mediterranean`,
+  title: {
+    absolute: `${siteConfig.name} — Antalya, Türkiye | Where Europe Meets the Mediterranean`,
+  },
   description: siteConfig.shortDescription,
+  alternates: { canonical: "/" },
 };
 
 export default function HomePage() {
@@ -31,6 +35,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <EventStructuredData />
       {/* ── 1. CINEMATIC FULL-SCREEN HERO WITH REAL ANTALYA PHOTOGRAPHY ── */}
       <section
         className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#101B35] text-white pt-24 pb-20"
