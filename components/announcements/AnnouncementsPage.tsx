@@ -39,7 +39,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
             {formatDate(ann.publishedAt)}
           </div>
         </div>
-        <h3 className="font-display font-bold text-[#101B35] text-xl mb-2">{ann.title}</h3>
+        <h3 className="font-serif-title font-normal text-[#101B35] text-xl mb-2">{ann.title}</h3>
         <p className="text-[#5A6478] text-sm leading-relaxed">{ann.summary}</p>
         <div className="mt-4 flex items-center gap-4">
           <button

@@ -97,3 +97,12 @@
 .animate-scroll-bounce {
   animation: scrollBounce 2s ease-in-out infinite;
 }
+
+/* Burgundy (#741F3D) is too dark to read on the navy surfaces, so accent
+   text and icons inside dark containers switch to a lighter rose. Light
+   cards nested inside dark sections keep the original burgundy. */
+@scope ([class~="bg-[#101B35]"], [class*="bg-[#101B35]/"], [class~="bg-[#172443]"], [class*="bg-[#172443]/"], [class~="bg-[#1F3057]"]) to ([class~="bg-white"], [class~="bg-[#F7F3ED]"]) {
+  .text-\[\#741F3D\] {
+    color: #e58aa6;
+  }
+}

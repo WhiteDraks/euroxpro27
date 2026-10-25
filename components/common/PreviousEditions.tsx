@@ -63,7 +63,7 @@ export function PreviousEditions() {
 
                   <div className="absolute bottom-3 left-3 right-3 text-white">
                     <span className="text-[10px] font-mono tracking-widest text-[#E5E1DA] uppercase block">
-                      {edition.location}, {edition.country}
+                      {edition.location === edition.country ? edition.country : `${edition.location}, ${edition.country}`}
                     </span>
                     {edition.theme && (
                       <p className="font-serif-title text-base italic text-[#F7F3ED]">

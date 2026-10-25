@@ -93,7 +93,7 @@ export function FAQPage({ categories }: { categories: FAQCategory[] }) {
           <div className="space-y-8">
             {filtered.map((cat) => (
               <div key={cat.id}>
-                <h2 className="font-display font-bold text-[#101B35] text-xl mb-4 pb-2 border-b border-[#E3E0DC]">
+                <h2 className="font-serif-title font-normal text-[#101B35] text-xl mb-4 pb-2 border-b border-[#E3E0DC]">
                   {cat.label}
                 </h2>
                 <div className="bg-white rounded-lg border border-[#E3E0DC] px-6">
@@ -107,7 +107,7 @@ export function FAQPage({ categories }: { categories: FAQCategory[] }) {
         {/* Contact CTA */}
         <div className="mt-16 bg-[#101B35] rounded-lg p-8 text-center">
           <MessageCircle size={24} className="text-[#741F3D] mx-auto mb-4" />
-          <h3 className="font-display font-bold text-white text-2xl mb-3">
+          <h3 className="font-serif-title font-normal text-white text-2xl mb-3">
             Still have questions?
           </h3>
           <p className="text-[#A7AFBF] mb-6">
