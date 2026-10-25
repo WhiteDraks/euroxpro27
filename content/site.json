@@ -1,8 +1,8 @@
 {
   "home": {
     "hero": {
-      "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=2400&q=85",
-      "imageAlt": "Antalya Mediterranean coastline and historic Roman harbor",
+      "image": "https://images.unsplash.com/photo-1654162115137-4f083a2ac627?auto=format&fit=crop&w=2400&q=80",
+      "imageAlt": "Kaleiçi old town and Roman harbor in Antalya, Türkiye",
       "eyebrow": "AIESEC in Europe Regional Conference · MC Türkiye Host",
       "kicker": "EUROXPRO'27 ANTALYA",
       "titleLine1": "WHERE EUROPE MEETS",
@@ -73,25 +73,25 @@
       "buttonText": "View Full Antalya Destination & Cultural Guide",
       "items": [
         {
-          "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
-          "imageAlt": "Kaleiçi Roman marina in Antalya",
+          "image": "https://images.unsplash.com/photo-1654162148114-a04db0a49616?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Kaleiçi clock tower and old town rooftops, Antalya",
           "label": "Historic Walled Quarter",
           "title": "Kaleiçi & Roman Marina",
           "text": "Restored Ottoman mansions and ancient stone bastions looking out over classical Roman sailing harbors."
         },
         {
-          "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-          "imageAlt": "Düden Waterfalls cascading into Mediterranean sea",
+          "image": "https://images.unsplash.com/photo-1673011732639-c717f5650456?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Lower Düden Waterfall pouring into the Mediterranean, Antalya",
           "label": "Natural Wonder",
           "title": "Düden Coastal Cascades",
           "text": "Spectacular cascades tumbling 40 meters directly from clifftop gardens into azure Mediterranean waters."
         },
         {
-          "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-          "imageAlt": "Konyaaltı Beach and Taurus Mountains",
-          "label": "Alpine & Coastal Panorama",
-          "title": "Konyaaltı & Taurus Range",
-          "text": "Sweeping Mediterranean shoreline framed by snow-capped limestone peaks plunging straight into the azure sea."
+          "image": "https://images.unsplash.com/photo-1768123678872-b6a826b7bac5?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Antalya old harbor with the Taurus Mountains behind",
+          "label": "Harbor & Mountain Panorama",
+          "title": "Old Harbor & Taurus Range",
+          "text": "Traditional boats in the ancient harbor, framed by the limestone peaks of the Taurus Mountains across the bay."
         }
       ]
     },
@@ -391,8 +391,8 @@
   },
   "exploreAntalya": {
     "hero": {
-      "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=2400&q=85",
-      "imageAlt": "Antalya Mediterranean coastline, cliffs, and ancient Roman harbor",
+      "image": "https://images.unsplash.com/photo-1654162201760-2c4383cbde3c?auto=format&fit=crop&w=2400&q=80",
+      "imageAlt": "Rooftops of Kaleiçi, the historic old town of Antalya",
       "eyebrow": "Host Destination Feature",
       "title": "Explore Antalya",
       "intro": "Where the azure Mediterranean touches the soaring peaks of the Taurus Mountains. An editorial delegate guide to ancient Roman harbors, clifftop waterfalls, and the rich culinary heritage of the Turkish Riviera."
@@ -415,7 +415,7 @@
           "name": "Kaleiçi (Historic Old Town & Roman Marina)",
           "category": "Historic Walled Quarter",
           "period": "Roman, Seljuk & Ottoman",
-          "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
+          "image": "https://images.unsplash.com/photo-1654162148114-a04db0a49616?auto=format&fit=crop&w=800&q=80",
           "description": "Antalya's ancient walled heart perched atop sea cliffs. Cobblestone alleyways lined with restored Ottoman mansions descend into the 2nd-century BC Roman harbor with traditional sailing boats.",
           "tips": "Walk through the marble arches of Hadrian's Gate and take the panoramic glass elevator down to the harbor.",
           "area": "Muratpaşa / Old Town"
@@ -424,7 +424,7 @@
           "name": "Lower Düden Waterfalls (Aşağı Düden)",
           "category": "Natural Wonder",
           "period": "Timeless Coastal Geology",
-          "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+          "image": "https://images.unsplash.com/photo-1585473568361-b289de1eaa6f?auto=format&fit=crop&w=800&q=80",
           "description": "One of the Mediterranean's most dramatic natural sights: the Düden River cascades 40 meters straight over rocky cliffs directly into the turquoise Mediterranean sea.",
           "tips": "Visit the Düden Park clifftop promenade at sunset for breathtaking coastal photography and sea spray breezes.",
           "area": "Lara Coastal Park"
@@ -433,7 +433,7 @@
           "name": "Konyaaltı Coast & Taurus Mountains",
           "category": "Mediterranean Shoreline",
           "period": "Coastal Boulevard",
-          "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+          "image": "https://images.unsplash.com/photo-1749972578233-ea3cf89b18fb?auto=format&fit=crop&w=800&q=80",
           "description": "A sweeping 7-kilometer Mediterranean pebble beach framed dramatically by the snow-capped Beydağları (Taurus) mountain range plunging directly into crystal azure waters.",
           "tips": "The pedestrian promenade features modern seaside cafes, cycling paths, and open-air seating for delegates.",
           "area": "Konyaaltı"
@@ -451,7 +451,7 @@
           "name": "Hadrian's Gate (Üçkapılar)",
           "category": "Monumental Gateway",
           "period": "Roman (130 AD)",
-          "image": "https://images.unsplash.com/photo-1654162304103-6a273ca1fe7c?auto=format&fit=crop&w=800&q=80",
+          "image": "https://images.unsplash.com/photo-1722501099327-45fd785485ce?auto=format&fit=crop&w=800&q=80",
           "description": "A triumphal triple-arched marble gateway constructed to honor Roman Emperor Hadrian's visit to Antalya. Deep ruts in the stone floor still bear the marks of ancient chariot wheels.",
           "tips": "The gate serves as the grand pedestrian threshold transitioning modern Antalya into historic Kaleiçi.",
           "area": "City Center Entrance"
@@ -460,7 +460,7 @@
           "name": "Antalya Archaeological Museum",
           "category": "World-Class Museum",
           "period": "Pamphylian, Lycian & Roman",
-          "image": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=800&q=80",
+          "image": "https://images.unsplash.com/photo-1663574628392-4046c9b940da?auto=format&fit=crop&w=800&q=80",
           "description": "One of Türkiye's premier antiquities museums, showcasing stunning classical Roman marble statues from Perge, monumental sarcophagi, and Bronze Age artifacts.",
           "tips": "Accessible via the heritage Nostalgic Tram terminus right across from Konyaaltı beach.",
           "area": "Bahçelievler"
@@ -667,7 +667,7 @@
     "eyebrow": "Visual Archive & Destination Showcase",
     "title": "Moments of Leadership & Coastline",
     "intro": "Archival moments from past regional assemblies paired with the dramatic Mediterranean beauty of our 2027 host city, Antalya.",
-    "notice": "**Note on Photographic Sourcing:** Conference images depict documented previous editions of EUROXPRO and are labeled with their respective year and host country. Destination captures feature authentic locations across Antalya, Türkiye.",
+    "notice": "**About these photos:** Destination photos show real places in Antalya, Türkiye. Conference photos are illustrative until official EUROXPRO'27 photography is published.",
     "filterAll": "All Imagery",
     "filterConferences": "Past Conferences",
     "filterAntalya": "Antalya Riviera",
@@ -755,82 +755,82 @@
       },
       {
         "id": "gal-ayt-1",
-        "title": "Historic Kaleiçi & Ancient Roman Marina",
+        "title": "Kaleiçi & the Ancient Roman Harbor",
         "category": "antalya",
         "yearOrArea": "Old Town Heritage",
         "location": "Kaleiçi, Antalya",
-        "caption": "Antalya's ancient clifftop walled quarter with restored Ottoman mansions descending into the 2nd-century BC Roman harbor.",
-        "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Traditional boats moored in the 2nd-century BC Roman harbor beneath the walls of Kaleiçi.",
+        "image": "https://images.unsplash.com/photo-1654162115137-4f083a2ac627?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       },
       {
         "id": "gal-ayt-2",
-        "title": "Lower Düden Cascades into the Mediterranean",
+        "title": "Lower Düden Waterfall",
         "category": "antalya",
         "yearOrArea": "Natural Landmark",
-        "location": "Lara Cliffs, Antalya",
-        "caption": "Spectacular 40-meter waterfall plunging straight over coastal cliffs directly into the turquoise Mediterranean sea.",
-        "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+        "location": "Lara, Antalya",
+        "caption": "The Düden River plunging over coastal cliffs straight into the Mediterranean, often with a rainbow in the spray.",
+        "image": "https://images.unsplash.com/photo-1673011732639-c717f5650456?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       },
       {
         "id": "gal-ayt-3",
-        "title": "Konyaaltı Beach & Snow-Capped Taurus Peaks",
+        "title": "Old Harbor & Taurus Mountains",
         "category": "antalya",
         "yearOrArea": "Coastal Horizon",
-        "location": "Konyaaltı, Antalya",
-        "caption": "The sweeping Mediterranean shoreline of Konyaaltı set against the dramatic silhouette of the Beydağları (Taurus) mountain range.",
-        "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+        "location": "Antalya Bay",
+        "caption": "Antalya's historic harbor with the Taurus (Beydağları) range rising across the bay.",
+        "image": "https://images.unsplash.com/photo-1768123678872-b6a826b7bac5?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       },
       {
         "id": "gal-ayt-4",
-        "title": "Ancient Aspendos Amphitheater Architecture",
+        "title": "Aspendos Roman Theatre",
         "category": "antalya",
         "yearOrArea": "Classical Antiquity",
         "location": "Serik, Antalya",
-        "caption": "Widely regarded as the best-preserved ancient Roman theater in the Mediterranean basin, famed for whispering acoustics.",
+        "caption": "The best-preserved Roman theatre in the Mediterranean, still used for concerts today.",
         "image": "https://images.unsplash.com/photo-1674715577456-49ae7a6945a8?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       },
       {
         "id": "gal-ayt-5",
-        "title": "Historic Ottoman Alleyways & Bougainvillea",
+        "title": "Kaleiçi Clock Tower & Old Town",
         "category": "antalya",
         "yearOrArea": "Kaleiçi Architecture",
         "location": "Muratpaşa, Antalya",
-        "caption": "Pedestrian cobblestone lanes lined with traditional timber-framed mansions, artisanal workshops, and quiet courtyard cafes.",
-        "image": "https://images.unsplash.com/photo-1654162304103-6a273ca1fe7c?auto=format&fit=crop&w=1200&q=80",
+        "caption": "The historic clock tower at the entrance to Kaleiçi's lanes of Ottoman-era houses.",
+        "image": "https://images.unsplash.com/photo-1654162148114-a04db0a49616?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       },
       {
         "id": "gal-ayt-6",
-        "title": "Sunset Over Antalya Bay & Taurus Mountains",
+        "title": "Hadrian's Gate",
         "category": "antalya",
-        "yearOrArea": "Turkish Riviera",
-        "location": "Antalya Coast",
-        "caption": "Golden hour twilight casting amber tones across the Mediterranean sea and the towering limestone mountain ridge.",
-        "image": "https://images.unsplash.com/photo-1571753406356-fdb4e1cd204c?auto=format&fit=crop&w=1200&q=80",
+        "yearOrArea": "Roman Monument",
+        "location": "Old Town, Antalya",
+        "caption": "The triple-arched marble gate built in 130 AD for Emperor Hadrian's visit, the threshold of the old town.",
+        "image": "https://images.unsplash.com/photo-1722501099327-45fd785485ce?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       },
       {
         "id": "gal-ayt-7",
-        "title": "Palm Promenade & Seaside Coastal Park",
+        "title": "Antalya Archaeological Museum",
         "category": "antalya",
-        "yearOrArea": "Urban Coastline",
-        "location": "Konyaaltı Coastal Park",
-        "caption": "Modern pedestrian seaside boulevard featuring open-air seating, palm tree parks, and cycling promenades along the sea.",
-        "image": "https://images.unsplash.com/photo-1663574628814-7806616e9ac1?auto=format&fit=crop&w=1200&q=80",
+        "yearOrArea": "World-Class Museum",
+        "location": "Konyaaltı, Antalya",
+        "caption": "Home to statues from Perge and finds spanning the Bronze Age to the Roman era.",
+        "image": "https://images.unsplash.com/photo-1663574628392-4046c9b940da?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       },
       {
         "id": "gal-ayt-8",
-        "title": "Classical Antiquity & Temple Columns",
+        "title": "Ancient City of Perge",
         "category": "antalya",
         "yearOrArea": "Pamphylian Heritage",
-        "location": "Perge & Side, Antalya",
-        "caption": "Ancient colonnaded streets and monumental marble architecture testifying to Antalya's deep classical heritage.",
-        "image": "https://images.unsplash.com/photo-1570939274717-7eda259b50ed?auto=format&fit=crop&w=1200&q=80",
+        "location": "Aksu, Antalya",
+        "caption": "Colonnaded streets and ruins of the ancient Pamphylian city of Perge, just outside Antalya.",
+        "image": "https://images.unsplash.com/photo-1753955100890-f31c6dcd54ae?auto=format&fit=crop&w=1200&q=80",
         "isHistorical": false
       }
     ]

@@ -117,7 +117,7 @@ export function PreviousEditions() {
               <div className="px-6 py-3 bg-[#F7F3ED]/70 border-t border-[#E5E1DA] flex items-center justify-between text-[11px] text-[#8F9AA0] font-mono">
                 <span>Past Conference Record</span>
                 <span className="text-[#741F3D] font-semibold uppercase tracking-wider">
-                  Verified Archive
+                  Past Edition
                 </span>
               </div>
             </div>
