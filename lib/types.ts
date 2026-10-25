@@ -134,3 +134,13 @@ export type GalleryItem = {
   image: string;
   isHistorical: boolean;
 };
+
+export type UsefulLocation = {
+  id: string;
+  name: string;
+  description: string;
+  category: "accommodation" | "venue" | "transport" | "attraction";
+  address: string;
+  mapUrl: string;
+  placeholder: boolean;
+};

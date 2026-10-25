@@ -61,7 +61,7 @@ export function Navbar() {
                   alt="EUROXPRO Türkiye"
                   width={130}
                   height={41}
-                  priority
+                  loading="eager"
                   className="h-8 sm:h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
                 />
               </div>

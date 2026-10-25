@@ -2,19 +2,31 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { galleryItems } from "@/lib/gallery";
 import { Camera, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RichText } from "@/components/ui/RichText";
+import type { SiteContent } from "@/lib/content";
 
 type FilterCategory = "all" | "conferences" | "antalya";
 
-export function ConferenceGallery() {
+// Only the first few photos render until the visitor asks for more,
+// so slow connections are not flooded with gallery images.
+const INITIAL_VISIBLE = 6;
+
+type ConferenceGalleryProps = {
+  text: SiteContent["gallery"];
+};
+
+export function ConferenceGallery({ text }: ConferenceGalleryProps) {
+  const galleryItems = text.items;
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
+  const [showAll, setShowAll] = useState(false);
 
   const filteredItems = galleryItems.filter((item) => {
     if (activeFilter === "all") return true;
     return item.category === activeFilter;
   });
+  const visibleItems = showAll ? filteredItems : filteredItems.slice(0, INITIAL_VISIBLE);
 
   return (
     <section className="py-24 bg-[#101B35] text-white relative overflow-hidden bosphorus-grid-dark">
@@ -27,13 +39,13 @@ export function ConferenceGallery() {
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-3">
               <Camera size={14} />
-              Visual Archive &amp; Destination Showcase
+              {text.eyebrow}
             </div>
             <h2 className="font-serif-title text-4xl sm:text-5xl text-white font-normal leading-tight">
-              Moments of Leadership &amp; Coastline
+              {text.title}
             </h2>
             <p className="text-xs sm:text-sm text-[#A7AFBF] mt-3 max-w-xl leading-relaxed font-light">
-              Archival moments from past regional assemblies paired with the dramatic Mediterranean beauty of our 2027 host city, Antalya.
+              {text.intro}
             </p>
           </div>
 
@@ -41,22 +53,25 @@ export function ConferenceGallery() {
           <div className="flex flex-wrap gap-2">
             {(
               [
-                { id: "all", label: "All Imagery", count: galleryItems.length },
+                { id: "all", label: text.filterAll, count: galleryItems.length },
                 {
                   id: "conferences",
-                  label: "Past Conferences",
+                  label: text.filterConferences,
                   count: galleryItems.filter((g) => g.category === "conferences").length,
                 },
                 {
                   id: "antalya",
-                  label: "Antalya Riviera",
+                  label: text.filterAntalya,
                   count: galleryItems.filter((g) => g.category === "antalya").length,
                 },
               ] as const
             ).map(({ id, label, count }) => (
               <button
                 key={id}
-                onClick={() => setActiveFilter(id)}
+                onClick={() => {
+                  setActiveFilter(id);
+                  setShowAll(false);
+                }}
                 className={cn(
                   "px-4 py-2 text-xs font-mono rounded-sm transition-all duration-200 border",
                   activeFilter === id
@@ -74,13 +89,13 @@ export function ConferenceGallery() {
         <div className="mb-10 flex items-center gap-3 px-4 py-3 bg-[#172443]/70 border border-[#233152] rounded-sm text-xs text-[#A7AFBF]">
           <Info size={16} className="text-[#741F3D] flex-shrink-0" />
           <span>
-            <strong>Note on Photographic Sourcing:</strong> Conference images depict documented previous editions of EUROXPRO and are labeled with their respective year and host country. Destination captures feature authentic locations across Antalya, Türkiye.
+            <RichText text={text.notice} />
           </span>
         </div>
 
         {/* Gallery Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
+          {visibleItems.map((item) => (
             <div
               key={item.id}
               className="bg-[#172443] border border-[#233152] rounded-sm overflow-hidden group hover:border-[#741F3D] transition-colors duration-300 flex flex-col justify-between"
@@ -91,6 +106,7 @@ export function ConferenceGallery() {
                     src={item.image}
                     alt={item.title}
                     fill
+                    quality={60}
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover object-center img-zoom filter brightness-95"
                   />
@@ -135,6 +151,18 @@ export function ConferenceGallery() {
             </div>
           ))}
         </div>
+
+        {!showAll && filteredItems.length > INITIAL_VISIBLE && (
+          <div className="mt-10 text-center">
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="px-6 py-3 text-xs font-mono uppercase tracking-wider rounded-sm border border-[#233152] bg-[#172443] text-[#E5E1DA] hover:border-[#741F3D] hover:text-white transition-colors"
+            >
+              {text.showMoreButton} ({filteredItems.length - INITIAL_VISIBLE})
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
