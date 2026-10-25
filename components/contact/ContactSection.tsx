@@ -24,8 +24,13 @@ export function ContactSection({
   });
   const [status, setStatus] = useState<"idle" | "submitted">("idle");
 
+  // There is no mail backend yet, so the form opens the visitor's email
+  // app with the message filled in instead of silently dropping it.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const subject = `[EUROXPRO'27 · ${formData.department}] ${formData.subject}`;
+    const body = `${formData.message}\n\n— ${formData.name} (${formData.email})`;
+    window.location.href = `mailto:${config.contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setStatus("submitted");
   };
 
@@ -135,9 +140,10 @@ export function ContactSection({
                 <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check size={24} />
                 </div>
-                <h4 className="font-display font-bold text-lg text-[#101B35] mb-2">Message Recorded</h4>
+                <h4 className="font-display font-bold text-lg text-[#101B35] mb-2">Almost done</h4>
                 <p className="text-xs text-[#5A6478] leading-relaxed mb-6">
-                  Thank you, {formData.name}. Your inquiry has been registered in the demonstration portal. The Organizing Committee will respond to {formData.email} once official pre-conference communication lines open.
+                  Thank you, {formData.name}. Your email app should have opened with your message ready to send. Press send there to reach the Organizing Committee, or write to{" "}
+                  <a href={`mailto:${config.contactEmail}`} className="text-[#741F3D] font-semibold">{config.contactEmail}</a> directly.
                 </p>
                 <Button variant="outline" size="sm" onClick={() => setStatus("idle")}>
                   Submit Another Inquiry
@@ -217,7 +223,7 @@ export function ContactSection({
                 </div>
 
                 <Button type="submit" variant="primary" className="w-full text-xs py-2.5">
-                  <Send size={13} /> Submit Message to OC
+                  <Send size={13} /> Send Message to OC
                 </Button>
               </form>
             )}

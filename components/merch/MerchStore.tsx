@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import type { Product, CartItem, ProductSize, ProductColor } from "@/lib/types";
 import { formatPrice, cn } from "@/lib/utils";
+import { siteConfig } from "@/lib/config";
 
 export function MerchStore({
   products,
@@ -86,6 +87,24 @@ export function MerchStore({
   const handleOrderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+    // No order backend yet: hand the request to the visitor's email app.
+    const lines = cart.map(
+      (item) =>
+        `- ${item.quantity} × ${item.product.name}` +
+        (item.selectedSize ? `, size ${item.selectedSize}` : "") +
+        (item.selectedColor ? `, ${item.selectedColor.name}` : "")
+    );
+    const body = [
+      `Name: ${formData.name}`,
+      `Email: ${formData.email}`,
+      `Entity: ${formData.entity}`,
+      "",
+      "Items:",
+      ...lines,
+      "",
+      formData.notes,
+    ].join("\n");
+    window.location.href = `mailto:${siteConfig.supportEmail}?subject=${encodeURIComponent("EUROXPRO'27 merch pre-order interest")}&body=${encodeURIComponent(body)}`;
     setOrderSubmitted(true);
   };
 
@@ -200,9 +219,9 @@ export function MerchStore({
                 <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check size={24} />
                 </div>
-                <h4 className="font-serif-title font-bold text-lg text-[#101B35] mb-2">Pre-Order Interest Recorded!</h4>
+                <h4 className="font-serif-title font-bold text-lg text-[#101B35] mb-2">Almost done</h4>
                 <p className="text-xs text-[#5A6478] leading-relaxed mb-4">
-                  Thank you, {formData.name}. Your expression of interest has been registered with the Organizing Committee. Please note this is a pre-order interest record (no payment was processed). Official ordering details and invoices will be issued to {formData.email} once production begins.
+                  Thank you, {formData.name}. Your email app should have opened with your pre-order request ready to send. Press send there to register your interest with the Organizing Committee (no payment is taken), or write to {siteConfig.supportEmail}.
                 </p>
                 <Button
                   variant="outline"

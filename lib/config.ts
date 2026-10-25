@@ -15,23 +15,23 @@ export const siteConfig = {
   longDescription:
     "EUROXPRO'27 brings together national governing teams, local committee leaders, and young change-makers from across Europe and the Mediterranean. Hosted by MC Türkiye in the historic coastal city of Antalya, the congress is dedicated to regional alignment, organizational performance, and scaling high-impact youth exchanges.",
 
-  // Event Dates (Provisional Framework / Subject to Official Ratification)
+  // Event Dates (confirmed)
   startDate: new Date("2027-03-31T09:00:00+03:00"),
   endDate: new Date("2027-04-04T18:00:00+03:00"),
-  datesLabel: "31 March – 4 April 2027 (Provisional)",
-  isDatesProvisional: true, // Clearly indicated until officially ratified
+  datesLabel: "31 March – 4 April 2027",
+  isDatesProvisional: false,
 
   // Venue & Accommodation
-  venueName: "[Official Congress Venue to be Announced]",
-  venueAddress: "[Antalya Venue Location to be Announced]",
+  venueName: "To be announced",
+  venueAddress: "Antalya, Türkiye (exact venue to be announced)",
   venueCity: "Antalya, Türkiye",
 
   // Hotel
-  hotelName: "[Official Congress Accommodation to be Announced]",
-  hotelAddress: "[Antalya Accommodation to be Announced]",
+  hotelName: "To be announced",
+  hotelAddress: "To be announced",
   hotelCheckIn: "14:00 (Arrival Day)",
   hotelCheckOut: "12:00 (Departure Day)",
-  hotelPhone: "[Official Support Line to be Announced]",
+  hotelPhone: "To be announced",
 
   // Registration
   registrationUrl: null as string | null,
@@ -39,8 +39,8 @@ export const siteConfig = {
   registrationLabel: "Registration to be Announced",
 
   // Contact
-  contactEmail: "[contact@euroxpro27.com]",
-  supportEmail: "[support@euroxpro27.com]",
+  contactEmail: "contact@euroxpro27.com",
+  supportEmail: "support@euroxpro27.com",
 
   // Social Media
   social: {
@@ -63,42 +63,42 @@ export const siteConfig = {
 // ============================================================
 export const organizingCommittee = [
   {
-    name: "[LC President Name]",
+    name: "To be announced",
     role: "Local Committee President",
     department: "Leadership",
     bio: "Leading the EUROXPRO'27 organizing team with a vision for an unforgettable congress experience in Antalya.",
     image: null as string | null,
   },
   {
-    name: "[OCP Name]",
+    name: "To be announced",
     role: "Organizing Committee President",
     department: "Congress",
     bio: "Coordinating all congress operations to deliver a world-class Mediterranean event.",
     image: null as string | null,
   },
   {
-    name: "[Logistics Lead]",
+    name: "To be announced",
     role: "VP Logistics",
     department: "Logistics",
     bio: "Managing travel, AYT airport transfers, accommodation, and on-ground logistics for all delegates.",
     image: null as string | null,
   },
   {
-    name: "[Finance Lead]",
+    name: "To be announced",
     role: "VP Finance",
     department: "Finance",
     bio: "Overseeing the financial planning and delegate fee management.",
     image: null as string | null,
   },
   {
-    name: "[Marketing Lead]",
+    name: "To be announced",
     role: "VP Marketing & Communications",
     department: "Marketing",
     bio: "Crafting the EUROXPRO'27 brand experience and delegate communications.",
     image: null as string | null,
   },
   {
-    name: "[Programme Lead]",
+    name: "To be announced",
     role: "VP Programme",
     department: "Programme",
     bio: "Designing the congress agenda, plenary tracks, and Mediterranean leadership sessions.",

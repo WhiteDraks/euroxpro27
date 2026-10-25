@@ -13,7 +13,7 @@ export const faqCategories: FAQCategory[] = [
         id: "reg-1",
         question: "How do I register for EUROXPRO'27?",
         answer:
-          "Registration details and the official registration link will be shared once confirmed by the Organizing Committee. Keep an eye on this website and our social media channels for the announcement. [REGISTRATION LINK TO BE CONFIRMED]",
+          "Registration details and the official registration link will be shared once confirmed by the Organizing Committee. Keep an eye on this website and our social media channels for the announcement.",
       },
       {
         id: "reg-2",
@@ -31,7 +31,7 @@ export const faqCategories: FAQCategory[] = [
         id: "reg-4",
         question: "Can I cancel or transfer my registration?",
         answer:
-          "The cancellation and transfer policy will be shared when registration opens. Please contact the Organizing Committee at [contact@euroxpro27.com] for any specific queries.",
+          "The cancellation and transfer policy will be shared when registration opens. Please contact the Organizing Committee at contact@euroxpro27.com for any specific queries.",
       },
     ],
   },
@@ -247,13 +247,13 @@ export const faqCategories: FAQCategory[] = [
         id: "cont-1",
         question: "How do I contact the Organizing Committee?",
         answer:
-          "You can reach the Organizing Committee via the Contact page on this website or by emailing [contact@euroxpro27.com]. We aim to respond to all enquiries within 48-72 hours.",
+          "You can reach the Organizing Committee via the Contact page on this website or by emailing contact@euroxpro27.com. We aim to respond to all enquiries within 48-72 hours.",
       },
       {
         id: "cont-2",
         question: "I didn't find my answer here. What should I do?",
         answer:
-          "If your question isn't answered in the FAQ, please use the contact form on the Contact page or send an email to [contact@euroxpro27.com]. We are happy to help with any questions you have.",
+          "If your question isn't answered in the FAQ, please use the contact form on the Contact page or send an email to contact@euroxpro27.com. We are happy to help with any questions you have.",
       },
     ],
   },

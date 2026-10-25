@@ -26,7 +26,6 @@ const footerLinks = [
     title: "Store",
     links: [
       { href: "/merch", label: "Merch Store" },
-      { href: "/merch", label: "Browse Collection" },
     ],
   },
 ];

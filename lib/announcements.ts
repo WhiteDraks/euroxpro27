@@ -8,15 +8,15 @@ import type { Announcement } from "./types";
 export const announcements: Announcement[] = [
   {
     id: "ann-000",
-    title: "Official Host Destination: Antalya, Türkiye — Provisional Dates 31 March – 4 April 2027",
+    title: "Official Host Destination: Antalya, Türkiye — 31 March – 4 April 2027",
     summary:
-      "AIESEC in Türkiye and the Organizing Committee announce Antalya as the host destination for EUROXPRO'27, with provisional dates set for 31 March to 4 April 2027.",
+      "AIESEC in Türkiye and the Organizing Committee announce Antalya as the host destination for EUROXPRO'27, with the congress taking place from 31 March to 4 April 2027.",
     content: `
 We are proud to announce the host destination for EUROXPRO'27!
 
 **Host Destination**: Antalya, Türkiye  
 **Host Entity**: AIESEC in Türkiye (MC Türkiye)  
-**Provisional Framework Dates**: 31 March – 4 April 2027 (5 Days: Wednesday to Sunday)  
+**Dates**: 31 March – 4 April 2027 (5 Days: Wednesday to Sunday)  
 **Proposed Creative Direction**: "Where Europe Meets the Mediterranean"
 
 Antalya offers an extraordinary setting on the Turkish Riviera where the azure Mediterranean meets the dramatic Taurus Mountains. The congress brings together youth leaders from over 50 entities across Europe to drive regional alignment, enhance organizational performance, and expand international youth exchange opportunities.
