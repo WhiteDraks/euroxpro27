@@ -8,6 +8,7 @@ import { content } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Organizing Committee — The Team",
   description: "Meet the EUROXPRO'27 Organizing Committee preparing the AIESEC in Europe congress in Antalya, Türkiye.",
+  alternates: { canonical: "/team" },
 };
 
 function initials(name: string) {
