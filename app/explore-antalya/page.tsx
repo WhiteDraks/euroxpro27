@@ -4,8 +4,9 @@ import { AntalyaGuide } from "@/components/antalya/AntalyaGuide";
 import { content } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Explore Antalya — The Mediterranean Host City | EUROXPRO'27",
+  title: "Explore Antalya — The Mediterranean Host City",
   description: "A delegate guide to Antalya and the Turkish Riviera: historic Kaleiçi, Düden waterfalls, Taurus mountain panoramas, Mediterranean gastronomy, and transport routes.",
+  alternates: { canonical: "/explore-antalya" },
 };
 
 export default function ExploreAntalyaPage() {

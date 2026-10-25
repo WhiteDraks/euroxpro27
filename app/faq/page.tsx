@@ -8,6 +8,7 @@ import { content } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Frequently Asked Questions — Travel, Hotel & Visa",
   description: "Official FAQ for EUROXPRO'27 delegates: Antalya Airport (AYT), congress hotel, visas, registration, schedule, merch pre-orders and emergency assistance.",
+  alternates: { canonical: "/faq" },
 };
 
 const travelIcons = [Plane, Hotel, FileText];

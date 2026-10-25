@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Delegate Guide & Travel Hub | EUROXPRO'27 Antalya",
+  title: "Delegate Guide & Travel Hub — Antalya",
   description: "Comprehensive guide for international EUROXPRO'27 delegates: Antalya Airport (AYT), e-Visa links, AntRay transit, currency, healthcare, emergency contacts, and packing checklist.",
+  alternates: { canonical: "/delegate-guide" },
 };
 
 const guideSections = [
