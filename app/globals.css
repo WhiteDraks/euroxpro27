@@ -6,7 +6,7 @@
   --color-navy-light: #1F3057;
   --color-burgundy: #741F3D;
   --color-burgundy-deep: #51152D;
-  --color-burgundy-glow: rgba(116, 31, 61, 0.25);
+  --color-burgundy-glow: rgba(116, 31, 61, 0.35);
   --color-ivory: #F7F3ED;
   --color-ivory-warm: #EFE9DF;
   --color-white: #FFFFFF;
@@ -40,7 +40,6 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: "Georgia", "Cambria", "Times New Roman", Times, serif;
     letter-spacing: -0.025em;
-    font-weight: 700;
   }
 
   ::selection {
@@ -65,14 +64,36 @@
 /* Subtle architectural/bosphorus grid watermark */
 .bosphorus-grid {
   background-image: 
-    linear-gradient(to right, rgba(227, 224, 220, 0.4) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(227, 224, 220, 0.4) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(to right, rgba(227, 224, 220, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(227, 224, 220, 0.45) 1px, transparent 1px);
+  background-size: 52px 52px;
 }
 
 .bosphorus-grid-dark {
   background-image: 
-    linear-gradient(to right, rgba(35, 49, 82, 0.35) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(35, 49, 82, 0.35) 1px, transparent 1px);
+    linear-gradient(to right, rgba(35, 49, 82, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(35, 49, 82, 0.4) 1px, transparent 1px);
   background-size: 56px 56px;
+}
+
+/* Image zoom on hover */
+.img-zoom {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .img-zoom {
+  transform: scale(1.05);
+}
+
+/* Scroll indicator bounce */
+@keyframes scrollBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.animate-scroll-bounce {
+  animation: scrollBounce 2s ease-in-out infinite;
 }
