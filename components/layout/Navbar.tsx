@@ -47,7 +47,7 @@ export function Navbar() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           solid
-            ? "bg-[#101B35]/97 backdrop-blur-md shadow-lg shadow-black/20"
+            ? "bg-[#101B35] border-b border-white/10"
             : "bg-transparent"
         )}
       >
@@ -71,10 +71,10 @@ export function Navbar() {
                 />
               </div>
               <div className="hidden sm:flex lg:hidden xl:flex flex-col border-l border-[#2A3556] pl-2.5 py-0.5">
-                <span className="font-display text-white font-bold text-sm leading-none tracking-tight">
-                  EUROXPRO<span className="text-[#741F3D]">&apos;27</span>
+                <span className="font-serif-title text-white text-base leading-none">
+                  EUROXPRO<span className="text-[#e58aa6]">&apos;27</span>
                 </span>
-                <span className="text-[#A7AFBF] text-[8.5px] tracking-[0.2em] uppercase leading-none mt-1">
+                <span className="text-[#A7AFBF] text-[8.5px] tracking-[0.08em] uppercase leading-none mt-1">
                   Antalya, Türkiye
                 </span>
               </div>
@@ -87,10 +87,10 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "px-2.5 xl:px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-200 rounded-sm",
+                    "px-2 xl:px-3 py-2 text-sm whitespace-nowrap transition-colors duration-200 underline-offset-[10px] decoration-2",
                     pathname === link.href
-                      ? "text-white bg-white/10"
-                      : "text-[#A7AFBF] hover:text-white hover:bg-white/5"
+                      ? "text-white underline decoration-[#e58aa6]"
+                      : "text-[#C9CED8] hover:text-white"
                   )}
                 >
                   {link.label}
@@ -165,17 +165,17 @@ export function Navbar() {
             </button>
           </div>
 
-          <nav className="p-5 flex flex-col gap-1">
+          <nav className="px-6 py-4 flex flex-col">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
                 className={cn(
-                  "px-4 py-3 text-base font-medium rounded-sm transition-colors duration-200",
+                  "px-1 py-3 font-serif-title text-2xl border-b border-[#2A3556] transition-colors duration-200",
                   pathname === link.href
-                    ? "text-white bg-[#741F3D]"
-                    : "text-[#A7AFBF] hover:text-white hover:bg-white/5"
+                    ? "text-[#e58aa6]"
+                    : "text-white hover:text-[#e58aa6]"
                 )}
               >
                 {link.label}

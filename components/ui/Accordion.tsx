@@ -14,7 +14,7 @@ export function AccordionItem({ question, answer, defaultOpen = false }: Accordi
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-b border-[#E3E0DC] last:border-0">
+    <div className="border-b border-[#D9D2C5]">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between gap-4 py-4 text-left group"
@@ -40,7 +40,7 @@ export function AccordionItem({ question, answer, defaultOpen = false }: Accordi
           isOpen ? "max-h-[500px] pb-4" : "max-h-0"
         )}
       >
-        <p className="text-[#5A6478] text-sm leading-relaxed">{answer}</p>
+        <p className="text-[#4B5563] text-base leading-relaxed max-w-2xl">{answer}</p>
       </div>
     </div>
   );

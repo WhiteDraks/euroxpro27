@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin, Heart, Share2 } from "lucide-react";
+import { Mail, MapPin, Share2 } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { isSchedulePublished } from "@/lib/schedule";
 
@@ -52,7 +52,7 @@ export function Footer() {
                 />
               </div>
             </Link>
-            <p className="text-[#A7AFBF] text-sm leading-relaxed mb-6 max-w-xs">
+            <p className="font-serif-title italic text-xl text-[#F7F3ED] leading-snug mb-6 max-w-xs">
               {siteConfig.tagline}
             </p>
             <div className="flex items-center gap-2 text-[#A7AFBF] text-sm mb-3">
@@ -88,7 +88,7 @@ export function Footer() {
           {/* Nav Columns */}
           {footerLinks.map((col) => (
             <div key={col.title}>
-              <h3 className="text-white font-semibold text-sm tracking-widest uppercase mb-4">
+              <h3 className="text-[#e58aa6] text-xs font-semibold tracking-[0.08em] uppercase mb-4">
                 {col.title}
               </h3>
               <ul className="space-y-2.5">
@@ -114,8 +114,8 @@ export function Footer() {
           <p className="text-[#A7AFBF] text-xs">
             &copy; {new Date().getFullYear()} EUROXPRO&apos;27 · AIESEC · All rights reserved.
           </p>
-          <p className="text-[#A7AFBF] text-xs flex items-center gap-1">
-            Made with <Heart size={11} className="text-[#741F3D]" fill="currentColor" /> in Antalya
+          <p className="text-[#A7AFBF] text-xs">
+            Organised by AIESEC in Türkiye
           </p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { PageHero } from "@/components/ui/PageHero";
 import { CongressSchedule } from "@/components/congress/CongressSchedule";
 import { PreviousEditions } from "@/components/common/PreviousEditions";
 import { PartnersSection } from "@/components/common/PartnersSection";
@@ -9,7 +10,7 @@ import { schedule, isDraftSchedule, isSchedulePublished } from "@/lib/schedule";
 import { content } from "@/lib/content";
 import { RichText } from "@/components/ui/RichText";
 import Link from "next/link";
-import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass, Globe2, Clock, ArrowRight } from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "The Congress — Purpose & Agenda",
@@ -19,68 +20,32 @@ export const metadata: Metadata = {
 
 export default function CongressPage() {
   const { hero, about, schedule: scheduleText, evenings } = content.congress;
-  const objectiveIcons = [Target, Globe2, Compass, Sparkles];
 
   return (
     <div className="pt-16 lg:pt-20">
-      {/* ── CINEMATIC CONGRESS HERO ── */}
-      <section className="relative min-h-[60vh] flex items-center bg-[#101B35] text-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bosphorus-grid-dark">
-        {/* Ambient auditorium background with deep gradient overlay */}
-        <div className="absolute inset-0 z-0 opacity-25">
-          <Image
-            src={hero.image}
-            alt={hero.imageAlt}
-            fill
-            preload
-            quality={60}
-            sizes="100vw"
-            className="object-cover object-center filter brightness-90"
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#101B35] via-[#101B35]/85 to-[#101B35]/70 z-0" />
-        <div className="absolute -top-24 right-10 w-96 h-96 bg-[#741F3D]/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-7xl mx-auto w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase">
-              <span className="w-8 h-px bg-[#741F3D]" />
-              {hero.eyebrow}
+      <PageHero
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        intro={hero.intro}
+        image={hero.image}
+        imageAlt={hero.imageAlt}
+      >
+        <dl className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-8">
+          {[
+            { label: hero.datesLabel, value: siteConfig.datesLabel },
+            { label: hero.cityLabel, value: siteConfig.venueCity },
+            { label: hero.venueLabel, value: siteConfig.venueName },
+          ].map(({ label, value }) => (
+            <div key={label}>
+              <dt className="text-xs text-[#5A6478]">{label}</dt>
+              <dd className="font-serif-title text-xl sm:text-2xl text-[#101B35] mt-0.5">{value}</dd>
             </div>
-            <div className="relative w-48 sm:w-60 aspect-[1024/320] drop-shadow-lg">
-              <Image
-                src="/images/euroxpro-logo.png"
-                alt="EUROXPRO Türkiye Official Logo"
-                fill
-                sizes="240px"
-                className="object-contain object-left sm:object-right"
-              />
-            </div>
-          </div>
-          <h1 className="font-serif-title font-normal text-4xl sm:text-6xl lg:text-7xl text-white max-w-4xl leading-tight">
-            {hero.title}
-          </h1>
-          <p className="mt-6 text-[#A7AFBF] text-lg sm:text-xl max-w-2xl font-light leading-relaxed">
-            {hero.intro}
-          </p>
-
-          <div className="grid sm:grid-cols-3 gap-4 mt-12 max-w-3xl">
-            {[
-              { icon: Calendar, label: hero.datesLabel, value: siteConfig.datesLabel },
-              { icon: MapPin, label: hero.cityLabel, value: siteConfig.venueCity },
-              { icon: MapPin, label: hero.venueLabel, value: siteConfig.venueName },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="bg-[#172443]/80 border border-[#233152] rounded-sm p-5 backdrop-blur-sm">
-                <Icon size={16} className="text-[#741F3D] mb-2" />
-                <p className="text-[#8F9AA0] text-[10px] font-mono uppercase tracking-wider">{label}</p>
-                <p className="text-white font-medium text-sm mt-1">{value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          ))}
+        </dl>
+      </PageHero>
 
       {/* ── ABOUT & OBJECTIVES (EDITORIAL TWO-COLUMN) ── */}
-      <section className="py-24 bg-[#F7F3ED] border-b border-[#E5E1DA]">
+      <section className="py-20 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
@@ -90,7 +55,7 @@ export default function CongressPage() {
                 title={about.title}
                 description={about.description}
               />
-              <div className="space-y-4 text-sm text-[#374151] leading-relaxed font-light">
+              <div className="space-y-4 text-base text-[#374151] leading-relaxed">
                 {about.paragraphs.map((paragraph, i) => (
                   <p key={i}>
                     <RichText text={paragraph} />
@@ -99,25 +64,19 @@ export default function CongressPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-6 space-y-4">
-              <span className="text-xs font-mono font-bold tracking-[0.2em] text-[#741F3D] uppercase block mb-4">
-                {about.objectivesTitle}
-              </span>
-
-              {about.objectives.map(({ title, desc }, i) => {
-                const Icon = objectiveIcons[i % objectiveIcons.length];
-                return (
-                  <div key={i} className="reveal p-6 bg-white border border-[#E5E1DA] rounded-sm shadow-sm space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-[#101B35] rounded-sm flex items-center justify-center text-[#741F3D] flex-shrink-0">
-                        <Icon size={16} />
-                      </div>
-                      <h3 className="font-serif-title text-lg text-[#101B35] font-normal">{title}</h3>
+            <div className="lg:col-span-6 lg:pt-2">
+              <p className="kicker mb-2">{about.objectivesTitle}</p>
+              <ol>
+                {about.objectives.map(({ title, desc }, i) => (
+                  <li key={i} className="reveal grid grid-cols-[2.5rem_1fr] gap-x-3 border-t border-[#D9D2C5] py-6 last:border-b">
+                    <span className="font-serif-title italic text-2xl text-[#741F3D] leading-none tabular-nums">{i + 1}.</span>
+                    <div>
+                      <h3 className="font-serif-title text-xl sm:text-2xl text-[#101B35] font-normal leading-snug">{title}</h3>
+                      <p className="mt-2 text-sm text-[#5A6478] leading-relaxed">{desc}</p>
                     </div>
-                    <p className="text-xs text-[#5A6478] leading-relaxed pl-11">{desc}</p>
-                  </div>
-                  );
-              })}
+                  </li>
+                ))}
+              </ol>
             </div>
 
           </div>
@@ -138,24 +97,18 @@ export default function CongressPage() {
           />
 
           {!isSchedulePublished && (
-            <div className="reveal relative overflow-hidden bg-[#172443] border border-[#2A3556] rounded-sm p-6 sm:p-12 text-center">
-              <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 bg-[#741F3D]/25 rounded-full blur-3xl pointer-events-none" />
-              <div className="relative max-w-2xl mx-auto">
-                <div className="w-12 h-12 mx-auto mb-5 rounded-sm bg-[#741F3D]/20 flex items-center justify-center">
-                  <Clock size={22} className="text-[#e58aa6]" />
-                </div>
-                <span className="inline-block text-[11px] font-mono font-bold uppercase tracking-[0.25em] bg-[#741F3D] text-white px-3 py-1 rounded-sm">
-                  {scheduleText.comingSoonBadge}
-                </span>
-                <h3 className="mt-5 font-serif-title text-2xl sm:text-4xl text-white font-normal leading-tight">
+            <div className="reveal grid lg:grid-cols-12 gap-6 lg:gap-12 border-t border-[#2A3556] pt-10">
+              <p className="lg:col-span-4 font-serif-title italic text-2xl text-[#e58aa6]">{scheduleText.comingSoonBadge}</p>
+              <div className="lg:col-span-8 max-w-2xl">
+                <h3 className="font-serif-title text-3xl sm:text-4xl text-white font-normal leading-tight">
                   {scheduleText.comingSoonTitle}
                 </h3>
-                <p className="mt-4 text-sm sm:text-base text-[#A7AFBF] leading-relaxed font-light">
+                <p className="mt-4 text-base text-[#C9CED8] leading-relaxed">
                   <RichText text={scheduleText.comingSoonText} />
                 </p>
                 <Link
                   href="/announcements"
-                  className="mt-8 inline-flex items-center gap-2 bg-white text-[#101B35] text-sm font-semibold px-6 py-3 rounded-sm hover:bg-[#F7F3ED] transition-colors"
+                  className="mt-8 inline-flex items-center gap-2 text-white font-semibold link-underline decoration-[#e58aa6] hover:decoration-white"
                 >
                   {scheduleText.comingSoonButton} <ArrowRight size={16} />
                 </Link>
@@ -189,7 +142,7 @@ export default function CongressPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {evenings.items.map((event, i) => (
-              <div key={i} className="reveal bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm flex flex-col justify-between group">
+              <div key={i} className="reveal bg-white border border-[#E5E1DA] rounded-sm overflow-hidden flex flex-col justify-between group">
                 <div>
                   <div className="aspect-[16/10] relative overflow-hidden bg-[#101B35]">
                     <Image
@@ -201,7 +154,7 @@ export default function CongressPage() {
                       className="object-cover object-center img-zoom"
                     />
                     <div className="absolute top-3 left-3">
-                      <span className="text-[10px] font-mono uppercase bg-[#101B35]/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-sm">
+                      <span className="text-[10px] uppercase bg-[#101B35]/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-sm">
                         {event.tag}
                       </span>
                     </div>
@@ -212,7 +165,7 @@ export default function CongressPage() {
                   </div>
                 </div>
                 <div className="px-6 py-3.5 bg-[#F7F3ED]/80 border-t border-[#E5E1DA] flex items-center justify-between text-xs">
-                  <span className="text-[#8F9AA0] uppercase font-mono tracking-wider text-[10px]">{evenings.dressCodeLabel}</span>
+                  <span className="text-[#8F9AA0] uppercase tracking-wider text-[10px]">{evenings.dressCodeLabel}</span>
                   <span className="font-semibold text-[#741F3D]">{event.dress}</span>
                 </div>
               </div>

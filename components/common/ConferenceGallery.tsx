@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Camera, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RichText } from "@/components/ui/RichText";
 import type { SiteContent } from "@/lib/content";
@@ -29,28 +28,22 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
   const visibleItems = showAll ? filteredItems : filteredItems.slice(0, INITIAL_VISIBLE);
 
   return (
-    <section className="py-24 bg-[#101B35] text-white relative overflow-hidden bosphorus-grid-dark">
-      {/* Ambient background glow */}
-      <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] bg-[#741F3D]/15 rounded-full blur-[140px] pointer-events-none" />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header & Controls */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-[#233152] pb-8 gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-3">
-              <Camera size={14} />
-              {text.eyebrow}
-            </div>
-            <h2 className="font-serif-title text-4xl sm:text-5xl text-white font-normal leading-tight">
+    <section className="py-20 sm:py-28 bg-white text-[#101B35]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-12 gap-6 lg:gap-12 items-end mb-8">
+          <div className="lg:col-span-7">
+            <p className="kicker mb-4">{text.eyebrow}</p>
+            <h2 className="font-serif-title text-[2.25rem] sm:text-5xl lg:text-6xl font-normal leading-[1.02]">
               {text.title}
             </h2>
-            <p className="text-xs sm:text-sm text-[#A7AFBF] mt-3 max-w-xl leading-relaxed font-light">
-              {text.intro}
-            </p>
           </div>
+          <p className="lg:col-span-5 text-base sm:text-lg text-[#4B5563] leading-relaxed">
+            {text.intro}
+          </p>
+        </div>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-y border-[#E5E1DA] py-3 mb-10">
+          <div className="flex flex-wrap gap-x-6 gap-y-2" role="group" aria-label="Filter photos">
             {(
               [
                 { id: "all", label: text.filterAll, count: galleryItems.length },
@@ -68,96 +61,69 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
             ).map(({ id, label, count }) => (
               <button
                 key={id}
+                type="button"
+                aria-pressed={activeFilter === id}
                 onClick={() => {
                   setActiveFilter(id);
                   setShowAll(false);
                 }}
                 className={cn(
-                  "px-4 py-2 text-xs font-mono rounded-sm transition-all duration-200 border",
+                  "text-sm py-1 transition-colors border-b-2",
                   activeFilter === id
-                    ? "bg-[#741F3D] text-white border-[#741F3D]"
-                    : "bg-[#172443] text-[#A7AFBF] border-[#233152] hover:text-white hover:border-[#741F3D]"
+                    ? "text-[#101B35] font-semibold border-[#741F3D]"
+                    : "text-[#5A6478] border-transparent hover:text-[#101B35]"
                 )}
               >
-                {label} ({count})
+                {label} <span className="text-[#8F9AA0] font-normal">{count}</span>
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Informative Disclaimer Pill */}
-        <div className="mb-10 flex items-center gap-3 px-4 py-3 bg-[#172443]/70 border border-[#233152] rounded-sm text-xs text-[#A7AFBF]">
-          <Info size={16} className="text-[#741F3D] flex-shrink-0" />
-          <span>
+          <p className="text-xs text-[#5A6478] italic sm:text-right sm:max-w-sm">
             <RichText text={text.notice} />
-          </span>
+          </p>
         </div>
 
-        {/* Gallery Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {visibleItems.map((item) => (
-            <div
-              key={item.id}
-              className="reveal bg-[#172443] border border-[#233152] rounded-sm overflow-hidden group hover:border-[#741F3D] transition-colors duration-300 flex flex-col justify-between"
-            >
-              <div>
-                <div className="aspect-[16/10] relative overflow-hidden bg-[#101B35]">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+          {visibleItems.map((item, i) => {
+            const feature = i % 6 === 0;
+            return (
+              <figure
+                key={item.id}
+                className={cn("reveal group flex flex-col", feature && "sm:col-span-2 lg:row-span-2")}
+              >
+                <div
+                  className={cn(
+                    "relative overflow-hidden bg-[#101B35]",
+                    feature ? "aspect-[4/3] lg:aspect-auto lg:flex-1 lg:min-h-[360px]" : "aspect-[4/3]"
+                  )}
+                >
                   <Image
                     src={item.image}
                     alt={item.title}
                     fill
                     quality={60}
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover object-center img-zoom filter brightness-95"
+                    sizes={feature ? "(max-width: 640px) 100vw, 66vw" : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
+                    className="object-cover object-center img-zoom"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#101B35]/90 via-transparent to-transparent" />
-                  
-                  {/* Category Pill */}
-                  <div className="absolute top-3 left-3">
-                    <span
-                      className={cn(
-                        "text-[10px] font-mono px-2.5 py-1 rounded-sm uppercase tracking-wider",
-                        item.isHistorical
-                          ? "bg-[#741F3D] text-white"
-                          : "bg-[#101B35]/90 backdrop-blur-sm text-[#E5E1DA] border border-[#233152]"
-                      )}
-                    >
-                      {item.yearOrArea}
-                    </span>
-                  </div>
-
-                  {/* Location Stamp */}
-                  <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <span className="text-[10px] font-mono tracking-widest text-[#A7AFBF] uppercase block">
-                      {item.location}
-                    </span>
-                    <h3 className="font-serif-title text-lg font-normal text-white">
-                      {item.title}
-                    </h3>
-                  </div>
                 </div>
-
-                <div className="p-5">
-                  <p className="text-xs text-[#A7AFBF] leading-relaxed font-light">
-                    {item.caption}
+                <figcaption className="mt-3">
+                  <p className="text-xs text-[#741F3D]">
+                    {item.yearOrArea} · {item.location}
                   </p>
-                </div>
-              </div>
-
-              <div className="px-5 py-3 border-t border-[#233152] bg-[#101B35]/40 flex items-center justify-between text-[10px] font-mono text-[#8F9AA0]">
-                <span>{item.isHistorical ? "Conference Moments" : "Antalya Host Destination"}</span>
-                <span className="text-[#E5E1DA]">{item.isHistorical ? "Illustrative" : "Antalya, Türkiye"}</span>
-              </div>
-            </div>
-          ))}
+                  <h3 className={cn("font-serif-title font-normal mt-0.5", feature ? "text-2xl" : "text-lg")}>{item.title}</h3>
+                  <p className="text-sm text-[#5A6478] leading-relaxed mt-1">{item.caption}</p>
+                </figcaption>
+              </figure>
+            );
+          })}
         </div>
 
         {!showAll && filteredItems.length > INITIAL_VISIBLE && (
-          <div className="mt-10 text-center">
+          <div className="mt-12 border-t border-[#E5E1DA] pt-6">
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="px-6 py-3 text-xs font-mono uppercase tracking-wider rounded-sm border border-[#233152] bg-[#172443] text-[#E5E1DA] hover:border-[#741F3D] hover:text-white transition-colors"
+              className="text-sm font-semibold text-[#101B35] link-underline decoration-[#741F3D] hover:text-[#741F3D]"
             >
               {text.showMoreButton} ({filteredItems.length - INITIAL_VISIBLE})
             </button>

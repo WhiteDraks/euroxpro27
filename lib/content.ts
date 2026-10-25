@@ -20,7 +20,6 @@ export type SiteContent = {
       image: string;
       imageAlt: string;
       eyebrow: string;
-      kicker: string;
       titleLine1: string;
       titleLine2: string;
       supportingLine: string;
@@ -43,9 +42,9 @@ export type SiteContent = {
       eyebrow: string;
       title: string;
       intro: string;
-      items: { label: string; title: string; text: string; focus: string }[];
+      items: { label: string; title: string; text: string }[];
     };
-    pillars: { eyebrow: string; title: string; intro: string; cardFooter: string; items: TitledText[] };
+    pillars: { eyebrow: string; title: string; intro: string; items: TitledText[] };
     destination: {
       eyebrow: string;
       title: string;
@@ -164,7 +163,6 @@ export type SiteContent = {
     eyebrow: string;
     title: string;
     intro: string;
-    disclaimerTitle: string;
     disclaimer: string;
     items: HistoricalEdition[];
   };

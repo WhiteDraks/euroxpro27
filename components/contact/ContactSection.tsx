@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, MapPin, Send, AlertCircle, Check, Share2, Globe, Users, ArrowRight } from "lucide-react";
-import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Send, AlertCircle, Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { siteConfig } from "@/lib/config";
 
@@ -28,92 +27,58 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
   };
 
   return (
-    <div className="py-16 bg-[#F7F3ED]">
+    <div className="pb-20 sm:pb-28 bg-[#F7F3ED]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Organizing Committee: the full team lives on /team */}
-        <Link
-          href="/team"
-          className="mb-16 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#101B35] text-white rounded-sm p-6 sm:p-8 group"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#172443] border border-[#233152] rounded-full flex items-center justify-center flex-shrink-0">
-              <Users size={20} className="text-[#741F3D]" />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-1">Leadership</span>
-              <h2 className="font-serif-title font-normal text-xl sm:text-2xl">Meet the Organizing Committee</h2>
-            </div>
-          </div>
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#E5E1DA] group-hover:text-white">
-            View the team <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-          </span>
-        </Link>
-
-        {/* Contact Information & Interactive Form */}
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           {/* Contact Details */}
           <div>
-            <SectionHeader
-              eyebrow="Direct Inquiries"
-              title="Get in Touch"
-              description="Reach out directly to the committee or send us an inquiry using the secure form."
-            />
-            <div className="space-y-6">
-              <div className="flex items-start gap-4 p-5 bg-white border border-[#E3E0DC] rounded-lg">
-                <div className="w-10 h-10 bg-[#741F3D]/10 rounded-sm flex items-center justify-center flex-shrink-0">
-                  <Mail size={18} className="text-[#741F3D]" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm text-[#101B35] mb-1">Official Congress Email</h4>
-                  <p className="text-xs text-[#5A6478] mb-1">General inquiries &amp; partnerships:</p>
-                  <a href={`mailto:${config.contactEmail}`} className="text-sm font-semibold text-[#741F3D] hover:underline">
+            <p className="font-serif-title text-2xl sm:text-3xl leading-snug text-[#101B35] max-w-md">
+              The quickest way to reach us is by email. We usually reply within a few working days.
+            </p>
+            <dl className="mt-10 border-b border-[#101B35]">
+              <div className="border-t border-[#101B35] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                <dt className="text-sm text-[#5A6478]">Email</dt>
+                <dd>
+                  <a href={`mailto:${config.contactEmail}`} className="font-serif-title text-xl sm:text-2xl text-[#741F3D] link-underline break-all">
                     {config.contactEmail}
                   </a>
-                </div>
+                  <p className="text-sm text-[#5A6478] mt-1">General questions and partnerships</p>
+                </dd>
               </div>
-
-              <div className="flex items-start gap-4 p-5 bg-white border border-[#E3E0DC] rounded-lg">
-                <div className="w-10 h-10 bg-[#741F3D]/10 rounded-sm flex items-center justify-center flex-shrink-0">
-                  <MapPin size={18} className="text-[#741F3D]" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm text-[#101B35] mb-1">Congress Secretariat</h4>
-                  <p className="text-xs text-[#5A6478] mb-1">Host Entity:</p>
-                  <p className="text-sm font-medium text-[#101B35]">AIESEC in Türkiye / Antalya</p>
-                  <p className="text-xs text-[#A7AFBF] mt-1 font-mono">Antalya, Türkiye</p>
-                </div>
+              <div className="border-t border-[#D9D2C5] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                <dt className="text-sm text-[#5A6478]">Hosted by</dt>
+                <dd className="text-base text-[#101B35]">AIESEC in Türkiye, Antalya</dd>
               </div>
-
-              <div className="p-5 bg-white border border-[#E3E0DC] rounded-lg">
-                <h4 className="font-semibold text-sm text-[#101B35] mb-3">Official Channels</h4>
-                <div className="flex gap-3">
-                  {config.social.instagram && (
-                    <a
-                      href={config.social.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-[#101B35] text-white rounded-sm text-xs font-semibold hover:bg-[#741F3D] transition-colors"
-                    >
-                      <Share2 size={14} /> Instagram
-                    </a>
-                  )}
-                  {config.social.linkedin && (
-                    <a
-                      href={config.social.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-[#101B35] text-white rounded-sm text-xs font-semibold hover:bg-[#741F3D] transition-colors"
-                    >
-                      <Globe size={14} /> LinkedIn
-                    </a>
-                  )}
+              {(config.social.instagram || config.social.linkedin) && (
+                <div className="border-t border-[#D9D2C5] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                  <dt className="text-sm text-[#5A6478]">Follow</dt>
+                  <dd className="flex gap-6 text-base">
+                    {config.social.instagram && (
+                      <a href={config.social.instagram} target="_blank" rel="noopener noreferrer" className="text-[#101B35] link-underline hover:text-[#741F3D]">
+                        Instagram
+                      </a>
+                    )}
+                    {config.social.linkedin && (
+                      <a href={config.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#101B35] link-underline hover:text-[#741F3D]">
+                        LinkedIn
+                      </a>
+                    )}
+                  </dd>
                 </div>
+              )}
+              <div className="border-t border-[#D9D2C5] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                <dt className="text-sm text-[#5A6478]">The team</dt>
+                <dd>
+                  <Link href="/team" className="inline-flex items-center gap-2 text-base text-[#101B35] link-underline hover:text-[#741F3D]">
+                    Meet the Organizing Committee <ArrowRight size={15} />
+                  </Link>
+                </dd>
               </div>
-            </div>
+            </dl>
           </div>
 
           {/* Form */}
-          <div className="bg-white border border-[#E3E0DC] rounded-lg p-8">
+          <div className="bg-white p-6 sm:p-8">
             <h3 className="font-serif-title font-normal text-2xl text-[#101B35] mb-2">Send a Message</h3>
             <p className="text-xs text-[#5A6478] mb-6">
               Select the appropriate department so your inquiry is routed directly to the responsible team lead.

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme inline {
+  --font-sans: var(--font-body), "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-display), Georgia, serif;
+}
+
 :root {
   --color-navy: #101B35;
   --color-navy-mid: #172443;
@@ -30,7 +35,7 @@
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif;
     background-color: var(--color-ivory);
     color: var(--color-navy);
     line-height: 1.65;
@@ -38,8 +43,14 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Georgia", "Cambria", "Times New Roman", Times, serif;
-    letter-spacing: -0.025em;
+    font-family: var(--font-display), Georgia, serif;
+    font-variation-settings: "SOFT" 50;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   ::selection {
@@ -54,26 +65,32 @@
 }
 
 .font-serif-title {
-  font-family: "Georgia", "Cambria", "Times New Roman", Times, serif;
+  font-family: var(--font-display), Georgia, serif;
+  font-variation-settings: "SOFT" 50;
 }
 
 .font-sans-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Subtle architectural/bosphorus grid watermark */
-.bosphorus-grid {
-  background-image: 
-    linear-gradient(to right, rgba(227, 224, 220, 0.45) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(227, 224, 220, 0.45) 1px, transparent 1px);
-  background-size: 52px 52px;
+@layer components {
+/* Small uppercase label used above headings. */
+.kicker {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-burgundy);
 }
 
-.bosphorus-grid-dark {
-  background-image: 
-    linear-gradient(to right, rgba(35, 49, 82, 0.4) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(35, 49, 82, 0.4) 1px, transparent 1px);
-  background-size: 56px 56px;
+/* Text links that underline like a printed guide. */
+.link-underline {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  transition: text-decoration-color 0.2s, color 0.2s;
+}
 }
 
 /* Image zoom on hover */
@@ -82,20 +99,6 @@
 }
 .group:hover .img-zoom {
   transform: scale(1.05);
-}
-
-/* Scroll indicator bounce */
-@keyframes scrollBounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(6px);
-  }
-}
-
-.animate-scroll-bounce {
-  animation: scrollBounce 2s ease-in-out infinite;
 }
 
 /* Burgundy (#741F3D) is too dark to read on the navy surfaces, so accent
