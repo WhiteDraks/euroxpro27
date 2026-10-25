@@ -11,7 +11,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/congress", label: "The Congress" },
   { href: "/delegate-guide", label: "Delegate Guide" },
-  { href: "/explore-istanbul", label: "Explore Istanbul" },
+  { href: "/explore-antalya", label: "Explore Antalya" },
   { href: "/faq", label: "FAQ" },
   { href: "/announcements", label: "Announcements" },
   { href: "/contact", label: "Contact" },
@@ -63,7 +63,7 @@ export function Navbar() {
                   <span className="text-[#741F3D]">&apos;27</span>
                 </span>
                 <span className="text-[#A7AFBF] text-[9px] tracking-[0.2em] uppercase leading-none mt-0.5">
-                  Istanbul, Türkiye
+                  Antalya, Türkiye
                 </span>
               </div>
             </Link>
@@ -175,7 +175,7 @@ export function Navbar() {
 
           <div className="absolute bottom-8 left-5 right-5">
             <p className="text-[#A7AFBF] text-xs">
-              {siteConfig.name} · Istanbul, Türkiye
+              {siteConfig.name} · Antalya, Türkiye
             </p>
           </div>
         </div>

@@ -7,8 +7,8 @@ import { schedule, isDraftSchedule } from "@/lib/schedule";
 import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "The Congress — Programme, Schedule & Evenings",
-  description: "Explore the EUROXPRO'27 congress programme in Istanbul: international plenaries, breakout workshops, Bosphorus social evenings, and the signature Turkish Night Gala.",
+  title: "The Congress — Programme, Schedule & Evenings | EUROXPRO'27",
+  description: "Explore the EUROXPRO'27 congress programme in Antalya: international plenaries, breakout workshops, Riviera social evenings, and the signature Turkish Night Gala.",
 };
 
 export default function CongressPage() {
@@ -77,7 +77,7 @@ export default function CongressPage() {
                   Through an integrated sequence of keynote plenaries, interactive workshops, peer-exchange circles, and curated social evenings, delegates gain actionable leadership frameworks and build a lifelong pan-European network.
                 </p>
                 <p>
-                  Hosted in Istanbul, Türkiye, the congress leverages the unique energy of a city straddling Europe and Asia to foster broader perspectives and strategic clarity.
+                  Hosted in Antalya, Türkiye, the congress leverages the unique Mediterranean coastal setting where ancient civilizations meet dynamic European youth leadership to foster broader perspectives and strategic clarity.
                 </p>
               </div>
             </div>
@@ -100,8 +100,8 @@ export default function CongressPage() {
                 },
                 {
                   icon: Sparkles,
-                  title: "Cultural & Historical Immersion",
-                  desc: "Experiencing Turkish hospitality, traditions, and the cultural richness of Istanbul through bespoke evening events."
+                  title: "Cultural & Mediterranean Immersion",
+                  desc: "Experiencing Turkish hospitality, traditions, and the cultural richness of Antalya through bespoke evening events."
                 }
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="p-6 bg-white border border-[#E5E1DA] rounded-sm shadow-sm space-y-2">
@@ -149,31 +149,31 @@ export default function CongressPage() {
           <SectionHeader
             eyebrow="Evenings &amp; Culture"
             title="Social Events &amp; Gala Evenings"
-            description="Carefully designed evening gatherings celebrating Istanbul's cultural richness and delegates' shared journey."
+            description="Carefully designed evening gatherings celebrating Mediterranean cultural richness and delegates' shared journey."
           />
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: "Welcome Dinner",
+                title: "Mediterranean Welcome Dinner",
                 tag: "Day 1 Evening",
                 dress: "Smart Casual",
                 image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
-                desc: "An informal welcoming dinner and icebreaking evening on arrival day. A warm, relaxed setting to reconnect with colleagues and meet delegates from across the network."
+                desc: "An informal welcoming dinner and icebreaking evening on arrival day. A warm, relaxed coastal setting to reconnect with colleagues and meet delegates from across the European network."
               },
               {
-                title: "Bosphorus Night",
+                title: "Global Village & Entity Night",
                 tag: "Day 2 Evening",
-                dress: "Smart Casual",
-                image: "https://images.unsplash.com/photo-1567527259232-3a7fcd490c55?auto=format&fit=crop&w=800&q=80",
-                desc: "An evening social event overlooking the illuminated Bosphorus strait. Enjoy coastal breezes, music, and social conversations bridging the European and Asian shores."
+                dress: "National / Cultural Attire",
+                image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+                desc: "The celebratory AIESEC Global Village with national booths, culinary delicacies, folklore, and country pride from across Europe."
               },
               {
-                title: "Turkish Night Gala",
-                tag: "Day 3 Evening",
-                dress: "Formal / Traditional Attire",
-                image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
-                desc: "The signature formal evening of EUROXPRO'27. A banquet celebrating Turkish heritage, regional cuisine, folkloric performances, and congress recognition awards."
+                title: "Turkish Night & Awards Gala",
+                tag: "Day 4 Evening",
+                dress: "Black Tie / Formal / Traditional",
+                image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80",
+                desc: "The signature formal evening of EUROXPRO'27 on Saturday, 3 April. A grand banquet celebrating Turkish heritage, regional cuisine, folkloric performances, and European Leadership Awards."
               }
             ].map((event) => (
               <div key={event.title} className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden shadow-sm flex flex-col justify-between group">

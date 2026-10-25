@@ -5,9 +5,9 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-741F3D)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
 
-Official web portal and delegate operations hub for **EUROXPRO’27**, an international AIESEC-related congress hosted in Istanbul, Türkiye.
+Official web portal and delegate operations hub for **EUROXPRO’27**, an international AIESEC congress hosted in Antalya, Türkiye (31 March – 4 April 2027).
 
-> **Congress Motto:** *One City. Different Perspectives. One Shared Future.*
+> **Congress Motto:** *Where Mediterranean Horizons Inspire Tomorrow’s Leadership.*
 
 ---
 
@@ -15,13 +15,14 @@ Official web portal and delegate operations hub for **EUROXPRO’27**, an intern
 
 The website is a fully typed, responsive multi-page application with centralized content models:
 
-- **`/` — Home**: Cinematic transcontinental hero, editorial layout, draft congress status, delegate tool cards, Istanbul introduction, and limited merch preview.
-- **`/congress` — The Congress**: Congress vision, delegate eligibility criteria, social evenings (Turkish Night Gala & Bosphorus Night dress codes), and an interactive day-by-day timetable with session filtering.
-- **`/delegate-guide` — Delegate Guide**: Audited travel logistics, verified passport & official e-Visa links (`evisa.gov.tr`), IST/SAW airport transit, Istanbulkart rules, currency (TRY/₺) & banking advice, connectivity/eSIM, 112 emergency services, and an interactive `localStorage` packing checklist.
-- **`/explore-istanbul` — Explore Istanbul**: Curated landmarks (Hagia Sophia, Blue Mosque, Galata Tower, Grand Bazaar), Turkish culinary guide & dining etiquette, practical Turkish phrases with pronunciations, and useful city locations.
+- **`/` — Home**: Cinematic Mediterranean hero, editorial layout, confirmed dates & Antalya city badge, delegate tool cards, Turkish Riviera destination showcase, and capsule merch preview.
+- **`/congress` — The Congress**: Congress vision, Mediterranean leadership tracks, social evenings (Turkish Night Gala & Global Village dress codes), and an interactive 5-day timetable (31 March – 4 April 2027).
+- **`/delegate-guide` — Delegate Guide**: Audited travel logistics, verified passport & official e-Visa links (`evisa.gov.tr`), Antalya Airport (AYT) transit, AntRay light rail & AntalyaKart rules, currency (TRY/₺) & banking advice, connectivity/eSIM, 112 emergency services, and an interactive `localStorage` packing checklist.
+- **`/explore-antalya` — Explore Antalya**: Curated landmarks (Kaleiçi historic old town, Düden Waterfalls, Konyaaltı & Taurus Mountains, Aspendos), Mediterranean gastronomy & dining etiquette, practical Turkish phrases with pronunciations, and useful city locations.
+- **`/explore-istanbul` — Legacy Route**: Automatically redirects to `/explore-antalya`.
 - **`/merch` — Merch Store**: Congress capsule collection, interactive modal for size/color/quantity selection, real-time cart subtotal calculation, and an expression-of-interest pre-order flow.
 - **`/faq` — FAQ**: Real-time search and categorized accordions (Registration, Visas, Accommodation, Transportation, Payments, Schedule, Merch, Safety).
-- **`/announcements` — Announcements**: News bulletin with pinned announcements, category filtering, and expandable read-more views.
+- **`/announcements` — Announcements**: News bulletin with pinned announcements (including Antalya host city notice), category filtering, and expandable read-more views.
 - **`/contact` — Contact & OC**: Organizing Committee leadership profiles and a validated contact form routed by department.
 - **`/_not-found` — 404**: Branded custom not-found page.
 
@@ -95,8 +96,8 @@ vercel
 
 | Integration Area | Current Operational State | Next Steps for Organizing Committee |
 |---|---|---|
-| **Congress Dates & Venue** | `[TO BE CONFIRMED]` Placeholders | Update `lib/config.ts` (`startDate`, `venueName`, `venueAddress`) once finalized. |
-| **Hotel Lodging** | `[HOTEL NAME TO BE CONFIRMED]` | Update `lib/config.ts` (`hotelName`, `hotelAddress`, `hotelCheckIn`) once contracts are signed. |
+| **Congress Dates & Venue** | ✅ **Confirmed Dates (31 March – 4 April 2027)** | Venue city is **Antalya, Türkiye**. Update `lib/config.ts` (`venueName`, `venueAddress`) once exact congress hall is designated. |
+| **Hotel Lodging** | `[HOTEL NAME TO BE CONFIRMED]` | Update `lib/config.ts` (`hotelName`, `hotelAddress`, `hotelCheckIn`) once hotel contracts are finalized. |
 | **Official e-Visa** | ✅ **Active** | Linked directly to official government portals (`evisa.gov.tr` and `mfa.gov.tr`). |
 | **Packing Checklist** | ✅ **Active** | Uses browser `localStorage` and `useSyncExternalStore` for persistent offline tracking. |
 | **Merchandise Store** | ✅ **Active (Pre-Order Interest)** | Submits expressions of interest. To connect live Stripe payments, integrate Stripe Checkout or Lemonsqueezy in `components/merch/MerchStore.tsx`. |
@@ -115,5 +116,5 @@ vercel
 ---
 
 ## 📄 License & Attribution
-Designed for **EUROXPRO’27** & **AIESEC in Türkiye / Istanbul**.
+Designed for **EUROXPRO’27** & **AIESEC in Türkiye / Antalya**.
 All trademarks and visual assets belong to their respective entities.

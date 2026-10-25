@@ -5,28 +5,27 @@
 
 export const siteConfig = {
   name: "EUROXPRO'27",
-  tagline: "One City. Different Perspectives. One Shared Future.",
+  tagline: "Where Mediterranean Horizons Inspire Tomorrow’s Leadership.",
   shortDescription:
-    "An international AIESEC congress bringing together driven young leaders from across Europe and beyond, hosted in the magnificent city of Istanbul, Türkiye.",
+    "An international AIESEC congress bringing together driven young leaders from across Europe and beyond, hosted on the turquoise coast of Antalya, Türkiye.",
   longDescription:
-    "EUROXPRO'27 is a premier international congress organized under the AIESEC network, gathering ambitious young leaders from across Europe and the world. Over several transformative days, delegates will engage in high-impact sessions, workshops, and cultural experiences in one of the world's most captivating cities — Istanbul, Türkiye.",
+    "EUROXPRO'27 is a premier international congress organized under the AIESEC network, gathering ambitious young leaders from across Europe and the world. Over five transformative days, delegates will engage in high-impact sessions, workshops, and cultural experiences along the Mediterranean coast in Antalya, Türkiye.",
 
-  // Event Dates — set to null until confirmed
-  // Example: new Date('2027-07-15')
-  startDate: null as Date | null,
-  endDate: null as Date | null,
-  datesLabel: "[CONGRESS DATES TO BE CONFIRMED]",
+  // Confirmed Event Dates
+  startDate: new Date("2027-03-31T09:00:00+03:00"),
+  endDate: new Date("2027-04-04T18:00:00+03:00"),
+  datesLabel: "31 March – 4 April 2027",
 
   // Venue
-  venueName: "[VENUE NAME TO BE CONFIRMED]",
-  venueAddress: "[VENUE ADDRESS TO BE CONFIRMED]",
-  venueCity: "Istanbul, Türkiye",
+  venueName: "[CONGRESS VENUE TO BE CONFIRMED]",
+  venueAddress: "[ANTALYA VENUE ADDRESS TO BE CONFIRMED]",
+  venueCity: "Antalya, Türkiye",
 
   // Hotel
-  hotelName: "[HOTEL NAME TO BE CONFIRMED]",
-  hotelAddress: "[HOTEL ADDRESS TO BE CONFIRMED]",
-  hotelCheckIn: "TBC",
-  hotelCheckOut: "TBC",
+  hotelName: "[CONGRESS RESORT TO BE CONFIRMED]",
+  hotelAddress: "[ANTALYA RESORT ADDRESS TO BE CONFIRMED]",
+  hotelCheckIn: "14:00 (31 March 2027)",
+  hotelCheckOut: "12:00 (4 April 2027)",
   hotelPhone: "[HOTEL PHONE TO BE CONFIRMED]",
 
   // Registration
@@ -59,21 +58,21 @@ export const organizingCommittee = [
     name: "[LC President Name]",
     role: "Local Committee President",
     department: "Leadership",
-    bio: "Leading the EUROXPRO'27 organizing team with a vision for an unforgettable congress experience.",
+    bio: "Leading the EUROXPRO'27 organizing team with a vision for an unforgettable congress experience in Antalya.",
     image: null as string | null,
   },
   {
     name: "[OCP Name]",
     role: "Organizing Committee President",
     department: "Congress",
-    bio: "Coordinating all congress operations to deliver a world-class event.",
+    bio: "Coordinating all congress operations to deliver a world-class Mediterranean event.",
     image: null as string | null,
   },
   {
     name: "[Logistics Lead]",
     role: "VP Logistics",
     department: "Logistics",
-    bio: "Managing travel, accommodation, and on-ground logistics for all delegates.",
+    bio: "Managing travel, AYT airport transfers, accommodation, and on-ground logistics for all delegates.",
     image: null as string | null,
   },
   {
@@ -94,67 +93,67 @@ export const organizingCommittee = [
     name: "[Programme Lead]",
     role: "VP Programme",
     department: "Programme",
-    bio: "Designing the congress agenda, sessions, and delegate learning journey.",
+    bio: "Designing the congress agenda, plenary tracks, and Mediterranean leadership sessions.",
     image: null as string | null,
   },
 ];
 
 // ============================================================
-// Useful Locations for the Map
+// Useful Locations for the Map (Antalya)
 // ============================================================
 export const usefulLocations = [
   {
     id: "hotel",
-    name: "Congress Hotel",
-    description: "[HOTEL NAME TO BE CONFIRMED]",
+    name: "Congress Hotel Resort",
+    description: "[CONGRESS HOTEL PROPERTY TO BE CONFIRMED]",
     category: "accommodation" as const,
-    address: "[ADDRESS TO BE CONFIRMED]",
-    mapUrl: "https://maps.google.com",
+    address: "Antalya Coastal Zone, Türkiye",
+    mapUrl: "https://maps.google.com/?q=Antalya+Turkey",
     placeholder: true,
   },
   {
     id: "venue",
-    name: "Congress Venue",
-    description: "[VENUE NAME TO BE CONFIRMED]",
+    name: "Congress Plenary Venue",
+    description: "[CONGRESS VENUE TO BE CONFIRMED]",
     category: "venue" as const,
-    address: "[ADDRESS TO BE CONFIRMED]",
-    mapUrl: "https://maps.google.com",
+    address: "Antalya, Türkiye",
+    mapUrl: "https://maps.google.com/?q=Antalya+Turkey",
     placeholder: true,
   },
   {
-    id: "ist-airport",
-    name: "Istanbul Airport (IST)",
-    description: "Main international airport serving Istanbul.",
+    id: "ayt-airport",
+    name: "Antalya Airport (AYT)",
+    description: "Main international gateway with Terminals 1, 2, and Domestic Terminal.",
     category: "transport" as const,
-    address: "Tayakadın, Istanbul",
-    mapUrl: "https://maps.google.com/?q=Istanbul+Airport+IST",
+    address: "Yeşilköy, Antalya Havalimanı, Muratpaşa/Antalya",
+    mapUrl: "https://maps.google.com/?q=Antalya+Airport+AYT",
     placeholder: false,
   },
   {
-    id: "saw-airport",
-    name: "Sabiha Gökçen Airport (SAW)",
-    description: "Secondary international airport on the Asian side.",
-    category: "transport" as const,
-    address: "Sabiha Gökçen Airport, Pendik, Istanbul",
-    mapUrl: "https://maps.google.com/?q=Sabiha+Gokcen+Airport",
-    placeholder: false,
-  },
-  {
-    id: "hagia-sophia",
-    name: "Hagia Sophia",
-    description: "Iconic Byzantine cathedral and mosque.",
+    id: "kaleici",
+    name: "Kaleiçi (Historic Old Town & Roman Harbor)",
+    description: "Antalya's historic walled center with Ottoman-era mansions and ancient Roman marina.",
     category: "attraction" as const,
-    address: "Sultan Ahmet, Fatih, Istanbul",
-    mapUrl: "https://maps.google.com/?q=Hagia+Sophia+Istanbul",
+    address: "Selçuk, Muratpaşa/Antalya",
+    mapUrl: "https://maps.google.com/?q=Kaleici+Antalya",
     placeholder: false,
   },
   {
-    id: "grand-bazaar",
-    name: "Grand Bazaar",
-    description: "One of the world's oldest and largest covered markets.",
+    id: "duden-waterfalls",
+    name: "Lower Düden Waterfalls",
+    description: "Spectacular cascade dropping 40 meters directly from cliffs into the Mediterranean.",
     category: "attraction" as const,
-    address: "Beyazıt, Fatih, Istanbul",
-    mapUrl: "https://maps.google.com/?q=Grand+Bazaar+Istanbul",
+    address: "Çağlayan, Muratpaşa/Antalya",
+    mapUrl: "https://maps.google.com/?q=Duden+Waterfalls+Antalya",
+    placeholder: false,
+  },
+  {
+    id: "aspendos",
+    name: "Ancient Aspendos Amphitheater",
+    description: "Best-preserved ancient Greco-Roman theater in the Mediterranean basin.",
+    category: "attraction" as const,
+    address: "Serik, Antalya",
+    mapUrl: "https://maps.google.com/?q=Aspendos+Antalya",
     placeholder: false,
   },
 ];

@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Delegate Guide & Travel Hub",
-  description: "Comprehensive guide for international EUROXPRO'27 delegates: airports (IST & SAW), e-Visa links, public transport, currency, healthcare, emergency contacts, and packing checklist.",
+  title: "Delegate Guide & Travel Hub | EUROXPRO'27 Antalya",
+  description: "Comprehensive guide for international EUROXPRO'27 delegates: Antalya Airport (AYT), e-Visa links, AntRay transit, currency, healthcare, emergency contacts, and packing checklist.",
 };
 
 const guideSections = [
@@ -42,7 +42,7 @@ export default function DelegateGuidePage() {
             International Delegate Handbook
           </h1>
           <p className="mt-4 text-[#A7AFBF] text-base sm:text-lg max-w-3xl leading-relaxed">
-            Essential operational briefings for international attendees traveling to Istanbul, Türkiye for EUROXPRO’27. Curated to ensure your journey, stay, and congress experience are smooth and well-planned.
+            Essential operational briefings for international attendees traveling to Antalya, Türkiye for EUROXPRO’27. Curated to ensure your journey, stay, and congress experience are smooth and well-planned.
           </p>
 
           {/* Quick Anchor Navigation */}
@@ -152,83 +152,83 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Arrival Logistics"
-            title="Navigating Istanbul Airports & Public Transit"
-            description="Istanbul operates two modern international airports on separate continents. Here is how to plan your ground transfer."
+            title="Navigating Antalya Airport & Ground Transit"
+            description="Antalya Airport (AYT) is the primary international gateway to the Turkish Riviera. Here is how to plan your arrival and transfers."
           />
 
           <div className="grid lg:grid-cols-2 gap-8 mb-12">
-            {/* IST Card */}
+            {/* AYT Airport Card */}
             <div className="border border-[#E5E1DA] p-6 sm:p-8 rounded-sm bg-[#F7F3ED]/40">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block">European Side</span>
-                  <h3 className="font-serif-title text-2xl text-[#101B35]">Istanbul Airport (IST)</h3>
+                  <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block">Primary Gateway</span>
+                  <h3 className="font-serif-title text-2xl text-[#101B35]">Antalya Airport (AYT)</h3>
                 </div>
-                <Badge variant="navy">Primary Hub</Badge>
+                <Badge variant="navy">International Hub</Badge>
               </div>
               <p className="text-xs text-[#5A6478] leading-relaxed mb-6">
-                Located in Arnavutköy on the European side. Modern, massive international terminal serving major global carriers.
+                Located ~13 km northeast of central Antalya. AYT features two modern International Terminals (T1 and T2) and a dedicated Domestic Terminal with frequent European flights.
               </p>
               <div className="space-y-3 text-xs text-[#374151]">
                 <div className="p-3 bg-white border border-[#E5E1DA] rounded-sm">
                   <strong className="block text-[#101B35] mb-1 flex items-center gap-1.5">
-                    <Bus size={14} className="text-[#741F3D]" /> Havaist Airport Express Buses:
+                    <Train size={14} className="text-[#741F3D]" /> AntRay Light Rail Tram:
                   </strong>
-                  Frequent coach lines depart directly from Floor -2 to major transit hubs across Istanbul (Taksim, Kadıköy, Yenikapı). Credit/debit cards accepted on board.
+                  The airport tram station (directly opposite Terminal 1 / Domestic) connects straight into central Antalya (İsmetpaşa / Kaleiçi), Meydan, and the intercity bus terminal (Otogar). Contactless bank cards and AntalyaKart accepted.
                 </div>
                 <div className="p-3 bg-white border border-[#E5E1DA] rounded-sm">
                   <strong className="block text-[#101B35] mb-1 flex items-center gap-1.5">
-                    <Train size={14} className="text-[#741F3D]" /> Metro Line M11:
+                    <Bus size={14} className="text-[#741F3D]" /> Havaş Airport Express Coaches:
                   </strong>
-                  Connects airport directly with Gayrettepe and Kağıthane interchange stations for easy transfer to lines M2 and M7.
+                  Scheduled express coaches depart after incoming flights, running via the central coastal highway to 5M Migros in Konyaaltı. Tickets purchased curbside before boarding.
                 </div>
               </div>
             </div>
 
-            {/* SAW Card */}
+            {/* OC Welcome Desk & Shuttles Card */}
             <div className="border border-[#E5E1DA] p-6 sm:p-8 rounded-sm bg-[#F7F3ED]/40">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block">Asian / Anatolian Side</span>
-                  <h3 className="font-serif-title text-2xl text-[#101B35]">Sabiha Gökçen Airport (SAW)</h3>
+                  <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block">Arrival Operations</span>
+                  <h3 className="font-serif-title text-2xl text-[#101B35]">Arrival Day Welcome &amp; Shuttles</h3>
                 </div>
-                <Badge variant="muted">Secondary Hub</Badge>
+                <Badge variant="burgundy">31 March 2027</Badge>
               </div>
               <p className="text-xs text-[#5A6478] leading-relaxed mb-6">
-                Located in Pendik on the Asian side. Popular hub for regional European low-cost carriers (e.g. Pegasus Airlines, AJet).
+                On official Arrival Day (Wednesday, 31 March), the Organizing Committee will operate greeting desks at AYT arrivals to welcome international delegations.
               </p>
               <div className="space-y-3 text-xs text-[#374151]">
                 <div className="p-3 bg-white border border-[#E5E1DA] rounded-sm">
                   <strong className="block text-[#101B35] mb-1 flex items-center gap-1.5">
-                    <Bus size={14} className="text-[#741F3D]" /> Havabüs Express Coaches:
+                    <Bus size={14} className="text-[#741F3D]" /> Coordinated Hotel Shuttles:
                   </strong>
-                  Regular airport coach service directly to Kadıköy and Taksim Square. Tickets purchased curbside before boarding.
+                  Designated delegate group transfers from AYT directly to the congress resort will operate throughout arrival day for registered delegate flights.
                 </div>
                 <div className="p-3 bg-white border border-[#E5E1DA] rounded-sm">
                   <strong className="block text-[#101B35] mb-1 flex items-center gap-1.5">
-                    <Train size={14} className="text-[#741F3D]" /> Metro Line M4:
+                    <Plane size={14} className="text-[#741F3D]" /> Flight Scheduling Advice:
                   </strong>
-                  Provides seamless subway connection from airport arrivals hall directly into Kadıköy and Marmaray rail lines.
+                  Direct flights to AYT operate from major European hubs. Alternatively, book connecting flights via Istanbul (IST or SAW) with a short 1-hour domestic transfer.
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Istanbulkart & Taxi Rules */}
+          {/* AntalyaKart & Taxi Rules */}
           <div className="border border-[#233152] bg-[#101B35] text-white p-6 sm:p-8 rounded-sm">
-            <h4 className="font-serif-title text-xl text-white mb-4">Essential Istanbul Public Transit Rules</h4>
+            <h4 className="font-serif-title text-xl text-white mb-4">Essential Antalya Public Transit Guidelines</h4>
             <div className="grid sm:grid-cols-3 gap-6 text-xs text-[#A7AFBF] leading-relaxed">
               <div>
-                <strong className="text-white block mb-1">Istanbulkart (Card):</strong>
-                A single reloadable smartcard accepted on all Metros, Trams (T1/T4), City Ferries (Şehir Hatları), and public buses. Purchase at yellow Biletmatik kiosks at airport stations.
+                <strong className="text-white block mb-1">AntalyaKart &amp; Contactless:</strong>
+                A reloadable smart card accepted across all AntRay trams, the nostalgic tramway, and city buses. Contactless Visa/Mastercard bank cards can also be tapped directly at turnstiles.
               </div>
               <div>
                 <strong className="text-white block mb-1">Official Taxis (Sarı Taksi):</strong>
-                Only take official licensed yellow cabs from designated taxi ranks. Always check that the digital taximeter is turned on at the start of your journey.
+                Always take official licensed yellow cabs with digital taximeters from designated ranks. Verify that the meter starts when the vehicle pulls away.
               </div>
               <div>
-                <strong className="text-white block mb-1">Ride-Hailing Apps:</strong>
-                Both <strong className="text-[#E5E1DA]">BiTaksi</strong> and <strong className="text-[#E5E1DA]">Uber</strong> operate safely in Istanbul, hailing standard metered yellow or turquoise taxis with cashless in-app payment.
+                <strong className="text-white block mb-1">Ride-Hailing (BiTaksi):</strong>
+                The <strong className="text-[#E5E1DA]">BiTaksi</strong> smartphone app connects you with licensed yellow taxis across Antalya, offering upfront fare estimates and in-app cashless payment.
               </div>
             </div>
           </div>
@@ -247,7 +247,7 @@ export default function DelegateGuidePage() {
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-sm p-5 mb-8 flex items-start gap-3">
             <AlertTriangle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-amber-900 leading-relaxed">
-              <strong>Official Status Disclosure:</strong> Exact congress hotel and venue addresses are currently undergoing final contract negotiations with Istanbul hospitality partners. To prevent misinformation, no unconfirmed property names are fabricated. Verified booking links and rooming layouts will be emailed directly to registered delegates.
+              <strong>Official Status Disclosure:</strong> Exact congress resort and plenary venue addresses are currently undergoing final contract negotiations with Antalya hospitality partners. To prevent misinformation, no unconfirmed property names are fabricated. Verified booking links and rooming layouts will be emailed directly to registered delegates.
             </div>
           </div>
 
@@ -275,39 +275,39 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Meteorology & Planning"
-            title="Seasonal Istanbul Climate Guide"
-            description="Accurate seasonal weather profiles for Istanbul to help international delegates pack appropriately."
+            title="Antalya Mediterranean Climate Guide (31 March – 4 April)"
+            description="Accurate seasonal weather profiles for Antalya to help international delegates pack appropriately."
           />
 
           <div className="p-4 bg-[#F7F3ED] border border-[#E5E1DA] rounded-sm mb-8 text-xs text-[#5A6478]">
-            <span className="font-semibold text-[#101B35]">Live Weather Note:</span> Real-time 7-day live weather API feeds will become active closer to the official congress dates once confirmed on the calendar.
+            <span className="font-semibold text-[#101B35]">Confirmed Dates Notice:</span> EUROXPRO&apos;27 takes place <strong>31 March – 4 April 2027</strong>. Early April in Antalya brings magnificent sunny Mediterranean spring conditions with pleasant coastal temperatures.
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
+                season: "Congress Window (31 Mar – 4 Apr)",
+                temp: "18°C – 23°C (64°F – 73°F)",
+                climate: "Sunny Mediterranean days, pleasant coastal breezes, mild evenings.",
+                packing: "Sunglasses, high SPF sunscreen, lightweight layers, light jacket for coastal evenings."
+              },
+              {
                 season: "Spring (Apr – May)",
-                temp: "15°C – 22°C (59°F – 72°F)",
-                climate: "Mild days, cool coastal breezes, occasional brief spring rain.",
-                packing: "Light trench coat, cardigan, umbrella, comfortable trainers."
+                temp: "20°C – 26°C (68°F – 79°F)",
+                climate: "Warm and bright with blossoming citrus trees and comfortable humidity.",
+                packing: "Breathable clothing, trainers, casual evening wear."
               },
               {
                 season: "Summer (Jun – Aug)",
-                temp: "25°C – 32°C (77°F – 90°F)",
-                climate: "Warm and sunny with noticeable humidity near the waterfront.",
-                packing: "Breathable linen/cotton, sunscreen, sunglasses, hat."
+                temp: "30°C – 38°C (86°F – 100°F)",
+                climate: "Hot and sunny Mediterranean summer with high sea temperatures.",
+                packing: "Swimwear, sun protection, linen and cotton garments."
               },
               {
-                season: "Autumn (Sep – Oct)",
-                temp: "18°C – 24°C (64°F – 75°F)",
-                climate: "Crisp and pleasant, prime weather for urban exploration.",
-                packing: "Light jackets, layered outfits, sturdy walking shoes."
-              },
-              {
-                season: "Winter (Nov – Feb)",
-                temp: "6°C – 12°C (43°F – 54°F)",
-                climate: "Chilly winds along the Bosphorus, rain and occasional snow.",
-                packing: "Thermal underlayers, warm winter coat, scarf, gloves."
+                season: "Autumn (Sep – Nov)",
+                temp: "22°C – 28°C (72°F – 82°F)",
+                climate: "Golden autumn warmth, calm coastal waters, pleasant walking weather.",
+                packing: "Light cardigans, layered daytime wear, comfortable shoes."
               }
             ].map((w) => (
               <div key={w.season} className="border border-[#E5E1DA] p-6 rounded-sm bg-[#F7F3ED]/30">
@@ -329,14 +329,14 @@ export default function DelegateGuidePage() {
           <SectionHeader
             eyebrow="Financial Practicalities"
             title="Currency, Cards, Cash & Tipping in Türkiye"
-            description="Clear guidance on using foreign cards, ATMs, and local currency in Istanbul."
+            description="Clear guidance on using foreign cards, ATMs, and local currency in Antalya."
           />
 
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-white border border-[#E5E1DA] p-6 rounded-sm space-y-3">
               <h4 className="font-serif-title text-lg text-[#101B35]">Currency: Turkish Lira (TRY / ₺)</h4>
               <p className="text-xs text-[#5A6478] leading-relaxed">
-                All daily expenses in Istanbul are billed in Turkish Lira. While some bazaar stores accept Euros or USD, payment in local TRY avoids disadvantageous merchant conversion rates.
+                All daily expenses in Antalya are billed in Turkish Lira. While some bazaar stores accept Euros or USD, payment in local TRY avoids disadvantageous merchant conversion rates.
               </p>
             </div>
 
@@ -376,7 +376,7 @@ export default function DelegateGuidePage() {
                   <strong className="text-[#101B35]">eSIM (Recommended):</strong> Providers like Airalo, Maya Mobile, or Holafly allow you to purchase a prepaid Turkish data package before landing without swapping physical cards.
                 </li>
                 <li>
-                  <strong className="text-[#101B35]">Physical Tourist SIM:</strong> Available at IST/SAW arrival halls and official operator stores (Turkcell, Vodafone, Türk Telekom). Passport registration is legally required.
+                  <strong className="text-[#101B35]">Physical Tourist SIM:</strong> Available at AYT arrival halls and official operator stores (Turkcell, Vodafone, Türk Telekom). Passport registration is legally required.
                 </li>
                 <li>
                   <strong className="text-[#101B35]">EU Roaming:</strong> Note that Türkiye is outside the European Union. Standard &ldquo;Roam Like at Home&rdquo; rules generally do not apply unless your carrier explicitly includes Türkiye.

@@ -17,7 +17,7 @@ const footerLinks = [
     links: [
       { href: "/delegate-guide", label: "Delegate Guide" },
       { href: "/delegate-guide#checklist", label: "Packing Checklist" },
-      { href: "/explore-istanbul", label: "Explore Istanbul" },
+      { href: "/explore-antalya", label: "Explore Antalya" },
       { href: "/faq", label: "FAQ" },
     ],
   },
@@ -48,7 +48,7 @@ export function Footer() {
                     EUROXPRO&apos;27
                   </span>
                   <span className="text-[#A7AFBF] text-[10px] tracking-widest uppercase">
-                    Istanbul, Türkiye
+                    Antalya, Türkiye
                   </span>
                 </div>
               </div>
@@ -58,7 +58,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-2 text-[#A7AFBF] text-sm mb-3">
               <MapPin size={14} className="text-[#741F3D] flex-shrink-0" />
-              <span>Istanbul, Türkiye</span>
+              <span>Antalya, Türkiye</span>
             </div>
             <div className="flex items-center gap-2 text-[#A7AFBF] text-sm">
               <Mail size={14} className="text-[#741F3D] flex-shrink-0" />
@@ -116,7 +116,7 @@ export function Footer() {
             &copy; {new Date().getFullYear()} EUROXPRO&apos;27 · AIESEC · All rights reserved.
           </p>
           <p className="text-[#A7AFBF] text-xs flex items-center gap-1">
-            Made with <Heart size={11} className="text-[#741F3D]" fill="currentColor" /> in Istanbul
+            Made with <Heart size={11} className="text-[#741F3D]" fill="currentColor" /> in Antalya
           </p>
         </div>
       </div>

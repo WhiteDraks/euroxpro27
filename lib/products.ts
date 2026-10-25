@@ -13,7 +13,7 @@ export const products: Product[] = [
     id: "hoodie-navy",
     name: "EUROXPRO'27 Congress Hoodie",
     description:
-      "Premium heavyweight hoodie in deep navy. Features embroidered EUROXPRO'27 wordmark on the chest and Istanbul skyline graphic on the back. Made from 80% organic cotton, 20% recycled polyester.",
+      "Premium heavyweight hoodie in deep navy. Features embroidered EUROXPRO'27 wordmark on the chest and Antalya Mediterranean Riviera graphic on the back. Made from 80% organic cotton, 20% recycled polyester.",
     price: 45,
     currency: CURRENCY,
     category: "hoodies",
@@ -49,7 +49,7 @@ export const products: Product[] = [
     id: "tote-bag",
     name: "Congress Canvas Tote Bag",
     description:
-      "Heavy-duty raw canvas tote bag with the EUROXPRO'27 wordmark and tagline. Spacious enough for your congress materials, laptop, and city exploration essentials.",
+      "Heavy-duty raw canvas tote bag with the EUROXPRO'27 wordmark and tagline. Spacious enough for your congress materials, laptop, and coastal exploration essentials.",
     price: 18,
     currency: CURRENCY,
     category: "tote-bags",
@@ -76,9 +76,9 @@ export const products: Product[] = [
   },
   {
     id: "pin-set",
-    name: "Istanbul Enamel Pin Set",
+    name: "Antalya Enamel Pin Set",
     description:
-      "A set of 3 collectible enamel pins featuring iconic Istanbul motifs: the Bosphorus bridge, a tulip, and the EUROXPRO'27 crest. Gold-plated with hard enamel finish.",
+      "A set of 3 collectible enamel pins featuring iconic Antalya motifs: a Mediterranean wave, orange blossoms, and the EUROXPRO'27 crest. Gold-plated with hard enamel finish.",
     price: 12,
     currency: CURRENCY,
     category: "pins",
@@ -91,7 +91,7 @@ export const products: Product[] = [
     id: "sticker-pack",
     name: "EUROXPRO'27 Holographic Sticker Pack",
     description:
-      "A pack of 6 weather-resistant vinyl stickers featuring the EUROXPRO'27 wordmark, Istanbul architectural illustrations, and congress graphic tokens.",
+      "A pack of 6 weather-resistant vinyl stickers featuring the EUROXPRO'27 wordmark, Antalya architectural illustrations, and congress graphic tokens.",
     price: 6,
     currency: CURRENCY,
     category: "stickers",
@@ -101,9 +101,9 @@ export const products: Product[] = [
   },
   {
     id: "keychain",
-    name: "Istanbul Metal Silhouette Keychain",
+    name: "Antalya Metal Silhouette Keychain",
     description:
-      "Premium brushed metal keychain with the EUROXPRO'27 logo and Istanbul skyline silhouette. A durable, elegant memento of your congress experience.",
+      "Premium brushed metal keychain with the EUROXPRO'27 logo and Antalya Kaleiçi harbor silhouette. A durable, elegant memento of your Mediterranean congress experience.",
     price: 8,
     currency: CURRENCY,
     category: "accessories",

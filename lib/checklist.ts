@@ -61,7 +61,7 @@ export const checklistItems: ChecklistItem[] = [
   },
   {
     id: "health-4",
-    label: "Sunscreen (Istanbul can be sunny!)",
+    label: "Sunscreen (Antalya is sunny and Mediterranean!)",
     category: "Health",
   },
   // Technology
@@ -149,7 +149,7 @@ export const checklistItems: ChecklistItem[] = [
   {
     id: "money-2",
     label: "Some Turkish Lira cash for small purchases",
-    detail: "ATMs are widely available in Istanbul",
+    detail: "ATMs are widely available in Antalya and at AYT airport",
     category: "Money",
   },
   {

@@ -90,8 +90,8 @@ export function ContactSection({
                 <div>
                   <h4 className="font-semibold text-sm text-[#101B35] mb-1">Congress Secretariat</h4>
                   <p className="text-xs text-[#5A6478] mb-1">Host Entity:</p>
-                  <p className="text-sm font-medium text-[#101B35]">AIESEC in Türkiye / Istanbul</p>
-                  <p className="text-xs text-[#A7AFBF] mt-1 font-mono">Istanbul, Türkiye</p>
+                  <p className="text-sm font-medium text-[#101B35]">AIESEC in Türkiye / Antalya</p>
+                  <p className="text-xs text-[#A7AFBF] mt-1 font-mono">Antalya, Türkiye</p>
                 </div>
               </div>
 

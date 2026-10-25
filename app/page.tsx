@@ -12,7 +12,7 @@ import { announcements } from "@/lib/announcements";
 import { products, CURRENCY_SYMBOL } from "@/lib/products";
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — One City. Different Perspectives. One Shared Future.`,
+  title: `${siteConfig.name} — Antalya, Türkiye | 31 March – 4 April 2027`,
   description: siteConfig.shortDescription,
 };
 
@@ -22,16 +22,16 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* ── 1. CINEMATIC FULL-SCREEN HERO WITH REAL ISTANBUL PHOTOGRAPHY ── */}
+      {/* ── 1. CINEMATIC FULL-SCREEN HERO WITH REAL ANTALYA PHOTOGRAPHY ── */}
       <section
         className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#101B35] text-white pt-24 pb-20"
         aria-label="Congress Hero"
       >
-        {/* Full-bleed high-resolution Istanbul Bosphorus background image */}
+        {/* Full-bleed high-resolution Antalya Mediterranean background image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=2400&q=85"
-            alt="Istanbul and Bosphorus skyline at twilight"
+            src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=2400&q=85"
+            alt="Antalya Mediterranean coastline and historic Roman harbor"
             fill
             priority
             sizes="100vw"
@@ -55,7 +55,7 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-3 px-4 py-2 border border-[#233152] bg-[#101B35]/80 backdrop-blur-md rounded-sm">
               <span className="w-2 h-2 rounded-full bg-[#741F3D] animate-pulse" />
               <span className="text-[11px] font-mono tracking-[0.28em] text-[#E5E1DA] uppercase">
-                International AIESEC Congress · Istanbul, Türkiye
+                International AIESEC Congress · Antalya, Türkiye
               </span>
             </div>
 
@@ -66,7 +66,7 @@ export default function HomePage() {
                 EUROXPRO&apos;27
               </p>
               <h1 className="font-serif-title text-5xl sm:text-7xl lg:text-8xl font-normal tracking-tight text-white leading-[1.03]">
-                ONE CITY.
+                ONE HORIZON.
                 <br />
                 <span className="text-[#F7F3ED] italic font-light">DIFFERENT PERSPECTIVES.</span>
                 <br />
@@ -76,7 +76,7 @@ export default function HomePage() {
 
             {/* Editorial Lead In */}
             <p className="text-base sm:text-xl text-[#E5E1DA] font-light max-w-2xl leading-relaxed">
-              Where East meets West across the historic Bosphorus strait. Hundreds of ambitious European youth leaders converging for a defining congress of dialogue, cross-border development, and lasting unity.
+              Where the azure Mediterranean meets the dramatic Taurus Mountains. Hundreds of ambitious European youth leaders converging for a defining congress of dialogue, cross-border development, and lasting unity.
             </p>
 
             {/* Date & Location Badges */}
@@ -138,7 +138,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ── 3. EDITORIAL MANIFESTO: THE ISTANBUL CROSSROADS ── */}
+      {/* ── 3. EDITORIAL MANIFESTO: THE MEDITERRANEAN CROSSROADS ── */}
       <section className="py-28 bg-[#F7F3ED] text-[#101B35] border-b border-[#E5E1DA] bosphorus-grid">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -150,14 +150,14 @@ export default function HomePage() {
                 The Congress Philosophy
               </div>
               <h2 className="font-serif-title text-4xl sm:text-5xl font-normal leading-[1.12]">
-                Where Centuries of Dialogue Inspire Tomorrow’s Leadership
+                Where Mediterranean Horizons Inspire Tomorrow’s Leadership
               </h2>
               <div className="w-12 h-1 bg-[#741F3D]" />
               <p className="text-base sm:text-lg text-[#374151] leading-relaxed font-light">
-                For over two millennia, Istanbul has stood as the crossroads of empires, continents, and ideas. EUROXPRO’27 channels this timeless spirit to create a gathering distinct from standard conference halls.
+                For millennia, the Mediterranean coast of Antalya has stood as the crossroads of seafaring civilizations, cultural dialogue, and enduring ideas. EUROXPRO’27 channels this timeless coastal energy to create an extraordinary gathering distinct from standard conference halls.
               </p>
               <p className="text-sm text-[#5A6478] leading-relaxed">
-                Over multiple transformative days, delegates will participate in rigorous plenary discussions, skill-building breakout tracks, and profound cultural exchanges tailored to strengthen local committees across the international network.
+                Over five transformative days, delegates will participate in rigorous plenary discussions, skill-building breakout tracks, and profound cultural exchanges tailored to strengthen local committees across the international network.
               </p>
               <div className="pt-2">
                 <Link href="/congress">
@@ -173,8 +173,8 @@ export default function HomePage() {
               <div className="relative border border-[#E5E1DA] bg-white p-3 sm:p-4 rounded-sm shadow-xl group">
                 <div className="aspect-[4/3] relative overflow-hidden rounded-sm bg-[#101B35]">
                   <Image
-                    src="https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=1200&q=80"
-                    alt="Historic Istanbul domes and Bosphorus strait"
+                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+                    alt="Antalya Mediterranean cliffs and coastline"
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover object-center img-zoom"
@@ -182,9 +182,9 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#101B35]/80 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <span className="text-[10px] font-mono tracking-widest text-[#E5E1DA] uppercase block">
-                      Historic Peninsula · Sultanahmet
+                      Mediterranean Coast · Antalya Riviera
                     </span>
-                    <p className="font-serif-title text-lg font-normal">Byzantine &amp; Ottoman Architectural Heritage</p>
+                    <p className="font-serif-title text-lg font-normal">Classical Pamphylian &amp; Mediterranean Heritage</p>
                   </div>
                 </div>
               </div>
@@ -192,10 +192,10 @@ export default function HomePage() {
               {/* Overlapping Floating Detail Card */}
               <div className="hidden sm:block absolute -bottom-8 -left-8 bg-[#101B35] text-white p-6 rounded-sm border border-[#233152] shadow-2xl max-w-xs">
                 <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-1">
-                  Transcontinental Factor
+                  Riviera Dimension
                 </span>
                 <p className="text-xs text-[#E5E1DA] font-serif-title italic leading-relaxed">
-                  &ldquo;A city that connects continents, inspiring leaders who bridge cultures.&rdquo;
+                  &ldquo;Where the turquoise sea meets towering peaks, inspiring leaders who bridge cultures.&rdquo;
                 </p>
               </div>
             </div>
@@ -241,8 +241,8 @@ export default function HomePage() {
               {
                 num: "03",
                 icon: Waves,
-                title: "Bosphorus Forum",
-                desc: "Plenary discussions featuring visionary keynotes overlooking the strait that separates Europe and Asia."
+                title: "Mediterranean Forum",
+                desc: "Plenary discussions and leadership symposia overlooking the turquoise waters of the Turkish Riviera."
               },
               {
                 num: "04",
@@ -276,7 +276,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 5. DESTINATION MAGAZINE FEATURE (ISTANBUL SPREAD) ── */}
+      {/* ── 5. DESTINATION MAGAZINE FEATURE (ANTALYA SPREAD) ── */}
       <section className="py-28 bg-[#F7F3ED] border-b border-[#E5E1DA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -285,21 +285,21 @@ export default function HomePage() {
               Destination Magazine Feature
             </span>
             <h2 className="font-serif-title text-4xl sm:text-5xl text-[#101B35] font-normal leading-tight">
-              An Unrivaled Host City
+              The Turkish Riviera: An Unrivaled Host Destination
             </h2>
             <p className="text-sm sm:text-base text-[#5A6478] mt-4 leading-relaxed font-light">
-              From the aroma of freshly roasted Turkish coffee to the sea spray of historic Bosphorus commuter ferries, Istanbul welcomes international delegates with warmth and unmatched historic depth.
+              From the morning citrus scents of orange groves to the turquoise waves lapping against ancient Roman harbors, Antalya welcomes international delegates with world-class hospitality and breathtaking coastal panoramas.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             
-            {/* Feature 1: Galata Tower */}
+            {/* Feature 1: Kaleiçi Roman Marina */}
             <div className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
               <div className="aspect-[4/3] relative overflow-hidden bg-[#101B35]">
                 <Image
-                  src="https://images.unsplash.com/photo-1527838832700-5059252407fa?auto=format&fit=crop&w=800&q=80"
-                  alt="Galata Tower in Istanbul"
+                  src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80"
+                  alt="Kaleiçi Roman marina in Antalya"
                   fill
                   sizes="(max-width: 1024px) 100vw, 33vw"
                   className="object-cover object-center img-zoom"
@@ -307,21 +307,21 @@ export default function HomePage() {
               </div>
               <div className="p-6">
                 <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-1">
-                  Iconic Landmark
+                  Historic Walled Quarter
                 </span>
-                <h3 className="font-serif-title text-xl text-[#101B35] mb-2">Galata &amp; Karaköy</h3>
+                <h3 className="font-serif-title text-xl text-[#101B35] mb-2">Kaleiçi &amp; Roman Marina</h3>
                 <p className="text-xs text-[#5A6478] leading-relaxed">
-                  Medieval stone architecture standing high above contemporary art galleries, historic cafes, and cobblestone alleyways.
+                  Restored Ottoman mansions and ancient stone bastions looking out over classical Roman sailing harbors.
                 </p>
               </div>
             </div>
 
-            {/* Feature 2: Bosphorus Waterway */}
+            {/* Feature 2: Düden Coastal Waterfalls */}
             <div className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
               <div className="aspect-[4/3] relative overflow-hidden bg-[#101B35]">
                 <Image
-                  src="https://images.unsplash.com/photo-1567527259232-3a7fcd490c55?auto=format&fit=crop&w=800&q=80"
-                  alt="Bosphorus ferry at sunset with seagulls"
+                  src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+                  alt="Düden Waterfalls cascading into Mediterranean sea"
                   fill
                   sizes="(max-width: 1024px) 100vw, 33vw"
                   className="object-cover object-center img-zoom"
@@ -329,16 +329,16 @@ export default function HomePage() {
               </div>
               <div className="p-6">
                 <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-1">
-                  Maritime Journey
+                  Natural Wonder
                 </span>
-                <h3 className="font-serif-title text-xl text-[#101B35] mb-2">The Bosphorus Crossing</h3>
+                <h3 className="font-serif-title text-xl text-[#101B35] mb-2">Düden Coastal Cascades</h3>
                 <p className="text-xs text-[#5A6478] leading-relaxed">
-                  Stepping between continents aboard historic public ferries with views of palaces, wooden mansions, and maritime life.
+                  Spectacular cascades tumbling 40 meters directly from clifftop gardens into azure Mediterranean waters.
                 </p>
               </div>
             </div>
 
-            {/* Feature 3: Grand Bazaar & Culture */}
+            {/* Feature 3: Youth Collaboration */}
             <div className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden group shadow-sm">
               <div className="aspect-[4/3] relative overflow-hidden bg-[#101B35]">
                 <Image
@@ -363,9 +363,9 @@ export default function HomePage() {
           </div>
 
           <div className="mt-12 text-center">
-            <Link href="/explore-istanbul">
+            <Link href="/explore-antalya">
               <Button variant="secondary" size="lg">
-                View Full Istanbul City &amp; Culture Guide <ArrowRight size={16} />
+                View Full Antalya City &amp; Culture Guide <ArrowRight size={16} />
               </Button>
             </Link>
           </div>
@@ -383,10 +383,10 @@ export default function HomePage() {
                 Delegate Preparedness
               </span>
               <h2 className="font-serif-title text-3xl sm:text-5xl font-normal text-white leading-tight">
-                Preparing for Your Journey to Istanbul
+                Preparing for Your Journey to Antalya
               </h2>
               <p className="text-sm sm:text-base text-[#F7F3ED]/90 leading-relaxed font-light max-w-2xl">
-                Access verified entry requirements, official Turkish e-Visa links, airport transit options (IST &amp; SAW), currency guidance, and an interactive packing checklist stored directly in your browser.
+                Access verified entry requirements, official Turkish e-Visa links, Antalya Airport transit options (AYT), currency guidance, and an interactive packing checklist stored directly in your browser.
               </p>
             </div>
 

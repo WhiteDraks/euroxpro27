@@ -47,15 +47,15 @@ export const faqCategories: FAQCategory[] = [
       },
       {
         id: "tv-2",
-        question: "How do I get from the airport to the hotel?",
+        question: "How do I get from Antalya Airport (AYT) to the hotel?",
         answer:
-          "Istanbul has two main airports: Istanbul Airport (IST) on the European side and Sabiha Gökçen Airport (SAW) on the Asian side. Transportation options include the Havaist airport bus service, metro connections, private taxi, and ride-hailing apps like BiTaksi and Uber. Specific transfer arrangements from the Organizing Committee will be confirmed closer to the event.",
+          "Antalya Airport (AYT) is located approximately 13 km from the central city and coastal resort zones. The Organizing Committee will operate an official Welcome Desk at AYT arrivals on 31 March to coordinate direct delegate transfers. Independent transfer options include the AntRay light rail tram, Havaş airport express coaches, and licensed metered taxis.",
       },
       {
         id: "tv-3",
         question: "Which airport should I fly into?",
         answer:
-          "This depends on the hotel and venue location, which will be confirmed by the OC. Istanbul Airport (IST) is generally larger and better connected. The Organizing Committee will provide specific recommendations when the hotel is confirmed.",
+          "You should book your flights directly to Antalya Airport (AYT). AYT receives frequent direct flights from major European gateways as well as multiple hourly connections via Istanbul (IST and SAW) on Turkish Airlines and Pegasus.",
       },
       {
         id: "tv-4",
@@ -71,21 +71,21 @@ export const faqCategories: FAQCategory[] = [
     items: [
       {
         id: "acc-1",
-        question: "Where will delegates be staying?",
+        question: "Where will delegates be staying in Antalya?",
         answer:
-          "The official congress hotel has not yet been confirmed. Hotel details including name, address, room types, and included meals will be announced by the Organizing Committee. [HOTEL DETAILS TO BE CONFIRMED]",
+          "The official congress resort property in Antalya is currently undergoing contract finalization. Details including exact resort name, coastal location, room categories, and included amenities will be announced soon by the Organizing Committee.",
       },
       {
         id: "acc-2",
         question: "Is accommodation included in the registration fee?",
         answer:
-          "Information about what is included in the registration fee (accommodation, meals, etc.) will be confirmed when registration opens. This information will be clearly communicated before you register.",
+          "Information about what is included in the registration fee (accommodation, meals, plenary access) will be confirmed when registration officially opens. This information will be clearly communicated before you register.",
       },
       {
         id: "acc-3",
         question: "Can I arrange my own accommodation?",
         answer:
-          "We strongly recommend staying at the official congress hotel to be close to all activities and fellow delegates. If you have specific needs or circumstances, please contact the OC directly.",
+          "We strongly recommend staying at the official congress resort to be close to all plenary sessions, evening socials, and fellow delegates. If you have specific needs or circumstances, please contact the OC directly.",
       },
     ],
   },
@@ -95,21 +95,21 @@ export const faqCategories: FAQCategory[] = [
     items: [
       {
         id: "tr-1",
-        question: "How do I get around Istanbul?",
+        question: "How do I get around Antalya?",
         answer:
-          "Istanbul has an extensive public transportation network including metro, tram, bus, and ferry services. We recommend getting an Istanbulkart, a rechargeable transport card that works across all public transit. It is available at airports, major metro stations, and some supermarkets.",
+          "Antalya has an efficient public transit network consisting of the AntRay light rail tram system (connecting the airport, bus terminal Otogar, and city center), municipal buses, and nostalgic tramway along Kaleiçi. You can use an AntalyaKart or contactless bank cards on AntRay and public buses.",
       },
       {
         id: "tr-2",
-        question: "What is an Istanbulkart?",
+        question: "What is an AntalyaKart?",
         answer:
-          "Istanbulkart is Istanbul's reloadable transport card, similar to an Oyster card or Navigo pass. It provides discounted fares on metro, tram, bus, and ferry services across Istanbul. Cards can be purchased for a small deposit at kiosks in metro stations and airports.",
+          "AntalyaKart is the rechargeable smart transit card used for all public transport across the Antalya metropolitan area. Contactless debit and credit cards (Visa/Mastercard) are also accepted on turnstiles and bus validators.",
       },
       {
         id: "tr-3",
         question: "Will there be transfers between the hotel and venue?",
         answer:
-          "Transportation arrangements between the hotel and congress venue will be communicated by the Organizing Committee once both locations are confirmed.",
+          "The congress plenary sessions and social evenings are planned within the integrated congress resort complex and designated cultural excursion sites. All scheduled group transfers will be fully arranged by the OC.",
       },
     ],
   },
@@ -121,19 +121,19 @@ export const faqCategories: FAQCategory[] = [
         id: "pay-1",
         question: "What currency is used in Türkiye?",
         answer:
-          "The official currency of Türkiye is the Turkish Lira (TRY / ₺). While some tourist-facing businesses accept euros or dollars, it is advisable to have Turkish Lira for day-to-day expenses. ATMs are widely available throughout Istanbul.",
+          "The official currency of Türkiye is the Turkish Lira (TRY / ₺). Contactless credit/debit cards are accepted almost everywhere in Antalya, but carrying a small amount of TRY cash is useful for small local purchases.",
       },
       {
         id: "pay-2",
-        question: "Can I pay by card in Istanbul?",
+        question: "Can I pay by card in Antalya?",
         answer:
-          "Card payments are widely accepted in shops, restaurants, and hotels in Istanbul. Visa and Mastercard are the most accepted. Inform your bank before travelling to avoid your card being blocked. Some smaller establishments and market stalls may be cash-only.",
+          "Card payments are widely accepted across Antalya hotels, restaurants, transit, and supermarkets. Visa and Mastercard are the standard. Inform your bank before travelling to ensure your card is activated for international transactions.",
       },
       {
         id: "pay-3",
         question: "Where can I exchange currency?",
         answer:
-          "Currency exchange offices (Döviz) are abundant in Istanbul, especially in tourist areas. Rates at exchange offices are generally better than at airport kiosks. ATMs also offer competitive rates and are the most convenient option.",
+          "Currency exchange offices (Döviz) are abundant throughout central Antalya and Kaleiçi. ATMs from reputable national banks (Garanti BBVA, İşbank, Akbank, Yapı Kredi) are also widely available and offer secure cash withdrawals in TRY.",
       },
     ],
   },
@@ -143,21 +143,21 @@ export const faqCategories: FAQCategory[] = [
     items: [
       {
         id: "sch-1",
-        question: "When is the programme announced?",
+        question: "What are the confirmed congress dates?",
         answer:
-          "The official congress programme will be announced by the Organizing Committee closer to the event. A draft schedule is available on the Congress page to give you a general idea of the structure.",
+          "EUROXPRO'27 is officially confirmed for 31 March – 4 April 2027 in Antalya, Türkiye. Day 1 (31 March) is the designated arrival and opening day, and Day 5 (4 April) is the farewell and departure day.",
       },
       {
         id: "sch-2",
         question: "What type of sessions will there be?",
         answer:
-          "EUROXPRO'27 will feature a mix of plenary sessions, interactive workshops, networking events, social activities, and a cultural evening. The programme is designed to balance learning, networking, and experiencing Istanbul.",
+          "EUROXPRO'27 will feature plenary keynotes, leadership breakout tracks, bilateral partnership matchmaking, an Antalya & Kaleiçi cultural afternoon, the legendary Global Village, and the formal Turkish Night Gala.",
       },
       {
         id: "sch-3",
         question: "Is there a gala or formal evening?",
         answer:
-          "Yes! EUROXPRO'27 will feature a Turkish Night Gala — a special evening celebrating Turkish culture with traditional cuisine, music, and performances. Dress code details will be shared in the official programme.",
+          "Yes! On Saturday, 3 April 2027, EUROXPRO'27 will host the signature Turkish Night & European Leadership Awards Gala featuring regional cuisine, traditional music, and awards ceremonies. Dress code is Black Tie / Formal / Traditional Cultural Attire.",
       },
     ],
   },
@@ -169,7 +169,7 @@ export const faqCategories: FAQCategory[] = [
         id: "merch-1",
         question: "When will the merch collection be available?",
         answer:
-          "The official EUROXPRO'27 merch collection is currently in development. You can browse the planned collection and express your interest on the Merch Store page. Official ordering details will be announced separately.",
+          "The official EUROXPRO'27 merch collection is currently in development. You can browse the planned Mediterranean collection and express your interest on the Merch Store page. Official ordering details will be announced separately.",
       },
       {
         id: "merch-2",
@@ -181,7 +181,7 @@ export const faqCategories: FAQCategory[] = [
         id: "merch-3",
         question: "Will merch be available at the congress?",
         answer:
-          "Yes, selected merchandise will be available for collection at the congress. Details about ordering and collection will be confirmed by the Organizing Committee.",
+          "Yes, selected merchandise will be available for collection at the congress in Antalya. Details about ordering and collection will be confirmed by the Organizing Committee.",
       },
     ],
   },
@@ -203,9 +203,9 @@ export const faqCategories: FAQCategory[] = [
       },
       {
         id: "fd-3",
-        question: "Is food halal in Istanbul?",
+        question: "Is food halal in Antalya?",
         answer:
-          "Istanbul is a predominantly Muslim city and halal food is widely available and is generally the default in most restaurants. Non-halal options including pork products may be available in international hotels and some restaurants. Alcohol is legally available but not served everywhere.",
+          "Halal food is the nationwide standard in Türkiye and is served across all congress venues and restaurants. Fresh vegetarian, vegan, and Mediterranean seafood options are also widely accessible.",
       },
     ],
   },
@@ -217,25 +217,25 @@ export const faqCategories: FAQCategory[] = [
         id: "safe-1",
         question: "What is the emergency number in Türkiye?",
         answer:
-          "The general emergency number in Türkiye is 112. This connects you to police, ambulance, and fire services. The number is free to call from any phone, including without a local SIM card.",
+          "The nationwide emergency number in Türkiye is 112. This unified hotline connects to police, ambulance, fire, and coast guard services. Calls are toll-free and English-speaking operators are available.",
       },
       {
         id: "safe-2",
-        question: "Is Istanbul safe for international visitors?",
+        question: "Is Antalya safe for international visitors?",
         answer:
-          "Istanbul is a major international city visited by millions of tourists each year. As with any large city, standard precautions apply: be aware of your surroundings, keep valuables secure, and avoid unfamiliar areas late at night. The Organizing Committee will provide specific safety briefings during the congress.",
+          "Antalya is one of the safest and most popular international resort destinations in the Mediterranean, hosting millions of global travelers annually. As with any international trip, standard precautions apply, and the OC will provide on-ground support throughout the event.",
       },
       {
         id: "safe-3",
         question: "Who do I contact if I have an emergency during the congress?",
         answer:
-          "For life-threatening emergencies, always call 112 first. The Organizing Committee will provide an emergency contact number for all delegates upon arrival. This number will also be shared in pre-congress communications.",
+          "For emergencies, dial 112 immediately. The Organizing Committee will also operate a 24/7 on-call helpline for all delegates during the event, shared upon check-in.",
       },
       {
         id: "safe-4",
         question: "Should I get travel insurance?",
         answer:
-          "Yes, travel insurance is strongly recommended for all delegates. Make sure your policy covers medical expenses, trip cancellation, and personal belongings. Some nationalities may have EU health insurance coverage (EHIC/GHIC) that is valid in Türkiye — check with your provider.",
+          "Yes, travel medical insurance is strongly recommended for all international delegates traveling to Türkiye.",
       },
     ],
   },

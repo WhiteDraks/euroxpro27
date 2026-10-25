@@ -6,23 +6,23 @@ import { siteConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} — Istanbul, Türkiye`,
+    default: `${siteConfig.name} — Antalya, Türkiye | 31 March – 4 April 2027`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.shortDescription,
-  keywords: ["EUROXPRO", "AIESEC", "congress", "Istanbul", "Turkey", "international", "leadership", "2027"],
+  keywords: ["EUROXPRO", "AIESEC", "congress", "Antalya", "Türkiye", "Turkish Riviera", "Mediterranean", "international", "leadership", "2027"],
   authors: [{ name: "EUROXPRO'27 Organizing Committee" }],
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteConfig.siteUrl,
-    title: `${siteConfig.name} — Istanbul, Türkiye`,
+    title: `${siteConfig.name} — Antalya, Türkiye`,
     description: siteConfig.shortDescription,
     siteName: siteConfig.name,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — Istanbul, Türkiye`,
+    title: `${siteConfig.name} — Antalya, Türkiye`,
     description: siteConfig.shortDescription,
   },
   robots: {
