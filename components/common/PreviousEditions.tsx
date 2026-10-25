@@ -1,128 +1,81 @@
 import Image from "next/image";
 import { historicalEditions } from "@/lib/historical";
 import { content } from "@/lib/content";
-import { Users2, Globe2, Briefcase, Info } from "lucide-react";
 
+// Past editions read like an archive: one row per year, the year set
+// large, a photo beside it and the figures written out as plain text.
 export function PreviousEditions() {
   const text = content.previousEditions;
   return (
-    <section className="py-24 bg-[#F7F3ED] border-b border-[#E5E1DA]">
+    <section className="py-20 sm:py-28 bg-[#F7F3ED] text-[#101B35]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-[#E5E1DA] pb-8">
-          <div>
-            <span className="text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase block mb-3">
-              {text.eyebrow}
-            </span>
-            <h2 className="font-serif-title text-4xl sm:text-5xl text-[#101B35] font-normal leading-tight">
+        <div className="reveal grid lg:grid-cols-12 gap-6 lg:gap-12 items-end mb-10 sm:mb-14">
+          <div className="lg:col-span-7">
+            <p className="kicker mb-4">{text.eyebrow}</p>
+            <h2 className="font-serif-title text-[2.25rem] sm:text-5xl lg:text-6xl font-normal leading-[1.02]">
               {text.title}
             </h2>
           </div>
-          <p className="text-xs sm:text-sm text-[#5A6478] max-w-md mt-4 md:mt-0 leading-relaxed font-light">
+          <p className="lg:col-span-5 text-base sm:text-lg text-[#4B5563] leading-relaxed">
             {text.intro}
           </p>
         </div>
 
-        {/* Essential Historical Attribution Disclaimer */}
-        <div className="mb-12 bg-white border border-[#E5E1DA] rounded-sm p-5 shadow-sm flex items-start gap-3.5">
-          <Info size={20} className="text-[#741F3D] flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-[#5A6478] leading-relaxed">
-            <strong className="text-[#101B35] font-semibold block mb-0.5">
-              {text.disclaimerTitle}
-            </strong>
-            {text.disclaimer}
-          </div>
-        </div>
+        <div className="border-b border-[#101B35]">
+          {historicalEditions.map((edition) => {
+            const place = edition.location === edition.country ? edition.country : `${edition.location}, ${edition.country}`;
+            const figures = [
+              edition.delegatesMetric,
+              edition.countriesCount ? `${edition.countriesCount}+ countries` : null,
+              edition.partnersCount ? `${edition.partnersCount}+ partners` : null,
+            ].filter(Boolean);
+            return (
+              <article
+                key={edition.year}
+                className="reveal grid md:grid-cols-12 gap-x-8 lg:gap-x-12 gap-y-5 border-t border-[#101B35] py-8 sm:py-12"
+              >
+                <div className="md:col-span-3">
+                  <p className="font-serif-title text-6xl sm:text-7xl leading-none tabular-nums">{edition.year}</p>
+                  <p className="mt-3 text-sm text-[#4B5563]">{place}</p>
+                </div>
 
-        {/* Edition Cards Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {historicalEditions.map((edition) => (
-            <div
-              key={edition.year}
-              className="reveal bg-white border border-[#E5E1DA] rounded-sm overflow-hidden flex flex-col justify-between shadow-sm hover:border-[#741F3D] transition-colors duration-300 group"
-            >
-              <div>
-                {/* Archival Photography Header */}
-                <div className="aspect-[16/10] relative overflow-hidden bg-[#101B35]">
+                <div className="md:col-span-4 relative aspect-[3/2] overflow-hidden bg-[#101B35]">
                   <Image
                     src={edition.image}
-                    alt={`EUROXPRO ${edition.year} in ${edition.location}, ${edition.country}`}
+                    alt={`EUROXPRO ${edition.year} in ${place}`}
                     fill
                     quality={60}
-                    sizes="(max-width: 1024px) 100vw, 33vw"
-                    className="object-cover object-center img-zoom filter brightness-95"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover object-center"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#101B35]/90 via-transparent to-transparent" />
-                  
-                  {/* Badge Pills */}
-                  <div className="absolute top-3 left-3 flex items-center gap-2">
-                    <span className="px-2.5 py-1 bg-[#101B35]/90 backdrop-blur-sm text-white text-[11px] font-mono font-bold tracking-wider rounded-sm">
-                      EUROXPRO {edition.year}
-                    </span>
-                  </div>
-
-                  <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <span className="text-[10px] font-mono tracking-widest text-[#E5E1DA] uppercase block">
-                      {edition.location === edition.country ? edition.country : `${edition.location}, ${edition.country}`}
-                    </span>
-                    {edition.theme && (
-                      <p className="font-serif-title text-base italic text-[#F7F3ED]">
-                        &ldquo;{edition.theme}&rdquo;
-                      </p>
-                    )}
-                  </div>
                 </div>
 
-                {/* Content Body */}
-                <div className="p-6">
-                  {/* Highlight Metrics */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#F7F3ED] border border-[#E5E1DA] rounded-sm text-[11px] font-mono text-[#101B35] font-semibold">
-                      <Users2 size={12} className="text-[#741F3D]" />
-                      {edition.delegatesMetric}
-                    </span>
-                    {edition.countriesCount && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#F7F3ED] border border-[#E5E1DA] rounded-sm text-[11px] font-mono text-[#101B35]">
-                        <Globe2 size={12} className="text-[#741F3D]" />
-                        {edition.countriesCount}+ Countries
-                      </span>
-                    )}
-                    {edition.partnersCount && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#F7F3ED] border border-[#E5E1DA] rounded-sm text-[11px] font-mono text-[#101B35]">
-                        <Briefcase size={12} className="text-[#741F3D]" />
-                        {edition.partnersCount}+ Partners
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-xs text-[#5A6478] leading-relaxed mb-5 font-light">
-                    {edition.summary}
-                  </p>
-
-                  <div className="space-y-2 border-t border-[#E5E1DA] pt-4">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#8F9AA0] block">
-                      Documented Focus:
-                    </span>
-                    {edition.highlights.map((h, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-[#374151]">
-                        <span className="text-[#741F3D] font-bold mt-0.5">•</span>
-                        <span>{h}</span>
-                      </div>
-                    ))}
-                  </div>
+                <div className="md:col-span-5">
+                  {edition.theme && (
+                    <h3 className="font-serif-title italic text-2xl sm:text-3xl font-normal leading-snug">
+                      &ldquo;{edition.theme}&rdquo;
+                    </h3>
+                  )}
+                  <p className="mt-2 text-sm font-semibold text-[#741F3D]">{figures.join(" · ")}</p>
+                  <p className="mt-3 text-base text-[#4B5563] leading-relaxed">{edition.summary}</p>
+                  {edition.highlights.length > 0 && (
+                    <ul className="mt-4 space-y-1.5 text-sm text-[#374151]">
+                      {edition.highlights.map((h, i) => (
+                        <li key={i} className="pl-4 relative before:content-['–'] before:absolute before:left-0 before:text-[#741F3D]">
+                          {h}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              </div>
-
-              {/* Card Footer */}
-              <div className="px-6 py-3 bg-[#F7F3ED]/70 border-t border-[#E5E1DA] flex items-center justify-between text-[11px] text-[#8F9AA0] font-mono">
-                <span>Past Conference Record</span>
-                <span className="text-[#741F3D] font-semibold uppercase tracking-wider">
-                  Past Edition
-                </span>
-              </div>
-            </div>
-          ))}
+              </article>
+            );
+          })}
         </div>
+
+        {text.disclaimer && (
+          <p className="mt-6 text-xs text-[#5A6478] leading-relaxed max-w-3xl">{text.disclaimer}</p>
+        )}
       </div>
     </section>
   );

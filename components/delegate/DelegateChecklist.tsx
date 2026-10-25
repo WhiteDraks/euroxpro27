@@ -85,7 +85,7 @@ export function DelegateChecklist() {
             <div key={category} className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden">
               <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E1DA] bg-[#F7F3ED]/80">
                 <h3 className="text-[#101B35] font-serif-title font-semibold text-base">{category}</h3>
-                <span className="text-[#8F9AA0] text-xs font-mono">{catDone}/{items.length}</span>
+                <span className="text-[#8F9AA0] text-xs">{catDone}/{items.length}</span>
               </div>
               <div className="divide-y divide-[#E5E1DA]">
                 {items.map((item) => {

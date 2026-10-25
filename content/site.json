@@ -3,18 +3,17 @@
     "hero": {
       "image": "https://images.unsplash.com/photo-1654162115137-4f083a2ac627?auto=format&fit=crop&w=2400&q=80",
       "imageAlt": "Kaleiçi old town and Roman harbor in Antalya, Türkiye",
-      "eyebrow": "AIESEC in Europe Regional Conference · MC Türkiye Host",
-      "kicker": "EUROXPRO'27 ANTALYA",
-      "titleLine1": "WHERE EUROPE MEETS",
-      "titleLine2": "THE MEDITERRANEAN.",
+      "eyebrow": "AIESEC in Europe's regional conference, hosted by AIESEC in Türkiye",
+      "titleLine1": "Where Europe meets",
+      "titleLine2": "the Mediterranean.",
       "supportingLine": "One region. Different realities. A shared ambition to create more global opportunities.",
-      "themeNote": "Proposed Creative Direction · Unconfirmed Official Theme",
-      "primaryButton": "Explore Congress Vision",
-      "secondaryButton": "Delegate Preparation Hub",
-      "tertiaryButton": "Destination Guide →"
+      "themeNote": "Working theme, not yet confirmed",
+      "primaryButton": "About the congress",
+      "secondaryButton": "Delegate handbook",
+      "tertiaryButton": "Discover Antalya"
     },
     "countdown": {
-      "label": "Countdown to Antalya",
+      "label": "Until we open in Antalya",
       "daysLabel": "Days",
       "hoursLabel": "Hours",
       "minutesLabel": "Minutes",
@@ -23,146 +22,142 @@
       "endedText": "Thank you for joining EUROXPRO'27 in Antalya"
     },
     "bulletin": {
-      "label": "Official Bulletin",
-      "linkText": "Read communiqué"
+      "label": "Latest",
+      "linkText": "Read more"
     },
     "dimensions": {
-      "eyebrow": "Conference Foundation & Identity",
-      "title": "Three Dimensions Defining EUROXPRO'27",
-      "intro": "EUROXPRO is not a holiday or casual gathering; it is the strategic powerhouse of AIESEC in Europe. It combines purpose-driven leadership development, meaningful regional collaboration, and the authentic cultural atmosphere of the Mediterranean.",
+      "eyebrow": "What EUROXPRO is",
+      "title": "Five days of work, ideas and friendship by the sea",
+      "intro": "EUROXPRO is where the people running AIESEC across Europe sit down together. It is a working conference first: plans get made, partnerships get signed. And because it is in Antalya this year, there will be sea air and long dinners too.",
       "items": [
         {
-          "label": "Dimension 01 · Purpose",
-          "title": "Strengthening AIESEC in Europe",
-          "text": "Aligning national leadership teams and local committees on regional priorities. Scaling cross-border exchange opportunities (*Global Volunteer, Global Talent, Global Teacher*) to create real impact.",
-          "focus": "Focus: Operations & Strategy"
+          "label": "Purpose",
+          "title": "Stronger AIESEC in Europe",
+          "text": "National and local leaders agree on shared priorities and work out how to send more young people abroad through *Global Volunteer, Global Talent* and *Global Teacher*."
         },
         {
-          "label": "Dimension 02 · Destination",
-          "title": "Antalya: Mediterranean Crossroads",
-          "text": "Where centuries of maritime history meet sweeping sea cliffs, historic Kaleiçi, and the dramatic Taurus mountains. A peerless setting that inspires visionary perspectives and forward momentum.",
-          "focus": "Focus: Heritage & Inspiration"
+          "label": "Place",
+          "title": "Antalya, between sea and mountains",
+          "text": "An old harbour town under the Taurus mountains. Kaleiçi's narrow streets, Roman gates and cliffs over the water are a short walk from each other."
         },
         {
-          "label": "Dimension 03 · Experience",
-          "title": "Youth Unity & Turkish Hospitality",
-          "text": "Connecting hundreds of young leaders across 50+ countries. Experiencing the legendary warmth of Turkish culture, bilateral synergy, and building lifelong international friendships.",
-          "focus": "Focus: Culture & Community"
+          "label": "People",
+          "title": "Hundreds of young leaders, one table",
+          "text": "Delegates from more than 50 countries, hosted the Turkish way: generous food, late conversations and friendships that outlast the week."
         }
       ]
     },
     "pillars": {
-      "eyebrow": "Congress Architecture",
-      "title": "Four Pillars of EUROXPRO'27",
-      "intro": "Carefully engineered to maximize regional alignment, organizational capacity, leadership growth, and cross-cultural unity.",
-      "cardFooter": "Core Conference Area",
+      "eyebrow": "The programme",
+      "title": "What happens during the week",
+      "intro": "The full agenda comes later. These are the four things the week is built around.",
       "items": [
         {
-          "title": "Regional Alignment",
-          "desc": "Bringing together national governing teams (MCs) and local presidents from over 50 entities to align on regional European priorities."
+          "title": "Regional alignment",
+          "desc": "National teams and local presidents from 50+ entities agree on priorities for Europe."
         },
         {
-          "title": "Exchange Expansion",
-          "desc": "Scaling operational capacity and delivery standards across Global Volunteer, Global Talent, and Global Teacher programs."
+          "title": "Growing exchange",
+          "desc": "Practical sessions on delivering more and better Global Volunteer, Global Talent and Global Teacher experiences."
         },
         {
-          "title": "Mediterranean Plenaries",
-          "desc": "Inspiring keynote sessions and external partner symposia hosted along the Turkish Riviera coastline."
+          "title": "Plenaries by the sea",
+          "desc": "Keynotes and partner sessions, with the Mediterranean just outside."
         },
         {
           "title": "Turkish Night & Gala",
-          "desc": "The celebratory formal evening honoring regional leadership achievements, traditional Turkish cuisine, and cultural folklore."
+          "desc": "A formal evening of Turkish food, music and folk dance, and a toast to the year's work."
         }
       ]
     },
     "destination": {
-      "eyebrow": "Destination Feature",
-      "title": "Antalya: The Host Destination",
-      "intro": "From the morning citrus scents to the turquoise waves lapping against ancient Roman harbors, Antalya welcomes international delegates with world-class hospitality and breathtaking coastal panoramas.",
-      "buttonText": "View Full Antalya Destination & Cultural Guide",
+      "eyebrow": "The host city",
+      "title": "Antalya",
+      "intro": "Orange trees, a Roman harbour and a long pebble beach facing snow on the mountains. Most of the city's best corners are within walking distance of each other.",
+      "buttonText": "Read the full Antalya guide",
       "items": [
         {
           "image": "https://images.unsplash.com/photo-1654162148114-a04db0a49616?auto=format&fit=crop&w=800&q=80",
           "imageAlt": "Kaleiçi clock tower and old town rooftops, Antalya",
           "label": "Historic Walled Quarter",
           "title": "Kaleiçi & Roman Marina",
-          "text": "Restored Ottoman mansions and ancient stone bastions looking out over classical Roman sailing harbors."
+          "text": "Ottoman houses and old stone walls around the little harbour where fishing boats still tie up."
         },
         {
           "image": "https://images.unsplash.com/photo-1673011732639-c717f5650456?auto=format&fit=crop&w=800&q=80",
           "imageAlt": "Lower Düden Waterfall pouring into the Mediterranean, Antalya",
           "label": "Natural Wonder",
           "title": "Düden Coastal Cascades",
-          "text": "Spectacular cascades tumbling 40 meters directly from clifftop gardens into azure Mediterranean waters."
+          "text": "The Düden river drops about 40 metres off the cliffs straight into the sea. Best at sunset."
         },
         {
           "image": "https://images.unsplash.com/photo-1768123678872-b6a826b7bac5?auto=format&fit=crop&w=800&q=80",
           "imageAlt": "Antalya old harbor with the Taurus Mountains behind",
           "label": "Harbor & Mountain Panorama",
           "title": "Old Harbor & Taurus Range",
-          "text": "Traditional boats in the ancient harbor, framed by the limestone peaks of the Taurus Mountains across the bay."
+          "text": "Boats in the old harbour, with the limestone peaks of the Taurus range across the bay."
         }
       ]
     },
     "delegatePrep": {
-      "eyebrow": "Delegate Preparedness",
-      "title": "Preparing for Your Journey to Antalya",
-      "text": "Access verified entry requirements, official Turkish e-Visa links, Antalya Airport transit options (AYT), currency guidance, and an interactive packing checklist stored directly in your browser.",
-      "primaryButton": "Open Delegate Handbook",
-      "secondaryButton": "Interactive Packing Checklist"
+      "eyebrow": "Before you travel",
+      "title": "Getting ready for Antalya",
+      "text": "Visa rules and the e-Visa link, how to get in from the airport, money, phones and a packing list you can tick off as you go.",
+      "primaryButton": "Read the delegate handbook",
+      "secondaryButton": "Open the packing list"
     },
     "merch": {
-      "eyebrow": "Souvenirs & Memorabilia",
-      "title": "Limited-Edition Congress Collection",
-      "linkText": "Browse full demo storefront",
-      "badge": "Sample Preview",
-      "itemLinkText": "Configure Pre-Order Interest →"
+      "eyebrow": "Merch",
+      "title": "Something to take home",
+      "linkText": "See all items",
+      "badge": "sample design",
+      "itemLinkText": "Pre-order →"
     },
     "closing": {
-      "eyebrow": "Organizing Committee Secretariat",
-      "title": "Have Questions Regarding Participation?",
-      "text": "The EUROXPRO’27 Organizing Committee is actively available to assist national Member Committees, Local Committee presidents, and prospective partners.",
-      "primaryButton": "Contact Organizing Committee",
-      "secondaryButton": "Browse FAQ"
+      "eyebrow": "Questions?",
+      "title": "Ask us anything about the congress",
+      "text": "Member Committees, local presidents, partners: if something isn't clear, write to the Organizing Committee and we'll help.",
+      "primaryButton": "Contact the committee",
+      "secondaryButton": "Read the FAQ"
     }
   },
   "congress": {
     "hero": {
       "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=2000&q=80",
       "imageAlt": "International congress auditorium in session",
-      "eyebrow": "Official Congress Dossier",
-      "title": "The Congress Experience",
-      "intro": "EUROXPRO'27 brings together national governing teams, local committee leaders, and young change-makers from across Europe and the Mediterranean. Hosted by MC Türkiye in the historic coastal city of Antalya, the congress is dedicated to regional alignment, organizational performance, and scaling high-impact youth exchanges.",
+      "eyebrow": "The congress",
+      "title": "About EUROXPRO'27",
+      "intro": "Five days in Antalya for the people who run AIESEC across Europe: national boards, local presidents, team leaders and alumni. Hosted by AIESEC in Türkiye.",
       "datesLabel": "Congress Dates",
       "cityLabel": "Host City",
       "venueLabel": "Congress Venue"
     },
     "about": {
-      "eyebrow": "Vision & Mandate",
-      "title": "What is EUROXPRO'27?",
-      "description": "An immersive transcontinental forum convening youth leadership from across Europe and the global AIESEC network.",
+      "eyebrow": "In short",
+      "title": "What is EUROXPRO?",
+      "description": "The yearly regional conference of AIESEC in Europe.",
       "paragraphs": [
-        "**EUROXPRO** is the premier annual regional conference for **AIESEC in Europe**. It convenes national leadership teams (Member Committees), Local Committee presidents, functional vice presidents, and alumni from more than 50 participating entities.",
-        "The congress serves as the regional engine for strategic alignment, organizational performance, and youth leadership development. Delegates participate in functional breakout tracks to establish multilateral exchange partnerships (*Global Volunteer, Global Talent, Global Teacher*) and refine operational standards.",
-        "Hosted by **MC Türkiye** in Antalya, the 2027 edition draws inspiration from the Mediterranean crossroads under the proposed creative direction: *“Where Europe Meets the Mediterranean.”*"
+        "**EUROXPRO** brings together national leadership teams (Member Committees), Local Committee presidents, functional vice presidents and alumni from more than 50 entities of **AIESEC in Europe**.",
+        "Most of the week is working time: functional tracks, plenaries and the conversations between them, where entities agree on how to grow exchange (*Global Volunteer, Global Talent, Global Teacher*) and support each other.",
+        "In 2027 **AIESEC in Türkiye** hosts in Antalya. The working theme is *“Where Europe Meets the Mediterranean.”*"
       ],
-      "objectivesTitle": "Core Conference Objectives",
+      "objectivesTitle": "What we want to leave with",
       "objectives": [
         {
-          "title": "Actionable Leadership Development",
-          "desc": "Intensive functional tracks designed to build strategic thinking, crisis resilience, people management, and operational acumen."
+          "title": "Better leaders",
+          "desc": "Practical tracks on planning, managing people and keeping a team going when things get hard."
         },
         {
-          "title": "Pan-European Exchange Scaling",
-          "desc": "Forging bilateral partnerships between national committees to expand cross-border mobility and youth exchange volume."
+          "title": "More exchanges",
+          "desc": "New partnerships between national committees so more young people can go abroad."
         },
         {
-          "title": "Regional Alignment & Governance",
-          "desc": "Uniting entity leadership to tackle common regional challenges, align on strategic priorities, and vote on legislative motions."
+          "title": "Shared priorities",
+          "desc": "Common answers to common problems across the region, and votes on the motions that need them."
         },
         {
-          "title": "Cultural Unity & Mediterranean Immersion",
-          "desc": "Experiencing authentic Turkish hospitality and Antalya’s rich historical crossroads through curated social evenings and Global Village."
+          "title": "Time together",
+          "desc": "Global Village, social evenings and a proper taste of Turkish hospitality."
         }
       ]
     },
@@ -407,9 +402,9 @@
     "hero": {
       "image": "https://images.unsplash.com/photo-1654162201760-2c4383cbde3c?auto=format&fit=crop&w=2400&q=80",
       "imageAlt": "Rooftops of Kaleiçi, the historic old town of Antalya",
-      "eyebrow": "Host Destination Feature",
+      "eyebrow": "The host city",
       "title": "Explore Antalya",
-      "intro": "Where the azure Mediterranean touches the soaring peaks of the Taurus Mountains. An editorial delegate guide to ancient Roman harbors, clifftop waterfalls, and the rich culinary heritage of the Turkish Riviera."
+      "intro": "Sea on one side, the Taurus mountains on the other. A short guide to the old town, the waterfalls, what to eat and a few words of Turkish."
     },
     "tabs": {
       "attractions": "Iconic Landmarks",
@@ -678,13 +673,13 @@
     }
   },
   "gallery": {
-    "eyebrow": "Visual Archive & Destination Showcase",
-    "title": "Moments of Leadership & Coastline",
-    "intro": "Archival moments from past regional assemblies paired with the dramatic Mediterranean beauty of our 2027 host city, Antalya.",
-    "notice": "**About these photos:** Destination photos show real places in Antalya, Türkiye. Conference photos are illustrative until official EUROXPRO'27 photography is published.",
-    "filterAll": "All Imagery",
-    "filterConferences": "Past Conferences",
-    "filterAntalya": "Antalya Riviera",
+    "eyebrow": "Photographs",
+    "title": "Past congresses and the coast ahead",
+    "intro": "Moments from earlier regional conferences, and the places in Antalya you will see in March.",
+    "notice": "Antalya photos show the real places. Conference photos are placeholders until we have our own from EUROXPRO'27.",
+    "filterAll": "All",
+    "filterConferences": "Conferences",
+    "filterAntalya": "Antalya",
     "showMoreButton": "Show more photos",
     "items": [
       {
@@ -850,11 +845,10 @@
     ]
   },
   "previousEditions": {
-    "eyebrow": "Historical Legacy & Precedent",
-    "title": "Previous Editions of EUROXPRO",
-    "intro": "A proven regional tradition uniting youth leadership across Europe to expand international exchanges and strengthen organizational performance.",
-    "disclaimerTitle": "Historical Reference Disclosure:",
-    "disclaimer": "The statistics, delegate counts, themes, and partner metrics presented below are documented historical records from past EUROXPRO conferences. They illustrate the regional scope and heritage of AIESEC in Europe, and are not claims, capacity targets, or confirmed partnerships for EUROXPRO’27.",
+    "eyebrow": "Earlier editions",
+    "title": "Where EUROXPRO has been",
+    "intro": "Each year a different country hosts. Here is what we know about the last three.",
+    "disclaimer": "Figures and themes come from publicly shared information about past editions. They describe those conferences only and are not targets or confirmed numbers for EUROXPRO'27.",
     "items": [
       {
         "year": 2026,
@@ -864,11 +858,11 @@
         "delegatesCount": 500,
         "partnersCount": 6,
         "theme": "United in Exchanges",
-        "summary": "Publicly shared information highlighted more than 500 young leaders and 6+ partner organizations convening in Greece under the thematic rallying cry of 'United in Exchanges'. Focused on cross-border mobility, multilateral exchanges, and pan-European integration.",
+        "summary": "More than 500 young leaders and at least six partner organisations met in Greece under the theme 'United in Exchanges', with a focus on cross-border mobility.",
         "highlights": [
-          "Over 500 youth leaders convened across Europe",
-          "6+ institutional & corporate partners engaged",
-          "Keynote focus on scaling international exchange opportunities"
+          "500+ delegates from across Europe",
+          "6+ partner organisations",
+          "Keynotes on growing international exchange"
         ],
         "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80"
       },
@@ -880,11 +874,11 @@
         "delegatesCount": 380,
         "countriesCount": 50,
         "theme": "European Leadership Assembly",
-        "summary": "Public reporting documented more than 380 delegates representing 50+ countries gathering on the Adriatic coast in Rimini, Italy. Addressed organizational sustainability, cross-cultural leadership competencies, and national committee alignment.",
+        "summary": "Over 380 delegates from 50+ countries met on the Adriatic coast in Rimini. Sessions covered keeping organisations healthy, leading across cultures and aligning national committees.",
         "highlights": [
-          "380+ delegates from across the European and global network",
-          "Representatives from 50+ diverse national entities",
-          "Intensive functional breakout tracks and plenary symposia"
+          "380+ delegates",
+          "50+ countries represented",
+          "Functional tracks and plenaries"
         ],
         "image": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80"
       },
@@ -895,43 +889,43 @@
         "delegatesMetric": "300+ Participants",
         "delegatesCount": 300,
         "theme": "Mediterranean Convergence",
-        "summary": "Public participant information recorded 300+ ambitious young participants gathering in the Mediterranean coastal haven of Alanya, Türkiye. Fostered collaborative strategies for local committee growth, membership development, and regional synergy.",
+        "summary": "About 300 participants came to Alanya, just along the coast from Antalya, to work on local committee growth, membership and regional cooperation.",
         "highlights": [
-          "300+ enthusiastic participants on the Mediterranean coast",
-          "Strengthened regional collaboration across AIESEC in Europe",
-          "Celebrated cultural heritage through signature Turkish hospitality"
+          "300+ participants on the Mediterranean coast",
+          "Closer collaboration across AIESEC in Europe",
+          "Turkish hospitality, a year before Antalya"
         ],
         "image": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=80"
       }
     ]
   },
   "partners": {
-    "eyebrow": "Institutional & Corporate Collaboration",
-    "title": "Partners & Collaborators",
-    "intro": "EUROXPRO connects visionary institutions, multinational employers, and regional innovators with the most dynamic youth leadership network across Europe.",
-    "statusBadge": "Partnership Announcements Coming Soon",
-    "statusTitle": "Official 2027 Partners Under Finalization",
-    "statusText": "The Organizing Committee and AIESEC in Türkiye are actively curating partner agreements for the Antalya edition. Confirmed partners and institutional sponsors will be formally announced here.",
-    "buttonText": "Partner with EUROXPRO'27",
+    "eyebrow": "Partners",
+    "title": "Work with us",
+    "intro": "EUROXPRO brings together student leaders from across Europe. If your organisation wants to meet them, there is room for you.",
+    "statusBadge": "Partners announced soon",
+    "statusTitle": "2027 partners are being confirmed",
+    "statusText": "We are finalising agreements with partners for Antalya and will list them here once they are signed.",
+    "buttonText": "Talk to us about partnering",
     "items": [
       {
-        "title": "Pan-European Employer Branding",
-        "desc": "Engage directly with high-achieving student leaders, local presidents, and emerging professionals from over 50 countries."
+        "title": "Meet Europe's student leaders",
+        "desc": "Introduce your organisation to local presidents and young professionals from more than 50 countries."
       },
       {
-        "title": "Leadership Roundtables & Workshops",
-        "desc": "Host interactive capacity-building breakouts, share industry insights, and mentor tomorrow’s global change-makers."
+        "title": "Run a session",
+        "desc": "Host a workshop or roundtable, share what your industry has learned, mentor delegates."
       },
       {
-        "title": "Global Exchange Impact (SDGs)",
-        "desc": "Directly sponsor and enable cross-border youth mobility programs (Global Volunteer, Global Talent, Global Teacher)."
+        "title": "Support exchanges",
+        "desc": "Help fund cross-border volunteering, internships and teaching placements."
       }
     ]
   },
   "team": {
     "hero": {
       "eyebrow": "Organizing Committee",
-      "title": "Meet the Team Behind EUROXPRO'27",
+      "title": "The people behind EUROXPRO'27",
       "intro": "AIESEC in Türkiye members preparing every detail of the congress in Antalya, from delegate travel and accommodation to the programme and the Turkish Night Gala."
     },
     "notice": "Names and photos are being added as the team is confirmed.",

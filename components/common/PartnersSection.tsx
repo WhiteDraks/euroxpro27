@@ -1,79 +1,44 @@
 import Link from "next/link";
-import { Handshake, ArrowRight, ShieldCheck, Sparkles, Building2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { content } from "@/lib/content";
-
-const cardIcons = [Building2, Sparkles, ShieldCheck];
 
 export function PartnersSection() {
   const text = content.partners;
   return (
-    <section className="py-24 bg-white border-b border-[#E5E1DA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="reveal max-w-3xl mb-14">
-          <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-3">
-            <Handshake size={14} />
-            {text.eyebrow}
-          </div>
-          <h2 className="font-serif-title text-4xl sm:text-5xl text-[#101B35] font-normal leading-tight">
+    <section className="py-20 sm:py-28 bg-[#F7F3ED] text-[#101B35]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 lg:gap-16">
+        <div className="reveal lg:col-span-5">
+          <p className="kicker mb-4">{text.eyebrow}</p>
+          <h2 className="font-serif-title text-[2.25rem] sm:text-5xl lg:text-6xl font-normal leading-[1.02]">
             {text.title}
           </h2>
-          <p className="text-sm sm:text-base text-[#5A6478] mt-4 leading-relaxed font-light">
-            {text.intro}
-          </p>
-        </div>
+          <p className="mt-6 text-base sm:text-lg text-[#4B5563] leading-relaxed">{text.intro}</p>
 
-        {/* Status Callout Card */}
-        <div className="border border-[#E5E1DA] bg-[#F7F3ED] rounded-sm p-8 sm:p-10 mb-12">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#E5E1DA] rounded-sm text-xs font-mono font-semibold text-[#741F3D]">
-                <span className="w-2 h-2 rounded-full bg-[#741F3D] animate-ping" />
-                {text.statusBadge}
-              </div>
-              <h3 className="font-serif-title text-2xl sm:text-3xl text-[#101B35] font-normal">
-                {text.statusTitle}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5A6478] leading-relaxed">
-                {text.statusText}
-              </p>
-            </div>
-
-            <div className="flex-shrink-0">
-              <Link href="/contact">
-                <Button size="lg" variant="primary" className="text-xs font-semibold tracking-wide">
-                  {text.buttonText} <ArrowRight size={15} />
-                </Button>
-              </Link>
-            </div>
+          <div className="mt-8 border-l-2 border-[#741F3D] pl-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#741F3D]">{text.statusBadge}</p>
+            <h3 className="font-serif-title text-xl sm:text-2xl font-normal mt-2">{text.statusTitle}</h3>
+            <p className="mt-2 text-sm text-[#4B5563] leading-relaxed">{text.statusText}</p>
           </div>
+
+          <Link href="/contact" className="inline-block mt-8">
+            <Button size="lg" variant="primary" className="text-sm font-semibold">
+              {text.buttonText} <ArrowRight size={16} />
+            </Button>
+          </Link>
         </div>
 
-        {/* Value Proposition Cards */}
-        <div className="grid sm:grid-cols-3 gap-6">
-          {text.items.map(({ title, desc }, i) => {
-            const Icon = cardIcons[i % cardIcons.length];
-            return (
-            <div
-              key={i}
-              className="reveal p-6 border border-[#E5E1DA] rounded-sm bg-white hover:border-[#741F3D] transition-colors group"
-            >
-              <div className="w-10 h-10 bg-[#101B35] rounded-sm flex items-center justify-center text-[#741F3D] mb-4">
-                <Icon size={18} />
+        <ol className="lg:col-span-7 lg:pt-14">
+          {text.items.map(({ title, desc }, i) => (
+            <li key={i} className="reveal border-t border-[#101B35] py-7 last:border-b grid grid-cols-[2.5rem_1fr] gap-x-4">
+              <span className="font-serif-title italic text-2xl text-[#741F3D] leading-none">{i + 1}.</span>
+              <div>
+                <h3 className="font-serif-title text-2xl font-normal leading-snug">{title}</h3>
+                <p className="mt-2 text-base text-[#4B5563] leading-relaxed">{desc}</p>
               </div>
-              <h4 className="font-serif-title text-lg text-[#101B35] font-normal mb-2">
-                {title}
-              </h4>
-              <p className="text-xs text-[#5A6478] leading-relaxed font-light">
-                {desc}
-              </p>
-            </div>
-            );
-          })}
-        </div>
-
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

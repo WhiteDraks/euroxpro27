@@ -20,9 +20,9 @@ function SessionCard({ session }: { session: ScheduleSession }) {
   return (
     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 py-5 border-b border-[#2A3556] last:border-0">
       <div className="sm:w-32 flex-shrink-0">
-        <span className="text-[#A7AFBF] text-sm font-mono">{session.time}</span>
+        <span className="text-[#A7AFBF] text-sm">{session.time}</span>
         {session.endTime && (
-          <span className="block text-[#A7AFBF]/50 text-xs font-mono">{session.endTime}</span>
+          <span className="block text-[#A7AFBF]/50 text-xs">{session.endTime}</span>
         )}
       </div>
       <div className="flex gap-3 sm:gap-4 flex-1 min-w-0">
@@ -92,11 +92,11 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
         <div className="bg-[#172443] border border-[#2A3556] rounded-sm p-4 sm:p-8">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#2A3556]">
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#741F3D] block mb-1">
+              <span className="text-[11px] uppercase tracking-[0.08em] text-[#741F3D] block mb-1">
                 Day {currentDay.day} Focus
               </span>
               <h3 className="font-serif-title text-white text-2xl font-normal">{currentDay.label}</h3>
-              <p className="text-[#A7AFBF] text-xs font-mono mt-1">{currentDay.date}</p>
+              <p className="text-[#A7AFBF] text-xs mt-1">{currentDay.date}</p>
             </div>
             <Clock size={18} className="text-[#741F3D]" />
           </div>
@@ -106,7 +106,7 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
             ))}
           </div>
 
-          <div className="mt-8 pt-4 border-t border-[#2A3556] flex items-center justify-between text-[11px] font-mono text-[#8F9AA0]">
+          <div className="mt-8 pt-4 border-t border-[#2A3556] flex items-center justify-between text-[11px] text-[#8F9AA0]">
             <span>Times and flow subject to minor operational adjustments</span>
             <span className="text-[#A7AFBF]">Antalya Local Time (UTC+3)</span>
           </div>

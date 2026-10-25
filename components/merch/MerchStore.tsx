@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ShoppingBag, Check, Trash2, AlertCircle, Send, X } from "lucide-react";
+import { ShoppingBag, Check, Trash2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -13,7 +13,6 @@ import { siteConfig } from "@/lib/config";
 export function MerchStore({
   products,
   categories,
-  instructions,
 }: {
   products: Product[];
   categories: { id: string; label: string }[];
@@ -109,33 +108,30 @@ export function MerchStore({
   };
 
   return (
-    <div className="py-16 bg-[#F7F3ED]">
+    <div className="pb-20 sm:pb-28 bg-[#F7F3ED]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notice on illustrative nature */}
-        <div className="mb-10 bg-amber-500/10 border border-amber-500/30 rounded-sm p-5 flex items-start gap-4">
-          <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-900 leading-relaxed">
-            <strong className="font-semibold block mb-1">DEMO STORE — Illustrative Collection &amp; Pre-Order Interest System</strong>
-            The official EUROXPRO&apos;27 capsule collection is currently in development. All designs, product specifications, and prices below are illustrative representations. Submitting an inquiry records your size and item interest for the Organizing Committee — no payment or financial transaction is processed on this website. Official payment channels will be communicated separately by AIESEC in Türkiye.
-            {instructions && (
-              <p className="mt-2 text-xs text-amber-800 border-t border-amber-500/20 pt-2">
-                {instructions.trim().split("\n")[0]}
-              </p>
-            )}
-          </div>
+        <div className="mb-10 pl-4 border-l-2 border-[#741F3D] max-w-3xl text-base text-[#374151] leading-relaxed">
+          <p>
+            <strong className="font-semibold text-[#101B35]">This is a preview, not a shop yet.</strong> Designs and prices
+            are still being worked on. Sending a pre-order request just tells the Organizing Committee what you would like;
+            nothing is charged here, and AIESEC in Türkiye will share how to pay once the collection is final.
+          </p>
         </div>
 
         {/* Categories */}
-        <div className="flex flex-wrap gap-2 mb-10">
+        <div className="flex gap-x-6 mb-10 border-b border-[#D9D2C5] overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((c) => (
             <button
               key={c.id}
+              type="button"
+              aria-pressed={selectedCategory === c.id}
               onClick={() => setSelectedCategory(c.id)}
               className={cn(
-                "px-4 py-2 rounded-sm text-xs font-medium tracking-wide uppercase transition-colors",
+                "whitespace-nowrap py-3 -mb-px text-sm border-b-2 transition-colors",
                 selectedCategory === c.id
-                  ? "bg-[#741F3D] text-white"
-                  : "bg-white border border-[#E5E1DA] text-[#5A6478] hover:text-[#101B35]"
+                  ? "border-[#741F3D] text-[#101B35] font-semibold"
+                  : "border-transparent text-[#5A6478] hover:text-[#101B35]"
               )}
             >
               {c.label}
@@ -145,11 +141,11 @@ export function MerchStore({
 
         <div className="grid lg:grid-cols-3 gap-12 items-start">
           {/* Products Grid */}
-          <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
+          <div className="lg:col-span-2 grid sm:grid-cols-2 gap-x-8 gap-y-12">
             {filteredProducts.map((p) => (
-              <Card key={p.id} className="bg-white border border-[#E5E1DA] flex flex-col justify-between group hover:shadow-lg transition-all rounded-sm overflow-hidden">
+              <Card key={p.id} className="bg-transparent border-0 rounded-none flex flex-col justify-between group">
                 <div>
-                  <div className="aspect-[4/3] bg-[#101B35]/5 overflow-hidden relative">
+                  <div className="aspect-[4/3] bg-[#EFE9DF] overflow-hidden relative">
                     {p.image ? (
                       <Image
                         src={p.image}
@@ -163,34 +159,25 @@ export function MerchStore({
                         <ShoppingBag size={28} className="text-[#741F3D]" />
                       </div>
                     )}
-                    {p.badge && (
-                      <div className="absolute top-3 left-3">
-                        <Badge variant="burgundy">{p.badge}</Badge>
-                      </div>
-                    )}
-                    <div className="absolute top-3 right-3">
-                      <span className="text-[10px] bg-[#101B35]/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-sm font-mono">
-                        Sample Design
-                      </span>
-                    </div>
+
                   </div>
-                  <div className="p-5">
-                    <span className="text-[10px] text-[#A7AFBF] tracking-widest uppercase block mb-1 font-mono">
-                      {p.category}
-                    </span>
-                    <h3 className="font-serif-title text-lg text-[#101B35] font-normal mb-2">{p.name}</h3>
-                    <p className="text-xs text-[#5A6478] leading-relaxed line-clamp-2 mb-3 font-light">
-                      {p.description}
+                  <div className="pt-4">
+                    <p className="text-xs text-[#741F3D]">
+                      {categories.find((c) => c.id === p.category)?.label ?? p.category}
+                      {p.badge && <> · {p.badge}</>} · Sample design
                     </p>
-                    <div className="flex items-baseline justify-between pt-2 border-t border-[#E5E1DA]">
-                      <span className="text-lg font-bold text-[#741F3D] font-mono">
+                    <div className="flex items-baseline justify-between gap-4 mt-1">
+                      <h3 className="font-serif-title text-xl text-[#101B35] font-normal">{p.name}</h3>
+                      <span className="text-base text-[#101B35] tabular-nums whitespace-nowrap">
                         {formatPrice(p.price)}
                       </span>
-                      <span className="text-[10px] text-[#A7AFBF] font-mono">TBC</span>
                     </div>
+                    <p className="text-sm text-[#4B5563] leading-relaxed line-clamp-2 mt-2 mb-4">
+                      {p.description}
+                    </p>
                   </div>
                 </div>
-                <div className="p-5 pt-0">
+                <div>
                   <Button
                     onClick={() => openProductModal(p)}
                     variant="outline"
@@ -204,7 +191,7 @@ export function MerchStore({
           </div>
 
           {/* Cart & Expression of Interest Drawer */}
-          <div className="bg-white border border-[#E5E1DA] rounded-sm p-6 sticky top-28 shadow-sm">
+          <div className="bg-white border border-[#E5E1DA] rounded-sm p-6 sticky top-28">
             <div className="flex items-center justify-between pb-4 border-b border-[#E5E1DA] mb-4">
               <h3 className="font-serif-title text-xl text-[#101B35]">Pre-Order Cart</h3>
               <Badge variant="burgundy">{cart.reduce((n, i) => n + i.quantity, 0)} items</Badge>
@@ -266,7 +253,7 @@ export function MerchStore({
                 <div className="pt-2 border-t border-[#E5E1DA] mb-6">
                   <div className="flex justify-between items-baseline mb-1">
                     <span className="text-xs font-semibold text-[#101B35] uppercase tracking-wide">Estimated Subtotal:</span>
-                    <span className="text-xl font-bold text-[#741F3D] font-mono">{formatPrice(cartSubtotal)}</span>
+                    <span className="text-xl font-bold text-[#741F3D]">{formatPrice(cartSubtotal)}</span>
                   </div>
                   <span className="text-[10px] text-[#A7AFBF] block">
                     No payment is collected at this stage.
@@ -344,7 +331,7 @@ export function MerchStore({
                 {activeModalProduct.name}
               </h3>
               <p className="text-xs text-[#5A6478] mb-3 leading-relaxed">{activeModalProduct.description}</p>
-              <p className="text-xl font-bold text-[#741F3D] mb-5 font-mono">
+              <p className="text-xl font-bold text-[#741F3D] mb-5">
                 {formatPrice(activeModalProduct.price)}
               </p>
 
@@ -407,7 +394,7 @@ export function MerchStore({
                   >
                     -
                   </button>
-                  <span className="px-4 py-1 text-sm font-semibold text-[#101B35] font-mono">{quantity}</span>
+                  <span className="px-4 py-1 text-sm font-semibold text-[#101B35]">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
                     className="px-3 py-1 text-sm text-[#5A6478] hover:bg-gray-100"
