@@ -53,7 +53,7 @@ export function ContactSection({
                       <User size={20} className="text-[#741F3D]" />
                     </div>
                     <div>
-                      <h4 className="font-display font-bold text-lg text-[#101B35]">{member.name}</h4>
+                      <h4 className="font-serif-title font-normal text-lg text-[#101B35]">{member.name}</h4>
                       <p className="text-xs font-semibold text-[#741F3D]">{member.role}</p>
                     </div>
                   </div>
@@ -130,7 +130,7 @@ export function ContactSection({
 
           {/* Form */}
           <div className="bg-white border border-[#E3E0DC] rounded-lg p-8">
-            <h3 className="font-display font-bold text-2xl text-[#101B35] mb-2">Send a Message</h3>
+            <h3 className="font-serif-title font-normal text-2xl text-[#101B35] mb-2">Send a Message</h3>
             <p className="text-xs text-[#5A6478] mb-6">
               Select the appropriate department so your inquiry is routed directly to the responsible team lead.
             </p>
@@ -140,7 +140,7 @@ export function ContactSection({
                 <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check size={24} />
                 </div>
-                <h4 className="font-display font-bold text-lg text-[#101B35] mb-2">Almost done</h4>
+                <h4 className="font-serif-title font-normal text-lg text-[#101B35] mb-2">Almost done</h4>
                 <p className="text-xs text-[#5A6478] leading-relaxed mb-6">
                   Thank you, {formData.name}. Your email app should have opened with your message ready to send. Press send there to reach the Organizing Committee, or write to{" "}
                   <a href={`mailto:${config.contactEmail}`} className="text-[#741F3D] font-semibold">{config.contactEmail}</a> directly.

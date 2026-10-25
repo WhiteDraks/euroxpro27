@@ -20,7 +20,7 @@ export default function CongressPage() {
   const objectiveIcons = [Target, Globe2, Compass, Sparkles];
 
   return (
-    <div className="pt-20">
+    <div className="pt-16 lg:pt-20">
       {/* ── CINEMATIC CONGRESS HERO ── */}
       <section className="relative min-h-[60vh] flex items-center bg-[#101B35] text-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bosphorus-grid-dark">
         {/* Ambient auditorium background with deep gradient overlay */}

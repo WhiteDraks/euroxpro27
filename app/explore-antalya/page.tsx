@@ -12,7 +12,7 @@ export default function ExploreAntalyaPage() {
   const { hero, ...guide } = content.exploreAntalya;
 
   return (
-    <div className="pt-20">
+    <div className="pt-16 lg:pt-20">
       {/* ── EDITORIAL TRAVEL MAGAZINE HERO ── */}
       <section className="relative min-h-[55vh] flex items-center bg-[#101B35] text-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bosphorus-grid-dark">
         {/* Full-bleed scenic Antalya Mediterranean background */}

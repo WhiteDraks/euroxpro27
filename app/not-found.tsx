@@ -10,7 +10,7 @@ export default function NotFound() {
           <Compass size={32} className="text-[#741F3D]" />
         </div>
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#741F3D] mb-2">404 Error</p>
-        <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mb-4">
+        <h1 className="font-serif-title font-normal text-4xl sm:text-5xl text-white mb-4">
           Route Not Found
         </h1>
         <p className="text-[#A7AFBF] text-sm leading-relaxed mb-8">

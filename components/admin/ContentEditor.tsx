@@ -302,7 +302,7 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
   const tabData = (data as Record<string, Json>)[tab];
 
   return (
-    <div className="pt-20 bg-[#F7F3ED] min-h-screen">
+    <div className="pt-16 lg:pt-20 bg-[#F7F3ED] min-h-screen">
       {/* Toolbar */}
       <div className="sticky top-16 lg:top-20 z-30 bg-white/95 backdrop-blur border-b border-[#E5E1DA]">
         <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">

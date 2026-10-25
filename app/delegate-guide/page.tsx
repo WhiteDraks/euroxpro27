@@ -29,7 +29,7 @@ const guideSections = [
 
 export default function DelegateGuidePage() {
   return (
-    <div className="pt-20">
+    <div className="pt-16 lg:pt-20">
       {/* ── HERO BANNER ── */}
       <section className="bg-[#101B35] text-white py-20 px-4 sm:px-6 lg:px-8 border-b border-[#233152] bosphorus-grid-dark relative">
         <div className="max-w-7xl mx-auto">
