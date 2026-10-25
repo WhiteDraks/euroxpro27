@@ -4,11 +4,14 @@ import { useState, useMemo } from "react";
 import { Search, MessageCircle } from "lucide-react";
 import { Accordion } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
-import type { FAQCategory } from "@/lib/types";
+import type { SiteContent } from "@/lib/content";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-export function FAQPage({ categories }: { categories: FAQCategory[] }) {
+type FAQText = Omit<SiteContent["faq"], "hero" | "travel">;
+
+export function FAQPage({ text }: { text: FAQText }) {
+  const { categories } = text;
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
 
@@ -38,7 +41,8 @@ export function FAQPage({ categories }: { categories: FAQCategory[] }) {
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A7AFBF]" />
           <input
             type="text"
-            placeholder="Search questions..."
+            placeholder={text.searchPlaceholder}
+            aria-label={text.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-3.5 bg-white border border-[#E3E0DC] rounded-lg text-[#101B35] placeholder-[#A7AFBF] focus:outline-none focus:border-[#741F3D] transition-colors text-sm"
@@ -56,7 +60,7 @@ export function FAQPage({ categories }: { categories: FAQCategory[] }) {
                 : "bg-white border border-[#E3E0DC] text-[#5A6478] hover:text-[#101B35]"
             )}
           >
-            All
+            {text.allLabel}
           </button>
           {categories.map((cat) => (
             <button
@@ -83,10 +87,10 @@ export function FAQPage({ categories }: { categories: FAQCategory[] }) {
 
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-[#5A6478] text-lg mb-4">No matching questions found.</p>
-            <p className="text-[#5A6478] text-sm mb-6">Try a different search term or contact us directly.</p>
+            <p className="text-[#5A6478] text-lg mb-4">{text.emptyTitle}</p>
+            <p className="text-[#5A6478] text-sm mb-6">{text.emptyText}</p>
             <Link href="/contact">
-              <Button variant="primary">Contact Us</Button>
+              <Button variant="primary">{text.ctaButton}</Button>
             </Link>
           </div>
         ) : (
@@ -107,14 +111,10 @@ export function FAQPage({ categories }: { categories: FAQCategory[] }) {
         {/* Contact CTA */}
         <div className="mt-16 bg-[#101B35] rounded-lg p-8 text-center">
           <MessageCircle size={24} className="text-[#741F3D] mx-auto mb-4" />
-          <h3 className="font-serif-title font-normal text-white text-2xl mb-3">
-            Still have questions?
-          </h3>
-          <p className="text-[#A7AFBF] mb-6">
-            The Organizing Committee is happy to help with any questions not covered here.
-          </p>
+          <h3 className="font-serif-title font-normal text-white text-2xl mb-3">{text.ctaTitle}</h3>
+          <p className="text-[#A7AFBF] mb-6">{text.ctaText}</p>
           <Link href="/contact">
-            <Button variant="primary" size="lg">Get in Touch</Button>
+            <Button variant="primary" size="lg">{text.ctaButton}</Button>
           </Link>
         </div>
       </div>

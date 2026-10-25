@@ -98,7 +98,7 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
           {visibleItems.map((item) => (
             <div
               key={item.id}
-              className="bg-[#172443] border border-[#233152] rounded-sm overflow-hidden group hover:border-[#741F3D] transition-colors duration-300 flex flex-col justify-between"
+              className="reveal bg-[#172443] border border-[#233152] rounded-sm overflow-hidden group hover:border-[#741F3D] transition-colors duration-300 flex flex-col justify-between"
             >
               <div>
                 <div className="aspect-[16/10] relative overflow-hidden bg-[#101B35]">

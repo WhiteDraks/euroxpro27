@@ -12,7 +12,7 @@ export function PartnersSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="max-w-3xl mb-14">
+        <div className="reveal max-w-3xl mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-3">
             <Handshake size={14} />
             {text.eyebrow}
@@ -58,7 +58,7 @@ export function PartnersSection() {
             return (
             <div
               key={i}
-              className="p-6 border border-[#E5E1DA] rounded-sm bg-white hover:border-[#741F3D] transition-colors group"
+              className="reveal p-6 border border-[#E5E1DA] rounded-sm bg-white hover:border-[#741F3D] transition-colors group"
             >
               <div className="w-10 h-10 bg-[#101B35] rounded-sm flex items-center justify-center text-[#741F3D] mb-4">
                 <Icon size={18} />

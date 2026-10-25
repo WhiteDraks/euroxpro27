@@ -1,5 +1,5 @@
 import site from "@/content/site.json";
-import type { GalleryItem, HistoricalEdition, ScheduleDay, UsefulLocation } from "./types";
+import type { FAQCategory, GalleryItem, HistoricalEdition, ScheduleDay, UsefulLocation } from "./types";
 
 // ============================================================
 // EUROXPRO'27 — Editable Site Content
@@ -10,6 +10,9 @@ import type { GalleryItem, HistoricalEdition, ScheduleDay, UsefulLocation } from
 // ============================================================
 
 type TitledText = { title: string; desc: string };
+
+// An empty name or photo shows a placeholder until the editor fills it in.
+export type TeamMember = { name: string; role: string; department: string; bio: string; image: string };
 
 export type SiteContent = {
   home: {
@@ -25,6 +28,15 @@ export type SiteContent = {
       primaryButton: string;
       secondaryButton: string;
       tertiaryButton: string;
+    };
+    countdown: {
+      label: string;
+      daysLabel: string;
+      hoursLabel: string;
+      minutesLabel: string;
+      secondsLabel: string;
+      liveText: string;
+      endedText: string;
     };
     bulletin: { label: string; linkText: string };
     dimensions: {
@@ -160,6 +172,32 @@ export type SiteContent = {
     statusText: string;
     buttonText: string;
     items: TitledText[];
+  };
+  team: {
+    hero: { eyebrow: string; title: string; intro: string };
+    notice: string;
+    comingSoonLabel: string;
+    members: TeamMember[];
+    contactTitle: string;
+    contactText: string;
+    contactButton: string;
+  };
+  faq: {
+    hero: { eyebrow: string; title: string; intro: string };
+    travel: {
+      eyebrow: string;
+      title: string;
+      intro: string;
+      items: { title: string; text: string; linkText: string; link: string }[];
+    };
+    categories: FAQCategory[];
+    searchPlaceholder: string;
+    allLabel: string;
+    emptyTitle: string;
+    emptyText: string;
+    ctaTitle: string;
+    ctaText: string;
+    ctaButton: string;
   };
 };
 

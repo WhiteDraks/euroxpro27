@@ -53,55 +53,9 @@ export const siteConfig = {
   // Brand Assets
   logo: "/images/euroxpro-logo.png",
 
-  // SEO
-  siteUrl: "https://euroxpro27.com",
-  ogImage: "/images/euroxpro-logo.png",
+  // SEO: absolute address used for share previews (WhatsApp, Instagram,
+  // LinkedIn). On Vercel this is the production domain of the project.
+  siteUrl: process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://euroxpro27.vercel.app",
 };
-
-// ============================================================
-// Organizing Committee
-// ============================================================
-export const organizingCommittee = [
-  {
-    name: "To be announced",
-    role: "Local Committee President",
-    department: "Leadership",
-    bio: "Leading the EUROXPRO'27 organizing team with a vision for an unforgettable congress experience in Antalya.",
-    image: null as string | null,
-  },
-  {
-    name: "To be announced",
-    role: "Organizing Committee President",
-    department: "Congress",
-    bio: "Coordinating all congress operations to deliver a world-class Mediterranean event.",
-    image: null as string | null,
-  },
-  {
-    name: "To be announced",
-    role: "VP Logistics",
-    department: "Logistics",
-    bio: "Managing travel, AYT airport transfers, accommodation, and on-ground logistics for all delegates.",
-    image: null as string | null,
-  },
-  {
-    name: "To be announced",
-    role: "VP Finance",
-    department: "Finance",
-    bio: "Overseeing the financial planning and delegate fee management.",
-    image: null as string | null,
-  },
-  {
-    name: "To be announced",
-    role: "VP Marketing & Communications",
-    department: "Marketing",
-    bio: "Crafting the EUROXPRO'27 brand experience and delegate communications.",
-    image: null as string | null,
-  },
-  {
-    name: "To be announced",
-    role: "VP Programme",
-    department: "Programme",
-    bio: "Designing the congress agenda, plenary tracks, and Mediterranean leadership sessions.",
-    image: null as string | null,
-  },
-];

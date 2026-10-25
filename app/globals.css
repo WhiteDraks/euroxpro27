@@ -106,3 +106,42 @@
     color: #e58aa6;
   }
 }
+
+/* Slow zoom on the home hero photo. */
+@keyframes heroZoom {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
+/* Cards and headings marked with .reveal fade up as they scroll into view.
+   Pure CSS (no JavaScript): browsers without scroll-driven animations, and
+   visitors who prefer reduced motion, simply see everything in place. */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-zoom {
+    animation: heroZoom 28s ease-out both;
+    will-change: transform;
+  }
+
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: revealUp linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 25%;
+    }
+  }
+}

@@ -1,20 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, MapPin, Send, User, AlertCircle, Check, Share2, Globe } from "lucide-react";
+import Link from "next/link";
+import { Mail, MapPin, Send, AlertCircle, Check, Share2, Globe, Users, ArrowRight } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import type { siteConfig, organizingCommittee } from "@/lib/config";
+import type { siteConfig } from "@/lib/config";
 
-export function ContactSection({
-  committee,
-  config,
-}: {
-  committee: typeof organizingCommittee;
-  config: typeof siteConfig;
-}) {
+export function ContactSection({ config }: { config: typeof siteConfig }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -37,33 +30,24 @@ export function ContactSection({
   return (
     <div className="py-16 bg-[#F7F3ED]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Organizing Committee Grid */}
-        <div className="mb-20">
-          <SectionHeader
-            eyebrow="Leadership"
-            title="The Organizing Committee"
-            description="Dedicated AIESEC members coordinating operations, logistics, programmes, and delegate experience for EUROXPRO'27."
-          />
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {committee.map((member) => (
-              <Card key={member.role} className="bg-white p-6 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-[#101B35] rounded-full flex items-center justify-center text-white flex-shrink-0">
-                      <User size={20} className="text-[#741F3D]" />
-                    </div>
-                    <div>
-                      <h4 className="font-serif-title font-normal text-lg text-[#101B35]">{member.name}</h4>
-                      <p className="text-xs font-semibold text-[#741F3D]">{member.role}</p>
-                    </div>
-                  </div>
-                  <Badge variant="navy" className="mb-3">{member.department}</Badge>
-                  <p className="text-xs text-[#5A6478] leading-relaxed">{member.bio}</p>
-                </div>
-              </Card>
-            ))}
+        {/* Organizing Committee: the full team lives on /team */}
+        <Link
+          href="/team"
+          className="mb-16 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#101B35] text-white rounded-sm p-6 sm:p-8 group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[#172443] border border-[#233152] rounded-full flex items-center justify-center flex-shrink-0">
+              <Users size={20} className="text-[#741F3D]" />
+            </div>
+            <div>
+              <span className="text-[10px] font-mono tracking-widest text-[#741F3D] uppercase block mb-1">Leadership</span>
+              <h2 className="font-serif-title font-normal text-xl sm:text-2xl">Meet the Organizing Committee</h2>
+            </div>
           </div>
-        </div>
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#E5E1DA] group-hover:text-white">
+            View the team <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+          </span>
+        </Link>
 
         {/* Contact Information & Interactive Form */}
         <div className="grid lg:grid-cols-2 gap-12 items-start">

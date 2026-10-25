@@ -47,7 +47,9 @@ function check(value: unknown, template: unknown, at: string, errors: string[], 
       }
     }
     for (const [key, child] of Object.entries(value)) {
-      if (/image$/i.test(key) && typeof child === "string" && !isAllowedImageSrc(child)) {
+      // Team members may have no photo yet; the site shows a placeholder.
+      const optional = child === "" && /^content\.team\.members\[\d+\]$/.test(at);
+      if (/image$/i.test(key) && typeof child === "string" && !optional && !isAllowedImageSrc(child)) {
         errors.push(`${at}.${key}: unsupported image address "${child.slice(0, 80)}"`);
       }
       check(child, shape[key], `${at}.${key}`, errors);

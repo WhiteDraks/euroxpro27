@@ -39,7 +39,7 @@ export function PreviousEditions() {
           {historicalEditions.map((edition) => (
             <div
               key={edition.year}
-              className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden flex flex-col justify-between shadow-sm hover:border-[#741F3D] transition-colors duration-300 group"
+              className="reveal bg-white border border-[#E5E1DA] rounded-sm overflow-hidden flex flex-col justify-between shadow-sm hover:border-[#741F3D] transition-colors duration-300 group"
             >
               <div>
                 {/* Archival Photography Header */}
