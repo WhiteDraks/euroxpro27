@@ -5,14 +5,15 @@ import { CongressSchedule } from "@/components/congress/CongressSchedule";
 import { PreviousEditions } from "@/components/common/PreviousEditions";
 import { PartnersSection } from "@/components/common/PartnersSection";
 import { siteConfig } from "@/lib/config";
-import { schedule, isDraftSchedule } from "@/lib/schedule";
+import { schedule, isDraftSchedule, isSchedulePublished } from "@/lib/schedule";
 import { content } from "@/lib/content";
 import { RichText } from "@/components/ui/RichText";
-import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass, Globe2 } from "lucide-react";
+import Link from "next/link";
+import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass, Globe2, Clock, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "The Congress — Purpose, Schedule & Evenings | EUROXPRO'27",
-  description: "Explore the EUROXPRO'27 congress purpose in Antalya: regional alignment for AIESEC in Europe, leadership capacity tracks, indicative schedule, and signature evening galas.",
+  description: "Explore the EUROXPRO'27 congress purpose in Antalya: regional alignment for AIESEC in Europe, leadership capacity tracks, the upcoming agenda, and signature evening galas.",
 };
 
 export default function CongressPage() {
@@ -131,11 +132,37 @@ export default function CongressPage() {
           <SectionHeader
             eyebrow={scheduleText.eyebrow}
             title={scheduleText.title}
-            description={scheduleText.description}
+            description={isSchedulePublished ? scheduleText.description : undefined}
             light
           />
 
-          {isDraftSchedule && (
+          {!isSchedulePublished && (
+            <div className="reveal relative overflow-hidden bg-[#172443] border border-[#2A3556] rounded-sm p-6 sm:p-12 text-center">
+              <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 bg-[#741F3D]/25 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative max-w-2xl mx-auto">
+                <div className="w-12 h-12 mx-auto mb-5 rounded-sm bg-[#741F3D]/20 flex items-center justify-center">
+                  <Clock size={22} className="text-[#e58aa6]" />
+                </div>
+                <span className="inline-block text-[11px] font-mono font-bold uppercase tracking-[0.25em] bg-[#741F3D] text-white px-3 py-1 rounded-sm">
+                  {scheduleText.comingSoonBadge}
+                </span>
+                <h3 className="mt-5 font-serif-title text-2xl sm:text-4xl text-white font-normal leading-tight">
+                  {scheduleText.comingSoonTitle}
+                </h3>
+                <p className="mt-4 text-sm sm:text-base text-[#A7AFBF] leading-relaxed font-light">
+                  <RichText text={scheduleText.comingSoonText} />
+                </p>
+                <Link
+                  href="/announcements"
+                  className="mt-8 inline-flex items-center gap-2 bg-white text-[#101B35] text-sm font-semibold px-6 py-3 rounded-sm hover:bg-[#F7F3ED] transition-colors"
+                >
+                  {scheduleText.comingSoonButton} <ArrowRight size={16} />
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {isSchedulePublished && isDraftSchedule && (
             <div className="mb-10 flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-sm p-4">
               <AlertTriangle size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-amber-200 leading-relaxed">
@@ -144,7 +171,7 @@ export default function CongressPage() {
             </div>
           )}
 
-          <CongressSchedule days={schedule} />
+          {isSchedulePublished && <CongressSchedule days={schedule} />}
         </div>
       </section>
 

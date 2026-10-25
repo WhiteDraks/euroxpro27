@@ -170,6 +170,11 @@
       "eyebrow": "Congress Programme",
       "title": "Congress Timetable & Agenda",
       "description": "Day-by-day sequence of plenaries, breakout workshops, networking sessions, and social events.",
+      "published": false,
+      "comingSoonBadge": "Coming Soon",
+      "comingSoonTitle": "The full agenda is coming soon",
+      "comingSoonText": "The detailed EUROXPRO'27 agenda, with session timings, workshop tracks and confirmed speakers, has not been published yet. The Organizing Committee will release it on this page and in **Announcements** closer to the congress.",
+      "comingSoonButton": "Follow announcements",
       "showDraftNotice": true,
       "draftNotice": "**Preliminary Timetable Notice:** The timetable below represents the indicative draft schedule structure. Final session timings, room assignments, and confirmed guest speakers will be ratified and published by the Organizing Committee.",
       "days": [
@@ -1134,6 +1139,11 @@
             "id": "sch-1",
             "question": "What are the confirmed congress dates?",
             "answer": "EUROXPRO'27 is officially confirmed for 31 March – 4 April 2027 in Antalya, Türkiye. Day 1 (31 March) is the designated arrival and opening day, and Day 5 (4 April) is the farewell and departure day."
+          },
+          {
+            "id": "sch-4",
+            "question": "When will the full agenda be published?",
+            "answer": "The detailed agenda is coming soon. Session timings, workshop tracks and confirmed speakers will be published by the Organizing Committee on The Congress page and in Announcements closer to the event."
           },
           {
             "id": "sch-2",
