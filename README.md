@@ -5,7 +5,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-741F3D)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
 
-Official web portal and delegate operations hub for **EUROXPRO’27**, the premier regional conference of **AIESEC in Europe**, hosted by **MC Türkiye** in Antalya, Türkiye (Provisional Dates: 31 March – 4 April 2027).
+Official web portal and delegate operations hub for **EUROXPRO’27**, the premier regional conference of **AIESEC in Europe**, hosted by **MC Türkiye** in Antalya, Türkiye (31 March – 4 April 2027).
 
 > **Proposed Creative Positioning:** *Where Europe Meets the Mediterranean*  
 > **Supporting Line:** *One region. Different realities. A shared ambition to create more global opportunities.*

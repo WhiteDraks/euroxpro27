@@ -157,5 +157,5 @@ To express your interest in specific items:
 
 Orders will be available for collection at the congress registration desk. Shipping may be available for select items post-congress, subject to confirmation.
 
-Questions? Contact [support@euroxpro27.com]
+Questions? Contact support@euroxpro27.com
 `;

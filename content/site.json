@@ -577,7 +577,7 @@
         {
           "id": "hotel",
           "name": "Congress Hotel Resort",
-          "description": "[CONGRESS HOTEL PROPERTY TO BE CONFIRMED]",
+          "description": "The official congress hotel will be announced by the Organizing Committee.",
           "category": "accommodation",
           "address": "Antalya Coastal Zone, Türkiye",
           "mapUrl": "https://maps.google.com/?q=Antalya+Turkey",
@@ -586,7 +586,7 @@
         {
           "id": "venue",
           "name": "Congress Plenary Venue",
-          "description": "[CONGRESS VENUE TO BE CONFIRMED]",
+          "description": "The official congress venue will be announced by the Organizing Committee.",
           "category": "venue",
           "address": "Antalya, Türkiye",
           "mapUrl": "https://maps.google.com/?q=Antalya+Turkey",
