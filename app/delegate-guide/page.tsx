@@ -146,7 +146,7 @@ export default function DelegateGuidePage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-[#741F3D] font-bold">•</span>
-                  <span>Global Village &amp; Turkish Night Gala Dinner</span>
+                  <span>Official congress social evenings</span>
                 </li>
               </ul>
             </div>
@@ -288,7 +288,7 @@ export default function DelegateGuidePage() {
                 <Badge variant="burgundy">31 March 2027</Badge>
               </div>
               <p className="text-xs text-[#5A6478] leading-relaxed mb-6">
-                On official Arrival Day (Wednesday, 31 March), the Organizing Committee will operate greeting desks at AYT arrivals to welcome international delegations.
+                On 31 March, the Organizing Committee will operate greeting desks at AYT arrivals to welcome international delegations.
               </p>
               <div className="space-y-3 text-xs text-[#374151]">
                 <div className="p-3 bg-white border border-[#E5E1DA] rounded-sm">

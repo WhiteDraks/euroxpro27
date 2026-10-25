@@ -43,7 +43,7 @@ const SECTION_LABELS: Record<string, string> = {
   closing: "Kapanış ve iletişim",
   about: "Kongre hakkında ve hedefler",
   schedule: "Program (gün gün)",
-  evenings: "Akşam etkinlikleri",
+  evenings: "Akşam etkinlikleri (program yayınlanınca görünür)",
   tabs: "Sekme adları",
   attractions: "Gezilecek yerler",
   food: "Yemek ve kültür",

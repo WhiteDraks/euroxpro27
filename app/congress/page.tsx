@@ -12,8 +12,8 @@ import Link from "next/link";
 import { Calendar, MapPin, Target, AlertTriangle, Sparkles, Compass, Globe2, Clock, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "The Congress — Purpose, Schedule & Evenings | EUROXPRO'27",
-  description: "Explore the EUROXPRO'27 congress purpose in Antalya: regional alignment for AIESEC in Europe, leadership capacity tracks, the upcoming agenda, and signature evening galas.",
+  title: "The Congress — Purpose & Agenda | EUROXPRO'27",
+  description: "Explore the EUROXPRO'27 congress purpose in Antalya: regional alignment for AIESEC in Europe, leadership capacity tracks, and the upcoming agenda (coming soon).",
 };
 
 export default function CongressPage() {
@@ -176,6 +176,8 @@ export default function CongressPage() {
       </section>
 
       {/* ── EVENING SOCIAL EVENTS WITH RICH PHOTOGRAPHY ── */}
+      {/* Part of the programme, so hidden until the agenda is published. */}
+      {isSchedulePublished && (
       <section className="py-24 bg-[#F7F3ED] border-t border-[#E5E1DA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -217,6 +219,7 @@ export default function CongressPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── PARTNERS SECTION ── */}
       <PartnersSection />
