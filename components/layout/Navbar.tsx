@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -51,18 +52,24 @@ export function Navbar() {
             <Link
               href="/"
               onClick={closeMenu}
-              className="flex items-center gap-3 group"
+              className="flex items-center gap-3 group py-1"
               aria-label="EUROXPRO'27 - Go to homepage"
             >
-              <div className="w-8 h-8 bg-[#741F3D] rounded-sm flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-xs tracking-tight">EXP</span>
+              <div className="relative h-8 sm:h-9 w-auto flex-shrink-0">
+                <Image
+                  src="/images/euroxpro-logo.png"
+                  alt="EUROXPRO Türkiye"
+                  width={130}
+                  height={41}
+                  priority
+                  className="h-8 sm:h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
+                />
               </div>
-              <div className="flex flex-col">
-                <span className="font-display text-white font-bold text-lg leading-none tracking-tight">
-                  EUROXPRO
-                  <span className="text-[#741F3D]">&apos;27</span>
+              <div className="hidden sm:flex flex-col border-l border-[#2A3556] pl-2.5 py-0.5">
+                <span className="font-display text-white font-bold text-sm leading-none tracking-tight">
+                  EUROXPRO<span className="text-[#741F3D]">&apos;27</span>
                 </span>
-                <span className="text-[#A7AFBF] text-[9px] tracking-[0.2em] uppercase leading-none mt-0.5">
+                <span className="text-[#A7AFBF] text-[8.5px] tracking-[0.2em] uppercase leading-none mt-1">
                   Antalya, Türkiye
                 </span>
               </div>
@@ -135,9 +142,15 @@ export function Navbar() {
           )}
         >
           <div className="flex items-center justify-between p-5 border-b border-[#2A3556]">
-            <span className="font-display text-white font-bold text-lg">
-              EUROXPRO<span className="text-[#741F3D]">&apos;27</span>
-            </span>
+            <Link href="/" onClick={closeMenu} className="flex items-center gap-2">
+              <Image
+                src="/images/euroxpro-logo.png"
+                alt="EUROXPRO Türkiye"
+                width={128}
+                height={40}
+                className="h-8 w-auto object-contain"
+              />
+            </Link>
             <button
               onClick={closeMenu}
               className="p-1 text-[#A7AFBF] hover:text-white"

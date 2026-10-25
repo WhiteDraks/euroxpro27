@@ -50,9 +50,12 @@ export const siteConfig = {
     twitter: null as string | null,
   },
 
+  // Brand Assets
+  logo: "/images/euroxpro-logo.png",
+
   // SEO
   siteUrl: "https://euroxpro27.com",
-  ogImage: "/images/og-image.jpg",
+  ogImage: "/images/euroxpro-logo.png",
 };
 
 // ============================================================

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, MapPin, Heart, Share2 } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 
@@ -38,19 +39,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <Link href="/" className="inline-block mb-5">
+            <Link href="/" className="inline-block mb-5 group" aria-label="EUROXPRO'27 Home">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#741F3D] rounded-sm flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-xs tracking-tight">EXP</span>
-                </div>
-                <div>
-                  <span className="font-display text-white font-bold text-xl leading-none block">
-                    EUROXPRO&apos;27
-                  </span>
-                  <span className="text-[#A7AFBF] text-[10px] tracking-widest uppercase">
-                    Antalya, Türkiye
-                  </span>
-                </div>
+                <Image
+                  src="/images/euroxpro-logo.png"
+                  alt="EUROXPRO Türkiye Official Logo"
+                  width={160}
+                  height={50}
+                  className="h-10 sm:h-12 w-auto object-contain transition-opacity group-hover:opacity-90"
+                />
               </div>
             </Link>
             <p className="text-[#A7AFBF] text-sm leading-relaxed mb-6 max-w-xs">

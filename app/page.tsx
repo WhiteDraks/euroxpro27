@@ -62,11 +62,24 @@ export default function HomePage() {
               </span>
             </div>
 
+            {/* Official EUROXPRO Türkiye Logo Banner */}
+            <div className="pt-2">
+              <div className="relative w-64 sm:w-80 md:w-96 aspect-[1024/320] drop-shadow-2xl">
+                <Image
+                  src="/images/euroxpro-logo.png"
+                  alt="EUROXPRO Türkiye Official Logo"
+                  fill
+                  priority
+                  className="object-contain object-left"
+                />
+              </div>
+            </div>
+
             {/* Confident Large Display Headline */}
             <div>
               <p className="text-[#A7AFBF] text-xs font-mono tracking-[0.35em] uppercase mb-4 flex items-center gap-2">
                 <span className="w-8 h-px bg-[#741F3D]" />
-                EUROXPRO&apos;27
+                EUROXPRO&apos;27 ANTALYA
               </p>
               <h1 className="font-serif-title text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-white leading-[1.06]">
                 WHERE EUROPE MEETS

@@ -33,9 +33,20 @@ export default function CongressPage() {
         <div className="absolute -top-24 right-10 w-96 h-96 bg-[#741F3D]/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto w-full">
-          <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase mb-4">
-            <span className="w-8 h-px bg-[#741F3D]" />
-            Official Congress Dossier
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.25em] text-[#741F3D] uppercase">
+              <span className="w-8 h-px bg-[#741F3D]" />
+              Official Congress Dossier
+            </div>
+            <div className="relative w-48 sm:w-60 aspect-[1024/320] drop-shadow-lg">
+              <Image
+                src="/images/euroxpro-logo.png"
+                alt="EUROXPRO Türkiye Official Logo"
+                fill
+                priority
+                className="object-contain object-left sm:object-right"
+              />
+            </div>
           </div>
           <h1 className="font-serif-title font-normal text-4xl sm:text-6xl lg:text-7xl text-white max-w-4xl leading-tight">
             The Congress Experience
