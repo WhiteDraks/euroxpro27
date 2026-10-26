@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAuthenticated } from "@/lib/admin/auth";
+import { isAuthenticated, isSameOrigin } from "@/lib/admin/auth";
 import { storageMode, storeImage } from "@/lib/admin/store";
 
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -26,6 +26,9 @@ function slugify(name: string) {
 }
 
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+  }
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }

@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
+// Sent with every response: blocks framing (clickjacking), MIME sniffing,
+// and plain-HTTP access, and limits what the browser shares with other sites.
+const securityHeaders = [
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+];
+
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
     // Serve the smallest format each browser supports (AVIF, then WebP).
     formats: ["image/avif", "image/webp"],
@@ -18,6 +30,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      { source: "/:path*", headers: securityHeaders },
       {
         // Editor uploads get a unique file name, so they never change.
         source: "/uploads/:path*",
@@ -37,7 +50,14 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/admin",
-        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "private, no-store" },
+        ],
+      },
+      {
+        source: "/api/admin/:path*",
+        headers: [{ key: "Cache-Control", value: "private, no-store" }],
       },
     ];
   },
