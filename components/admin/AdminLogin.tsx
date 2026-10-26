@@ -23,7 +23,13 @@ export function AdminLogin() {
     if (response.ok) {
       router.refresh();
     } else {
-      setError(response.status === 401 ? "Şifre yanlış." : "Giriş yapılamadı, tekrar deneyin.");
+      setError(
+        response.status === 401
+          ? "Şifre yanlış."
+          : response.status === 429
+            ? "Çok fazla hatalı deneme. 15 dakika sonra tekrar deneyin."
+            : "Giriş yapılamadı, tekrar deneyin."
+      );
     }
   }
 

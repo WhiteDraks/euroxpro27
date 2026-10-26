@@ -19,6 +19,21 @@ export function isAllowedImageSrc(src: string) {
   }
 }
 
+// Links the editor can change must stay on this site or use https/mailto,
+// so a saved "javascript:" address can never run code for visitors.
+const LINK_KEY = /^(link|href|url|mapUrl)$/;
+
+export function isAllowedLink(href: string) {
+  if (href === "") return true;
+  if ((href.startsWith("/") && !href.startsWith("//")) || href.startsWith("#")) return true;
+  try {
+    const url = new URL(href);
+    return url.protocol === "https:" || url.protocol === "http:" || url.protocol === "mailto:";
+  } catch {
+    return false;
+  }
+}
+
 function kind(value: unknown) {
   if (Array.isArray(value)) return "array";
   if (value === null) return "null";
@@ -51,6 +66,9 @@ function check(value: unknown, template: unknown, at: string, errors: string[], 
       const optional = child === "" && /^content\.team\.members\[\d+\]$/.test(at);
       if (/image$/i.test(key) && typeof child === "string" && !optional && !isAllowedImageSrc(child)) {
         errors.push(`${at}.${key}: unsupported image address "${child.slice(0, 80)}"`);
+      }
+      if (LINK_KEY.test(key) && typeof child === "string" && !isAllowedLink(child)) {
+        errors.push(`${at}.${key}: unsupported link "${child.slice(0, 80)}"`);
       }
       check(child, shape[key], `${at}.${key}`, errors);
     }

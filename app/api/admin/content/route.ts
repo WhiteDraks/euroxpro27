@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAuthenticated } from "@/lib/admin/auth";
+import { isAuthenticated, isSameOrigin } from "@/lib/admin/auth";
 import { readContent, saveContent, storageMode } from "@/lib/admin/store";
 import { validateContent, validateUploads } from "@/lib/admin/validate";
 import type { SiteContent } from "@/lib/content";
@@ -12,6 +12,9 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+  }
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
