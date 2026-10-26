@@ -106,7 +106,12 @@ export function recordFailure(ip: string) {
   const entry = failures.get(ip);
   if (!entry || now - entry.since > WINDOW_MS) failures.set(ip, { count: 1, since: now });
   else entry.count += 1;
-  if (failures.size > 5000) failures.clear();
+  // Drop only expired entries, so a full table never lifts an active lock.
+  if (failures.size > 5000) {
+    for (const [key, value] of failures) {
+      if (now - value.since > WINDOW_MS) failures.delete(key);
+    }
+  }
 }
 
 export function clearFailures(ip: string) {
