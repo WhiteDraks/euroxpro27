@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowDown, ArrowUp, ExternalLink, ImageUp, LogOut, Plus, Save, Trash2,
+  AlertCircle, ArrowDown, ArrowUp, CheckCircle2, ExternalLink, ImageUp, Loader2, LogOut, Plus, RotateCcw, Save, Trash2,
 } from "lucide-react";
 import type { SiteContent } from "@/lib/content";
 import { cn } from "@/lib/utils";
@@ -247,6 +247,22 @@ function blankItem(siblings: Json[], emptyImages = false): Json {
   return item;
 }
 
+// Counts the edited fields between two versions, for the save bar.
+function countChanges(a: Json, b: Json): number {
+  if (a === b) return 0;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    let count = Math.abs(a.length - b.length);
+    for (let i = 0; i < Math.min(a.length, b.length); i++) count += countChanges(a[i], b[i]);
+    return count;
+  }
+  if (a && b && typeof a === "object" && typeof b === "object" && !Array.isArray(a) && !Array.isArray(b)) {
+    let count = 0;
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) count += countChanges(a[key], b[key]);
+    return count;
+  }
+  return 1;
+}
+
 async function compressImage(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(bitmap.width, bitmap.height));
@@ -281,7 +297,9 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
   const [status, setStatus] = useState<{ kind: "ok" | "error" | "info"; text: string; details?: string[]; link?: string } | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const dirty = useMemo(() => JSON.stringify(data) !== JSON.stringify(savedData), [data, savedData]);
+  const changes = useMemo(() => countChanges(data, savedData), [data, savedData]);
+  const dirty = changes > 0;
+  const canSave = dirty && !saving && mode !== "unconfigured";
 
   useEffect(() => {
     if (!dirty) return;
@@ -290,8 +308,24 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
 
+  // Ctrl+S / Cmd+S saves, like in a word processor.
+  const saveRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        saveRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const ctx: EditorContext = {
-    update: (path, value) => setData((current) => setIn(current, path, value)),
+    update: (path, value) => {
+      setData((current) => setIn(current, path, value));
+      setStatus((current) => (current?.kind === "ok" ? null : current));
+    },
     previews,
     onUploaded: (src, preview, upload) => {
       setPreviews((p) => ({ ...p, [src]: preview }));
@@ -301,6 +335,7 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
   };
 
   async function save() {
+    if (!canSave) return;
     setSaving(true);
     setStatus({ kind: "info", text: "Kaydediliyor…" });
     const response = await fetch("/api/admin/content", {
@@ -331,7 +366,19 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
     );
   }
 
+  useEffect(() => {
+    saveRef.current = save;
+  });
+
+  function discard() {
+    if (!window.confirm("Kaydedilmemiş değişiklikler silinsin mi?")) return;
+    setData(savedData);
+    setPending([]);
+    setStatus(null);
+  }
+
   async function logout() {
+    if (dirty && !window.confirm("Kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?")) return;
     await fetch("/api/admin/logout", { method: "POST" });
     router.refresh();
   }
@@ -340,20 +387,11 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
   const tabData = (data as Record<string, Json>)[tab];
 
   return (
-    <div className="pt-16 lg:pt-20 bg-[#F7F3ED] min-h-screen">
+    <div className="pt-16 lg:pt-20 pb-32 bg-[#F7F3ED] min-h-screen">
       {/* Toolbar */}
       <div className="sticky top-16 lg:top-20 z-30 bg-white/95 backdrop-blur border-b border-[#E5E1DA]">
         <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
           <h1 className="font-serif-title text-lg text-[#101B35] mr-auto">İçerik Editörü</h1>
-          {dirty && <span className="text-xs text-amber-700 font-mono">Kaydedilmemiş değişiklikler var</span>}
-          <button
-            type="button"
-            onClick={save}
-            disabled={!dirty || saving || mode === "unconfigured"}
-            className="inline-flex items-center gap-2 bg-[#741F3D] text-white text-sm font-semibold px-4 py-2 rounded-sm disabled:opacity-40"
-          >
-            <Save size={15} /> {saving ? "Kaydediliyor…" : "Kaydet"}
-          </button>
           <button
             type="button"
             onClick={logout}
@@ -385,7 +423,7 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
         {mode === "unconfigured" && (
           <Notice kind="error" text="Kaydetme kapalı: sunucuda GITHUB_TOKEN ayarlanmamış. Kurulum adımları README dosyasında." />
         )}
-        {status && <Notice {...status} />}
+        {status?.kind === "error" && <Notice {...status} />}
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#5A6478]">
           <p>
@@ -419,6 +457,118 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
             <FieldGroup value={tabData} path={[tab]} ctx={ctx} />
           </div>
         )}
+      </div>
+
+      <SaveBar
+        changes={changes}
+        saving={saving}
+        canSave={canSave}
+        unconfigured={mode === "unconfigured"}
+        status={status}
+        onSave={save}
+        onDiscard={discard}
+      />
+    </div>
+  );
+}
+
+// Always visible at the bottom of the screen, so saving never needs scrolling.
+function SaveBar({
+  changes, saving, canSave, unconfigured, status, onSave, onDiscard,
+}: {
+  changes: number;
+  saving: boolean;
+  canSave: boolean;
+  unconfigured: boolean;
+  status: { kind: "ok" | "error" | "info"; text: string; link?: string } | null;
+  onSave: () => void;
+  onDiscard: () => void;
+}) {
+  let tone: "idle" | "dirty" | "ok" | "error" = "idle";
+  let message = "Tüm değişiklikler kaydedildi.";
+  if (unconfigured) {
+    tone = "error";
+    message = "Kaydetme kapalı: Vercel'de GITHUB_TOKEN ayarlı değil.";
+  } else if (saving) {
+    tone = "dirty";
+    message = "Kaydediliyor…";
+  } else if (status?.kind === "error") {
+    tone = "error";
+    message = status.text;
+  } else if (changes > 0) {
+    tone = "dirty";
+    message = `${changes} kaydedilmemiş değişiklik`;
+  } else if (status?.kind === "ok") {
+    tone = "ok";
+    message = status.text;
+  }
+
+  return (
+    <div
+      role="region"
+      aria-label="Kaydet"
+      className={cn(
+        "fixed bottom-0 inset-x-0 z-40 border-t shadow-[0_-6px_20px_rgba(16,27,53,0.12)] pb-[env(safe-area-inset-bottom)]",
+        tone === "dirty" ? "bg-[#101B35] border-[#2A3556]" : "bg-white border-[#E5E1DA]"
+      )}
+    >
+      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+        <div
+          aria-live="polite"
+          className={cn(
+            "flex-1 min-w-0 flex items-center gap-2 text-sm",
+            tone === "dirty" && "text-white",
+            tone === "ok" && "text-green-800",
+            tone === "error" && "text-red-800",
+            tone === "idle" && "text-[#5A6478]"
+          )}
+        >
+          {saving ? (
+            <Loader2 size={16} className="animate-spin flex-shrink-0" />
+          ) : tone === "error" ? (
+            <AlertCircle size={16} className="flex-shrink-0" />
+          ) : tone === "dirty" ? (
+            <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+          ) : (
+            <CheckCircle2 size={16} className="flex-shrink-0 text-green-700" />
+          )}
+          <span className="line-clamp-2">
+            {message}
+            {tone === "ok" && status?.link && (
+              <>
+                {" "}
+                <a href={status.link} target="_blank" rel="noopener noreferrer" className="underline whitespace-nowrap">
+                  GitHub&apos;da gör
+                </a>
+              </>
+            )}
+          </span>
+        </div>
+        {changes > 0 && !saving && (
+          <button
+            type="button"
+            onClick={onDiscard}
+            title="Değişiklikleri geri al"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#A7AFBF] hover:text-white px-2 py-2.5"
+          >
+            <RotateCcw size={14} /> <span className="hidden sm:inline">Geri al</span>
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={!canSave}
+          title="Kaydet (Ctrl+S)"
+          className={cn(
+            "inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-sm flex-shrink-0 transition-colors",
+            canSave
+              ? "bg-[#741F3D] text-white hover:bg-[#8a2849]"
+              : "bg-[#EEEAE4] text-[#8F9AA0] cursor-not-allowed"
+          )}
+        >
+          {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+          {saving ? "Kaydediliyor" : "Kaydet"}
+        </button>
       </div>
     </div>
   );
