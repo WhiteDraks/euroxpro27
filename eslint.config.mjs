@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Separate plain-Node PWA with its own server (see app-mobile/README.md).
+    "app-mobile/**",
   ]),
 ]);
 
