@@ -468,7 +468,7 @@ route("POST", "meet/swipe", async ({ req, user }) => {
         throw new HttpError(429, "rate_limited");
     const like = Boolean(b.like);
     const res = await pipe(["SADD", "dsw:" + u.id, target.id], ...(like ? [["SADD", "dlk:" + u.id, target.id], ["SISMEMBER", "dlk:" + target.id, u.id]] : []));
-    const match = like && res[2] === 1;
+    const match = like && (res[2] === 1 || isDemo(target.id));
     if (match) {
         await pipe(["SADD", "dmatch:" + u.id, target.id], ["SADD", "dmatch:" + target.id, u.id]);
         await pushEvent({ at: Date.now(), type: "match", users: [u.id, target.id] });
@@ -482,6 +482,9 @@ route("GET", "plenary", async ({ user }) => {
     const [, , ids] = await pipe(["ZADD", "dpres", now, user.id], ["ZREMRANGEBYSCORE", "dpres", "-inf", now - 10 * 60000], ["ZRANGEBYSCORE", "dpres", now - ONLINE_MS, "+inf"]);
     if (!ids.includes(user.id))
         ids.push(user.id);
+    for (const d of DEMO)
+        if (demoOn() && !ids.includes(d.id))
+            ids.unshift(d.id);
     const people = (await usersByIds(ids.slice(-150))).map(publicUser);
     return json({ people });
 });
@@ -598,6 +601,30 @@ route("POST", "requests/([\\w-]+)", async ({ req, user, m }) => {
     await pushEvent({ at: q.updatedAt, type: "request", to: q.uid });
     return json({ request: q });
 });
+// ------------------------------------------------------------ demo delegates
+// A couple of sample people so the directory, Meet and the plenary hall are
+// not empty while testing. They can't sign in, always like you back in Meet
+// and always "wander" in the hall. Set DEMO_USERS=0 to leave them out.
+const DEMO = [
+    { id: "demo-zofia", name: "Zofia Wiśniewska", entity: "AIESEC in Poland", position: "LCP", lang: "pl", emoji: "🌷", bio: "Z Warszawy, odpowiadam za marketing. Kawa, morze i dobre rozmowy." },
+    { id: "demo-luca", name: "Luca Bianchi", entity: "AIESEC in Italy", position: "MCVP", lang: "en", emoji: "☕", bio: "Talent lead from Milan. Happy to swap ideas on member experience." },
+];
+const demoOn = () => process.env.DEMO_USERS !== "0";
+const isDemo = (id) => demoOn() && DEMO.some((d) => d.id === id);
+let demoReady = null;
+function ensureDemo() {
+    if (!demoOn())
+        return Promise.resolve();
+    demoReady ??= (async () => {
+        if ((await cmd("SET", "ddemo:v1", "1", "NX")) !== "OK")
+            return;
+        await pipe(...DEMO.map((d) => ["SET", "du:" + d.id, JSON.stringify({ ...d, email: d.id + "@demo.invalid", bioLang: d.lang, role: "delegate", demo: true, passHash: DUMMY.hash, salt: randomBytes(16).toString("hex"), createdAt: Date.now() })]), ["SADD", "dusers", ...DEMO.map((d) => d.id)]);
+    })().catch((e) => {
+        demoReady = null;
+        console.error("[demo]", e);
+    });
+    return demoReady;
+}
 // ------------------------------------------------------------ dispatcher
 function sameOrigin(req) {
     const origin = req.headers.get("origin");
@@ -623,6 +650,8 @@ export async function handle(req, segments) {
                 continue;
             if (!isConfigured && !r.open)
                 return json({ error: "storage_missing" }, 503);
+            if (!r.open)
+                await ensureDemo();
             const user = r.open ? null : await currentUser(req);
             if (!r.open && !user)
                 return json({ error: "unauthorized" }, 401);
