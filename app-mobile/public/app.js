@@ -47,6 +47,7 @@ const ICON = {
     '<svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20c.9-3.6 3.9-5.5 7.5-5.5s6.6 1.9 7.5 5.5"/></svg>',
   back: '<svg viewBox="0 0 24 24"><path d="M15 4.5 7.5 12l7.5 7.5"/></svg>',
   chevron: '<svg viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg>',
+  list: '<svg viewBox="0 0 24 24"><path d="M6 3.5h12v17l-3-2-3 2-3-2-3 2z"/><path d="M9 8.5h6M9 12h6M9 15.5h3.5"/></svg>',
   compose:
     '<svg viewBox="0 0 24 24"><path d="M19.5 13v5.5a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2H11"/><path d="m17.5 3.5 3 3L12 15l-4 1 1-4z"/></svg>',
   send: '<svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>',
@@ -246,6 +247,8 @@ const ROUTES = [
   { path: "/approvals/live", view: viewApprovalsLive, hideTabs: true },
   { path: "/approvals/edit", view: viewApprovalsEdit, tab: "home" },
   { path: "/store", view: viewStore, tab: "home" },
+  { path: "/store/mine", view: viewStoreMine, tab: "home" },
+  { path: "/store/admin", view: viewStoreAdmin, tab: "home" },
   { path: "/world", view: viewWorld, tab: "home" },
   { path: "/recap", view: viewRecap, tab: "home" },
 ];
@@ -824,6 +827,11 @@ function currentTheme() {
   return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+// Map tiles: Esri's grey canvas basemaps (no key needed). CARTO's free
+// basemaps now ask for an API key and return blank tiles.
+const esriTiles = (name) => `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${name}/MapServer/tile/{z}/{y}/{x}`;
+const ESRI_ATTR = 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+
 function viewMap(screen) {
   const lang = getLang();
   let cat = "all";
@@ -858,12 +866,11 @@ function viewMap(screen) {
     const fitAll = () => map.fitBounds(L.latLngBounds(PLACES.map((p) => [p.lat, p.lng])), { padding: [28, 28] });
     const setTiles = () => {
       if (tiles) tiles.remove();
-      const style = currentTheme() === "dark" ? "dark_all" : "light_all";
-      tiles = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`, {
-        maxZoom: 19,
-        subdomains: "abcd",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      }).addTo(map);
+      const tone = currentTheme() === "dark" ? "Dark" : "Light";
+      tiles = L.layerGroup([
+        L.tileLayer(esriTiles(`World_${tone}_Gray_Base`), { maxZoom: 19, maxNativeZoom: 16, attribution: ESRI_ATTR }),
+        L.tileLayer(esriTiles(`World_${tone}_Gray_Reference`), { maxZoom: 19, maxNativeZoom: 16 }),
+      ]).addTo(map);
     };
     setTiles();
     for (const p of PLACES) {
@@ -2388,8 +2395,8 @@ function viewStore(screen) {
   screen.append(
     navBar({ title: t("store"), back: "/home" }),
     h("section", { class: "store-hero" }, h("span", { class: "kicker" }, t("storeKicker")), h("h2", {}, t("storeTitle")), h("p", {}, t("storeSub"))),
-    grid,
     mine,
+    grid,
     bar
   );
   const drawBar = () => {
@@ -2444,33 +2451,105 @@ function viewStore(screen) {
         h("span", { class: "product-foot" }, h("span", { class: "price" }, `€${p.price}`), size, add),
         toggle);
     }));
-    const res = d.reservations.filter((r) => admin || r.status !== "cancelled");
-    if (!res.length) return mine.replaceChildren();
-    const totals = new Map();
-    if (admin) for (const r of res) if (r.status !== "cancelled") for (const it of r.items) totals.set(it.name + (it.size ? ` (${it.size})` : ""), (totals.get(it.name + (it.size ? ` (${it.size})` : "")) || 0) + it.qty);
-    mine.replaceChildren(...[
-      admin ? h("h2", { class: "group-header" }, t("storeTotals")) : null,
-      admin ? h("div", { class: "group" }, [...totals].map(([k, v]) => h("div", { class: "row" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, k)), h("strong", {}, `× ${v}`)))) : null,
-      h("h2", { class: "group-header" }, admin ? t("storeAllRes") : t("storeMine")),
-      h("div", { class: "group" }, res.map((r) => {
-        const st = h("span", { class: "status " + (r.status === "collected" ? "status-ok" : r.status === "cancelled" ? "status-off" : "status-wait") }, t("res_" + r.status));
-        const act = admin
-          ? r.status !== "cancelled" && h("button", { type: "button", class: "btn btn-small", onclick: async () => {
-              await api("POST", "/api/store/reservations/" + r.id, { status: r.status === "collected" ? "reserved" : "collected" }).catch((e) => toast(errText(e)));
-              load();
-            } }, r.status === "collected" ? t("undo") : t("storeCollected"))
-          : r.status === "reserved" && h("button", { type: "button", class: "btn btn-small btn-muted", onclick: async () => {
-              await api("POST", "/api/store/reservations/" + r.id, { status: "cancelled" }).catch((e) => toast(errText(e)));
-              load();
-            } }, t("cancel"));
-        return h("div", { class: "row res" },
-          h("span", { class: "row-text" },
-            h("span", { class: "row-value" }, admin ? [r.name, r.entity].filter(Boolean).join(" · ") : r.items.map((i) => `${i.qty}× ${i.name}${i.size ? " " + i.size : ""}`).join(", ")),
-            h("span", { class: "row-label" }, admin ? r.items.map((i) => `${i.qty}× ${i.name}${i.size ? " " + i.size : ""}`).join(", ") + ` · €${r.total}` : `€${r.total} · ${t("storePayThere")}`)),
-          st, act || null);
-      }))
-    ].filter(Boolean));
+    const live = d.reservations.filter((r) => r.status !== "cancelled");
+    const n = admin ? live.length : live.reduce((a, r) => a + r.items.reduce((b, i) => b + i.qty, 0), 0);
+    mine.replaceChildren(
+      h("a", { href: admin ? "/store/admin" : "/store/mine", "data-link": true, class: "store-link" },
+        icon(admin ? "list" : "bag"),
+        h("span", { class: "row-text" },
+          h("span", { class: "row-value" }, admin ? t("storeAllRes") : t("storeMine")),
+          h("span", { class: "row-label" }, admin ? t("storeResCount", { n }) : n ? t("storeItems", { n }) : t("storeNone"))),
+        icon("chevron"))
+    );
   };
+  load();
+}
+
+const itemText = (i) => `${i.qty}× ${i.name}${i.size ? " " + i.size : ""}`;
+const resStatus = (r) => h("span", { class: "status " + (r.status === "collected" ? "status-ok" : r.status === "cancelled" ? "status-off" : "status-wait") }, t("res_" + r.status));
+const resDate = (r) => new Date(r.at).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
+
+// A delegate's own reservations: what to collect at the store desk.
+function viewStoreMine(screen) {
+  const box = h("div", {}, h("div", { class: "loading" }));
+  screen.append(navBar({ title: t("storeMine"), back: "/store" }), box);
+  const load = () => api("GET", "/api/store").then((d) => {
+    const res = d.reservations.filter((r) => r.uid === state.user.id);
+    if (!res.length)
+      return box.replaceChildren(h("p", { class: "empty" }, t("storeNone")), h("a", { href: "/store", "data-link": true, class: "btn btn-filled store-cta" }, t("storeGo")));
+    const open = res.filter((r) => r.status === "reserved");
+    const due = open.reduce((a, r) => a + r.total, 0);
+    box.replaceChildren(
+      open.length ? h("section", { class: "res-sum" }, h("span", { class: "kicker" }, t("storeToCollect")), h("strong", {}, `€${due}`), h("span", {}, t("storePayHint"))) : "",
+      ...res.map((r) => h("article", { class: "res-card" + (r.status === "cancelled" ? " off" : "") },
+        h("header", { class: "res-head" }, h("span", { class: "res-date" }, resDate(r)), resStatus(r)),
+        h("ul", { class: "res-items" }, r.items.map((i) => h("li", {}, h("span", {}, itemText(i)), h("span", { class: "res-price" }, `€${i.qty * i.price}`)))),
+        h("footer", { class: "res-foot" },
+          h("strong", {}, `€${r.total}`),
+          r.status === "reserved"
+            ? h("button", { type: "button", class: "btn btn-small btn-muted", onclick: async () => {
+                await api("POST", "/api/store/reservations/" + r.id, { status: "cancelled" }).then(() => toast(t("storeCancelled"))).catch((e) => toast(errText(e)));
+                load();
+              } }, t("cancel"))
+            : "")))
+    );
+  }).catch((e) => box.replaceChildren(h("p", { class: "empty" }, errText(e))));
+  load();
+}
+
+// Organizers: every reservation, grouped by person, with totals to prepare.
+function viewStoreAdmin(screen) {
+  if (state.user.role !== "admin") return go("/store", { replace: true });
+  let filter = "reserved", q = "", data = null;
+  const totals = h("div", {});
+  const list = h("div", {}, h("div", { class: "loading" }));
+  const search = h("input", { type: "search", class: "search", placeholder: t("searchPeople"), "aria-label": t("searchPeople"), autocomplete: "off" });
+  search.addEventListener("input", () => ((q = search.value.trim().toLowerCase()), draw()));
+  const chips = h("div", { class: "chips chips-scroll" });
+  screen.append(navBar({ title: t("storeAllRes"), back: "/store" }), totals, h("div", { class: "store-search-wrap" }, search), chips, list);
+  const draw = () => {
+    if (!data) return;
+    const all = data.reservations;
+    const count = (st) => all.filter((r) => st === "all" || r.status === st).length;
+    chips.replaceChildren(...["reserved", "collected", "cancelled", "all"].map((st) => h("button", { type: "button", class: "chip" + (st === filter ? " on" : ""), onclick: () => ((filter = st), draw()) }, `${st === "all" ? t("all") : t("res_" + st)} · ${count(st)}`)));
+    const sum = new Map();
+    for (const r of all) if (r.status === "reserved") for (const i of r.items) {
+      const k = i.name + (i.size ? ` (${i.size})` : "");
+      sum.set(k, (sum.get(k) || 0) + i.qty);
+    }
+    const money = all.filter((r) => r.status === "reserved").reduce((a, r) => a + r.total, 0);
+    totals.replaceChildren(
+      h("h2", { class: "group-header" }, t("storeTotals")),
+      sum.size
+        ? h("div", { class: "group" }, [...sum].sort((a, b) => b[1] - a[1]).map(([k, v]) => h("div", { class: "row" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, k)), h("strong", {}, `× ${v}`))),
+            h("div", { class: "row" }, h("span", { class: "row-text" }, h("span", { class: "row-label" }, t("storeToCollect"))), h("strong", {}, `€${money}`)))
+        : h("p", { class: "empty" }, t("storeNone"))
+    );
+    const shown = all.filter((r) => (filter === "all" || r.status === filter) && (!q || `${r.name} ${r.entity} ${r.items.map((i) => i.name).join(" ")}`.toLowerCase().includes(q)));
+    const people = new Map();
+    for (const r of shown) {
+      const p = people.get(r.uid) || { name: r.name, entity: r.entity, res: [] };
+      p.res.push(r);
+      people.set(r.uid, p);
+    }
+    list.replaceChildren(
+      h("h2", { class: "group-header" }, t("storePeople", { n: people.size })),
+      ...(people.size
+        ? [...people.values()].sort((a, b) => a.name.localeCompare(b.name)).map((p) => h("article", { class: "res-card" },
+            h("header", { class: "res-head" }, h("span", { class: "res-who" }, h("strong", {}, p.name), p.entity ? h("span", {}, p.entity) : ""), h("strong", {}, `€${p.res.filter((r) => r.status !== "cancelled").reduce((a, r) => a + r.total, 0)}`)),
+            ...p.res.map((r) => h("div", { class: "res-line" + (r.status === "cancelled" ? " off" : "") },
+              h("span", { class: "row-text" }, h("span", { class: "row-value" }, r.items.map(itemText).join(", ")), h("span", { class: "row-label" }, `${resDate(r)} · €${r.total}`)),
+              resStatus(r),
+              r.status !== "cancelled"
+                ? h("button", { type: "button", class: "btn btn-small" + (r.status === "collected" ? " btn-muted" : ""), onclick: async () => {
+                    await api("POST", "/api/store/reservations/" + r.id, { status: r.status === "collected" ? "reserved" : "collected" }).catch((e) => toast(errText(e)));
+                    load();
+                  } }, r.status === "collected" ? t("undo") : t("storeCollected"))
+                : ""))))
+        : [h("p", { class: "empty" }, t("storeNone"))])
+    );
+  };
+  const load = () => api("GET", "/api/store").then((d) => ((data = d), draw())).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
   load();
 }
 
@@ -2535,11 +2614,7 @@ function viewWorld(screen) {
   let map = null;
   if (L) {
     map = L.map(mapEl, { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView([48, 18], 3);
-    L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png`, {
-      maxZoom: 8,
-      subdomains: "abcd",
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    }).addTo(map);
+    L.tileLayer(esriTiles("World_Dark_Gray_Base"), { maxZoom: 8, attribution: ESRI_ATTR }).addTo(map);
   }
   api("GET", "/api/world").then(({ entities }) => {
     const counts = new Map();
