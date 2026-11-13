@@ -24,7 +24,7 @@ A separate web app for delegates that can be added to the home screen. It lives 
 3. In the new project, open **Storage → Upstash for Redis → Create** (free plan) and connect it to this project.
 4. Under **Settings → Environment Variables**:
    - `ADMIN_EMAILS`: comma-separated organizer email addresses. Accounts registered with these addresses can edit the agenda.
-   - `DEEPL_API_KEY` (recommended): a DeepL API Free key, which gives 500k characters a month at no cost. Without it, the free MyMemory service is used, and it has a daily limit.
+   - `DEEPL_API_KEY` (recommended): a DeepL API Free key, which gives 500k characters a month at no cost. Without it, Google Translate's free web endpoint is used (MyMemory as backup). `GOOGLE_TRANSLATE_API_KEY` (Google Cloud, 500k chars a month free) also works. The language is detected from the text.
 5. **Deployments → Redeploy.** The app is now live at an address like `euroxpro27-app.vercel.app`. You can also add a domain such as `app.euroxpro27.com`.
 
 After that, every merge to `main` deploys automatically. Until Redis is connected, the app opens but sign-up shows a "still being set up" message.
