@@ -2469,6 +2469,11 @@ const itemText = (i) => `${i.qty}× ${i.name}${i.size ? " " + i.size : ""}`;
 const resStatus = (r) => h("span", { class: "status " + (r.status === "collected" ? "status-ok" : r.status === "cancelled" ? "status-off" : "status-wait") }, t("res_" + r.status));
 const resDate = (r) => new Date(r.at).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
 
+const removeBtn = (r, idx, done) => h("button", { type: "button", class: "res-remove", "aria-label": `${t("storeRemove")}: ${r.items[idx].name}`, onclick: async () => {
+  await api("POST", "/api/store/reservations/" + r.id, { remove: idx }).then(() => toast(t("storeRemoved"))).catch((e) => toast(errText(e)));
+  done();
+} }, icon("xmark"));
+
 // A delegate's own reservations: what to collect at the store desk.
 function viewStoreMine(screen) {
   const box = h("div", {}, h("div", { class: "loading" }));
@@ -2483,14 +2488,17 @@ function viewStoreMine(screen) {
       open.length ? h("section", { class: "res-sum" }, h("span", { class: "kicker" }, t("storeToCollect")), h("strong", {}, `€${due}`), h("span", {}, t("storePayHint"))) : "",
       ...res.map((r) => h("article", { class: "res-card" + (r.status === "cancelled" ? " off" : "") },
         h("header", { class: "res-head" }, h("span", { class: "res-date" }, resDate(r)), resStatus(r)),
-        h("ul", { class: "res-items" }, r.items.map((i) => h("li", {}, h("span", {}, itemText(i)), h("span", { class: "res-price" }, `€${i.qty * i.price}`)))),
+        h("ul", { class: "res-items" }, r.items.map((i, idx) => h("li", {},
+          h("span", { class: "res-item" }, itemText(i)),
+          h("span", { class: "res-price" }, `€${i.qty * i.price}`),
+          r.status === "reserved" ? removeBtn(r, idx, load) : ""))),
         h("footer", { class: "res-foot" },
           h("strong", {}, `€${r.total}`),
           r.status === "reserved"
             ? h("button", { type: "button", class: "btn btn-small btn-muted", onclick: async () => {
                 await api("POST", "/api/store/reservations/" + r.id, { status: "cancelled" }).then(() => toast(t("storeCancelled"))).catch((e) => toast(errText(e)));
                 load();
-              } }, t("cancel"))
+              } }, t("storeCancelAll"))
             : "")))
     );
   }).catch((e) => box.replaceChildren(h("p", { class: "empty" }, errText(e))));
@@ -2538,8 +2546,16 @@ function viewStoreAdmin(screen) {
         ? [...people.values()].sort((a, b) => a.name.localeCompare(b.name)).map((p) => h("article", { class: "res-card" },
             h("header", { class: "res-head" }, h("span", { class: "res-who" }, h("strong", {}, p.name), p.entity ? h("span", {}, p.entity) : ""), h("strong", {}, `€${p.res.filter((r) => r.status !== "cancelled").reduce((a, r) => a + r.total, 0)}`)),
             ...p.res.map((r) => h("div", { class: "res-line" + (r.status === "cancelled" ? " off" : "") },
-              h("span", { class: "row-text" }, h("span", { class: "row-value" }, r.items.map(itemText).join(", ")), h("span", { class: "row-label" }, `${resDate(r)} · €${r.total}`)),
+              h("span", { class: "row-text" },
+                h("ul", { class: "res-items res-items-tight" }, r.items.map((i, idx) => h("li", {}, h("span", { class: "res-item" }, itemText(i)), r.status === "reserved" ? removeBtn(r, idx, load) : ""))),
+                h("span", { class: "row-label" }, `${resDate(r)} · €${r.total}`)),
               resStatus(r),
+              r.status === "reserved"
+                ? h("button", { type: "button", class: "btn btn-small btn-muted", onclick: async () => {
+                    await api("POST", "/api/store/reservations/" + r.id, { status: "cancelled" }).then(() => toast(t("storeCancelled"))).catch((e) => toast(errText(e)));
+                    load();
+                  } }, t("storeCancelRes"))
+                : "",
               r.status !== "cancelled"
                 ? h("button", { type: "button", class: "btn btn-small" + (r.status === "collected" ? " btn-muted" : ""), onclick: async () => {
                     await api("POST", "/api/store/reservations/" + r.id, { status: r.status === "collected" ? "reserved" : "collected" }).catch((e) => toast(errText(e)));

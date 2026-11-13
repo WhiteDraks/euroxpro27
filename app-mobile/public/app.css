@@ -2355,3 +2355,11 @@ ol.group { list-style: none; margin: 0; padding: 0; }
 .res-line .status { margin-right: auto !important; }
 .store-search-wrap { margin: 16px 0 4px; }
 .res-line .status { flex: none; margin: 0; }
+.res-items li { align-items: center; }
+.res-item { flex: 1; min-width: 0; }
+.res-remove { flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin: -4px -6px -4px 0; padding: 0; border: 0; border-radius: 50%; background: var(--fill); color: var(--label-2); cursor: pointer; }
+.res-remove .icon, .res-remove svg { width: 14px; height: 14px; }
+.res-remove svg { stroke-width: 2.4; }
+.res-remove:active { transform: scale(0.92); }
+.res-items-tight { margin: 0 0 4px; }
+.res-items-tight li:first-child { border-top: 0; }
