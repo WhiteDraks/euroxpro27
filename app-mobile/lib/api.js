@@ -468,9 +468,11 @@ route("GET", "sync", async ({ req, url, user }) => {
     const matches = events.filter((e) => e.type === "match" && e.users?.includes(u.id)).map((e) => e.users.find((x) => x !== u.id));
     const matchUsers = (await Promise.all(matches.map(getUser))).filter(Boolean).map(publicUser);
     const announce = events.some((e) => e.type === "announce");
+    const approvals = events.some((e) => e.type === "approvals");
+    const quest = events.some((e) => e.type === "quest");
     // Organizers hear about new requests; the sender hears about replies.
     const request = events.some((e) => e.type === "request" && (e.to === u.id || (e.to === "admins" && u.role === "admin")));
-    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request });
+    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest });
 });
 // ------------------------------------------------------------ meet (swipe to get to know people)
 async function usersByIds(ids) {
@@ -667,6 +669,272 @@ route("POST", "requests/([\\w-]+)", async ({ req, user, m }) => {
         background(() => notify("messages", subject, async (p) => ({ title: pt(p, "reply"), body: short(await tr(q.reply, q.replyLang, p)), url: "/requests", tag: "q-" + q.id }), [q.uid]));
     }
     return json({ request: q });
+});
+// ------------------------------------------------------------ explorer quest (QR stations, points, rewards)
+// Each station has a secret code printed as a QR (/q/<code>). Organizers see
+// the codes and print them from the app.
+const QUEST_SEED = {
+    stations: [
+        ["Welcome Desk", 25], ["Plenary Hall", 50], ["Global Village", 75], ["Turkish Culture Corner", 75],
+        ["Partner Expo", 50], ["Merch Corner", 25], ["Sunset Terrace", 50], ["Workshop Rooms", 25],
+        ["Photo Wall", 25], ["Exchange Hub", 50], ["Gala Night", 75], ["Closing Hall", 50],
+    ].map(([name, pts], i) => ({ id: "st" + (i + 1), name, pts })),
+    rewards: [
+        ["Sticker pack", 100], ["Limited edition pin", 150], ["Coffee voucher", 200],
+        ["Conference bracelet", 250], ["Culture night keepsake", 350], ["EUROXPRO tote bag", 500],
+    ].map(([name, cost], i) => ({ id: "rw" + (i + 1), name, cost })),
+};
+async function loadQuest() {
+    let q = parse(await cmd("GET", "dquest"));
+    if (!q) {
+        q = JSON.parse(JSON.stringify(QUEST_SEED));
+        for (const s of q.stations)
+            s.code = randomBytes(5).toString("base64url").replace(/[-_]/g, "x").slice(0, 6).toUpperCase();
+        await cmd("SET", "dquest", JSON.stringify(q), "NX");
+        q = parse(await cmd("GET", "dquest")) || q;
+    }
+    return q;
+}
+const questOf = async (uid) => parse(await cmd("GET", "dqst:" + uid)) || { done: [], points: 0, spent: 0, claims: [] };
+async function questBoard() {
+    const ids = await cmd("SMEMBERS", "dqplayers");
+    if (!ids.length)
+        return [];
+    const [states, users] = await Promise.all([cmd("MGET", ...ids.map((x) => "dqst:" + x)), usersByIds(ids)]);
+    const byId = new Map(users.map((u) => [u.id, u]));
+    return ids
+        .map((id, i) => ({ u: byId.get(id), q: parse(states[i]) }))
+        .filter((x) => x.u && x.q?.points)
+        .sort((a, b) => b.q.points - a.q.points || a.q.lastAt - b.q.lastAt)
+        .map((x) => ({ ...publicUser(x.u), points: x.q.points, stations: x.q.done.length }));
+}
+route("GET", "quest", async ({ user }) => {
+    const [q, mine, board] = await Promise.all([loadQuest(), questOf(user.id), questBoard()]);
+    const admin = user.role === "admin";
+    return json({
+        stations: q.stations.map((s) => ({ id: s.id, name: s.name, pts: s.pts, done: mine.done.includes(s.id), ...(admin ? { code: s.code } : {}) })),
+        rewards: q.rewards.map((r) => ({ ...r, claimed: mine.claims.find((c) => c.rid === r.id)?.status || "" })),
+        points: mine.points,
+        balance: mine.points - mine.spent,
+        rank: board.findIndex((b) => b.id === user.id) + 1,
+        board: board.slice(0, 10),
+    });
+});
+route("POST", "quest/checkin", async ({ req, user }) => {
+    if (await limited("qchk:" + user.id, 20, 300))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req);
+    const code = clean(b.code, 20).toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const q = await loadQuest();
+    const st = q.stations.find((s) => s.code === code);
+    if (!st)
+        throw new HttpError(404, "bad_code");
+    const mine = await questOf(user.id);
+    const fresh = !mine.done.includes(st.id);
+    if (fresh) {
+        mine.done.push(st.id);
+        mine.points += st.pts;
+        mine.lastAt = Date.now();
+        await pipe(["SET", "dqst:" + user.id, JSON.stringify(mine)], ["SADD", "dqplayers", user.id]);
+        await pushEvent({ at: Date.now(), type: "quest" });
+    }
+    return json({ station: { id: st.id, name: st.name, pts: st.pts }, fresh, points: mine.points, all: mine.done.length === q.stations.length });
+});
+route("POST", "quest/claim", async ({ req, user }) => {
+    const b = await readJson(req);
+    const q = await loadQuest();
+    const r = q.rewards.find((x) => x.id === b.rewardId);
+    if (!r)
+        throw new HttpError(404, "not_found");
+    const mine = await questOf(user.id);
+    if (mine.claims.some((c) => c.rid === r.id))
+        throw new HttpError(409, "already_claimed");
+    if (mine.points - mine.spent < r.cost)
+        throw new HttpError(400, "not_enough_points");
+    mine.spent += r.cost;
+    mine.claims.push({ rid: r.id, at: Date.now(), status: "pending" });
+    await cmd("SET", "dqst:" + user.id, JSON.stringify(mine));
+    return json({ ok: true, balance: mine.points - mine.spent });
+});
+// Organizers: who claimed what, and mark it handed over.
+route("GET", "quest/claims", async ({ user }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const ids = await cmd("SMEMBERS", "dqplayers");
+    const [q, states, users] = await Promise.all([loadQuest(), ids.length ? cmd("MGET", ...ids.map((x) => "dqst:" + x)) : [], usersByIds(ids)]);
+    const byId = new Map(users.map((u) => [u.id, u]));
+    const claims = [];
+    ids.forEach((id, i) => {
+        const st = parse(states[i]);
+        for (const c of st?.claims || [])
+            claims.push({ uid: id, name: byId.get(id)?.name || "?", entity: byId.get(id)?.entity || "", reward: q.rewards.find((r) => r.id === c.rid)?.name || c.rid, rid: c.rid, at: c.at, status: c.status });
+    });
+    return json({ claims: claims.sort((a, b) => b.at - a.at) });
+});
+route("POST", "quest/claims/([\\w-]+)/([\\w-]+)", async ({ user, m }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const mine = await questOf(m[1]);
+    const c = mine.claims.find((x) => x.rid === m[2]);
+    if (!c)
+        throw new HttpError(404, "not_found");
+    c.status = c.status === "given" ? "pending" : "given";
+    await cmd("SET", "dqst:" + m[1], JSON.stringify(mine));
+    return json({ ok: true, status: c.status });
+});
+// ------------------------------------------------------------ approvals league (LC/MC race to the approvals goal)
+// Starts with illustrative numbers ("demo": true) until organizers save real ones.
+const APPR_SEED = [
+    ["Istanbul", "Türkiye", 168, 190, 6], ["Ankara", "Türkiye", 142, 170, 4], ["Antalya", "Türkiye", 121, 150, 9], ["Izmir", "Türkiye", 133, 160, -1],
+    ["Warsaw", "Poland", 151, 175, 3], ["Krakow", "Poland", 129, 160, 7], ["Munich", "Germany", 182, 200, 12], ["Berlin", "Germany", 117, 165, 2],
+    ["Milan", "Italy", 158, 180, 5], ["Rome", "Italy", 140, 170, 11], ["Madrid", "Spain", 136, 175, -2], ["Seville", "Spain", 149, 168, 10],
+    ["Vienna", "Austria", 147, 172, 4], ["Bucharest", "Romania", 171, 185, 8], ["Porto", "Portugal", 110, 150, 3], ["Lyon", "France", 98, 150, 6],
+    ["Athens", "Greece", 105, 140, -3], ["Prague", "Czechia", 126, 150, 5], ["Budapest", "Hungary", 119, 155, 2], ["Antwerp", "Belgium", 162, 176, 3],
+].map(([city, mc, approved, goal, week], i) => ({ id: "lc" + (i + 1), name: "AIESEC in " + city, mc, approved, goal, week }));
+async function loadApprovals() {
+    return parse(await cmd("GET", "dappr")) || { demo: true, updatedAt: 0, lcs: APPR_SEED };
+}
+route("GET", "approvals", async () => json(await loadApprovals()));
+route("POST", "approvals", async ({ req, user }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const b = await readJson(req, 64 * 1024);
+    if (!Array.isArray(b.lcs) || b.lcs.length > 200)
+        throw new HttpError(400, "bad_data");
+    const old = await loadApprovals();
+    const num = (v) => Math.max(0, Math.min(100000, Math.round(Number(v) || 0)));
+    const lcs = b.lcs
+        .map((x) => {
+            const prev = old.lcs.find((o) => o.id === x.id);
+            const approved = num(x.approved);
+            return { id: /^[\w-]{1,20}$/.test(String(x.id || "")) ? String(x.id) : newId(), name: clean(x.name, 60), mc: clean(x.mc, 40), approved, goal: num(x.goal), week: prev ? (prev.week || 0) + approved - prev.approved : 0 };
+        })
+        .filter((x) => x.name);
+    const data = { demo: false, updatedAt: Date.now(), lcs };
+    await cmd("SET", "dappr", JSON.stringify(data));
+    await pushEvent({ at: data.updatedAt, type: "approvals" });
+    return json(data);
+});
+// New week: today's numbers become the base for the "this week" arrows.
+route("POST", "approvals/new-week", async ({ user }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const data = await loadApprovals();
+    for (const x of data.lcs)
+        x.week = 0;
+    data.demo = false;
+    data.updatedAt = Date.now();
+    await cmd("SET", "dappr", JSON.stringify(data));
+    await pushEvent({ at: data.updatedAt, type: "approvals" });
+    return json(data);
+});
+// ------------------------------------------------------------ conference store (reserve now, pay and collect at the venue)
+const STORE_SEED = [
+    ["wb-azure", "Wristband · Azure", 4, "accessories", "#2E86C1", ""], ["wb-coral", "Wristband · Coral", 4, "accessories", "#F06B5B", ""],
+    ["wb-sea", "Wristband · Seafoam", 4, "accessories", "#4DB6A0", ""], ["tshirt", "EUROXPRO T-shirt", 18, "apparel", "#7A1F3D", "XS,S,M,L,XL,XXL"],
+    ["tote", "Mediterranean tote bag", 12, "accessories", "#E9D8BC", ""], ["pin", "Enamel pin", 6, "accessories", "#C9A227", ""],
+    ["bottle", "Reusable bottle", 14, "accessories", "#1F4D6B", ""], ["notebook", "Notebook", 8, "stationery", "#3B3B3B", ""],
+].map(([id, name, price, cat, color, sizes]) => ({ id, name, price, cat, color, sizes: sizes ? sizes.split(",") : [], on: true }));
+async function loadStore() {
+    return parse(await cmd("GET", "dstore")) || STORE_SEED;
+}
+async function loadReservations() {
+    const ids = await cmd("LRANGE", "dresids", 0, 999);
+    return ids.length ? (await cmd("MGET", ...ids.map((x) => "dres:" + x))).map((r) => parse(r)).filter(Boolean) : [];
+}
+route("GET", "store", async ({ user }) => {
+    const [products, all] = await Promise.all([loadStore(), loadReservations()]);
+    return json({ products, reservations: user.role === "admin" ? all : all.filter((r) => r.uid === user.id) });
+});
+route("POST", "store/reserve", async ({ req, user }) => {
+    if (await limited("res:" + user.id, 10, 3600))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req);
+    const products = await loadStore();
+    const items = (Array.isArray(b.items) ? b.items : [])
+        .slice(0, 20)
+        .map((x) => {
+            const p = products.find((pp) => pp.id === x.id && pp.on);
+            const qty = Math.max(1, Math.min(10, Math.round(Number(x.qty) || 1)));
+            if (!p || (p.sizes.length && !p.sizes.includes(x.size)))
+                return null;
+            return { id: p.id, name: p.name, size: p.sizes.length ? x.size : "", qty, price: p.price };
+        })
+        .filter(Boolean);
+    if (!items.length)
+        throw new HttpError(400, "empty");
+    const r = { id: newId(), uid: user.id, name: user.name, entity: user.entity || "", items, total: items.reduce((a, x) => a + x.qty * x.price, 0), at: Date.now(), status: "reserved" };
+    await pipe(["SET", "dres:" + r.id, JSON.stringify(r)], ["LPUSH", "dresids", r.id]);
+    return json({ reservation: r }, 201);
+});
+route("POST", "store/reservations/([\\w-]+)", async ({ req, user, m }) => {
+    const r = parse(await cmd("GET", "dres:" + m[1]));
+    if (!r || (r.uid !== user.id && user.role !== "admin"))
+        throw new HttpError(404, "not_found");
+    const b = await readJson(req);
+    // Delegates can cancel their own; organizers mark collected.
+    if (b.status === "cancelled" && r.status === "reserved")
+        r.status = "cancelled";
+    else if (user.role === "admin" && ["reserved", "collected"].includes(b.status))
+        r.status = b.status;
+    else
+        throw new HttpError(400, "bad_status");
+    await cmd("SET", "dres:" + r.id, JSON.stringify(r));
+    return json({ reservation: r });
+});
+route("POST", "store/products/([\\w-]+)", async ({ req, user, m }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const b = await readJson(req);
+    const products = await loadStore();
+    const p = products.find((x) => x.id === m[1]);
+    if (!p)
+        throw new HttpError(404, "not_found");
+    if (typeof b.on === "boolean")
+        p.on = b.on;
+    if (b.price !== undefined)
+        p.price = Math.max(0, Math.min(500, Number(b.price) || 0));
+    await cmd("SET", "dstore", JSON.stringify(products));
+    return json({ product: p });
+});
+// ------------------------------------------------------------ where delegates come from (for the world map)
+route("GET", "world", async () => {
+    const ids = await cmd("SMEMBERS", "dusers");
+    const users = await usersByIds(ids);
+    return json({ entities: users.map((u) => u.entity || "").filter(Boolean) });
+});
+// ------------------------------------------------------------ personal congress recap (shareable story)
+route("GET", "recap", async ({ user }) => {
+    const u = user;
+    const [matches, dms, quest, board] = await Promise.all([cmd("SMEMBERS", "dmatch:" + u.id), cmd("SMEMBERS", "dconvs:" + u.id), questOf(u.id), questBoard()]);
+    const lens = dms.length ? await pipe(...dms.map((c) => ["LLEN", "dm:" + c])) : [];
+    let top = null;
+    dms.forEach((c, i) => {
+        if (!top || lens[i] > top.n)
+            top = { conv: c, n: Number(lens[i]) || 0 };
+    });
+    let topPeer = null;
+    if (top?.n) {
+        const peerId = top.conv.slice(3).split(":").find((x) => x !== u.id);
+        const p = peerId && (await getUser(peerId));
+        if (p)
+            topPeer = { ...publicUser(p), messages: top.n };
+    }
+    const met = await usersByIds(matches);
+    const countries = [...new Set(met.map((x) => x.entity).filter(Boolean))];
+    return json({
+        name: u.name,
+        entity: u.entity || "",
+        matches: matches.length,
+        chats: dms.length,
+        messages: lens.reduce((a, b) => a + (Number(b) || 0), 0),
+        topPeer,
+        entities: countries,
+        points: quest.points,
+        stations: quest.done.length,
+        rank: board.findIndex((b) => b.id === u.id) + 1,
+        players: board.length,
+    });
 });
 // ------------------------------------------------------------ push notifications
 // Kinds a delegate can turn off one by one in Profile.

@@ -68,6 +68,13 @@ const ICON = {
   inbox: '<svg viewBox="0 0 24 24"><path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z"/><path d="M3.5 13.5H9a3 3 0 0 0 6 0h5.5"/></svg>',
   team: '<svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>',
   share: '<svg viewBox="0 0 24 24"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg>',
+  qr: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+  tv: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 20.5h8"/></svg>',
+  trophy: '<svg viewBox="0 0 24 24"><path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0zM7.5 6H4.5a3 3 0 0 0 3 4M16.5 6h3a3 3 0 0 1-3 4M12 13.5V17M8.5 20.5h7M9.5 17h5v3.5h-5z"/></svg>',
+  bag: '<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12.5H6z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>',
+  compass: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
+  sparkle: '<svg viewBox="0 0 24 24"><path d="M12 3.5c.6 4.2 2.3 5.9 6.5 6.5-4.2.6-5.9 2.3-6.5 6.5-.6-4.2-2.3-5.9-6.5-6.5 4.2-.6 5.9-2.3 6.5-6.5zM18.5 15.5c.3 1.8 1 2.5 2.8 2.8-1.8.3-2.5 1-2.8 2.8-.3-1.8-1-2.5-2.8-2.8 1.8-.3 2.5-1 2.8-2.8z"/></svg>',
   bell: '<svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
 };
 const icon = (name, cls = "") => h("span", { class: "icon " + cls, "aria-hidden": "true", html: ICON[name] });
@@ -232,6 +239,15 @@ const ROUTES = [
   { path: "/team", view: viewTeam, tab: "home" },
   { path: "/info", view: viewInfo, tab: "home" },
   { path: "/requests", view: viewRequests, tab: "home" },
+  { path: "/quest", view: viewQuest, tab: "home" },
+  { path: "/quest/admin", view: viewQuestAdmin, tab: "home" },
+  { path: "/q/:code", view: viewQuestCode, tab: "home" },
+  { path: "/approvals", view: viewApprovals, tab: "home" },
+  { path: "/approvals/live", view: viewApprovalsLive, hideTabs: true },
+  { path: "/approvals/edit", view: viewApprovalsEdit, tab: "home" },
+  { path: "/store", view: viewStore, tab: "home" },
+  { path: "/world", view: viewWorld, tab: "home" },
+  { path: "/recap", view: viewRecap, tab: "home" },
 ];
 
 function match(pathname) {
@@ -266,7 +282,10 @@ function render() {
   if (!found) return go(state.user ? "/home" : "/welcome", { replace: true });
   const { route, params } = found;
   if (route.guest && state.user) return go("/home", { replace: true });
-  if (!route.guest && !state.user) return go("/welcome", { replace: true });
+  if (!route.guest && !state.user) {
+    if (route.path === "/q/:code") sessionStorage.setItem("questCode", params.code);
+    return go("/welcome", { replace: true });
+  }
 
   const screen = h("main", { class: "screen" + (route.hideTabs ? " no-tabs" : "") });
   const parts = [screen];
@@ -1136,6 +1155,7 @@ function matchOverlay(peer, conv) {
   );
   document.body.append(box);
   box.querySelector(".btn-filled").focus();
+  celebrate();
 }
 
 function viewMeet(screen) {
@@ -1288,6 +1308,9 @@ function viewPlenary(screen) {
     h("div", { class: "seats r" }),
     h("div", { class: "aisle" })
   );
+  // Heat layer: the floor warms up where people gather.
+  const heat = h("canvas", { class: "hall-heat", "aria-hidden": "true" });
+  hall.prepend(heat);
   const count = h("p", { class: "hall-count", "aria-live": "polite" });
   screen.append(navBar({ title: t("tabPlenary"), back: "/home" }), h("div", { class: "pad-top" }), hall, count, h("p", { class: "fineprint" }, t("plenaryHint")));
   const walkers = new Map(); // id -> { el, x, y, timer }
@@ -1380,6 +1403,30 @@ function viewPlenary(screen) {
     me.stop = setTimeout(() => me.el.classList.remove("bob"), 4000);
   });
 
+  const drawHeat = () => {
+    const w = hall.clientWidth, hh = hall.clientHeight;
+    if (!w) return;
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    if (heat.width !== Math.round(w * dpr)) {
+      heat.width = Math.round(w * dpr);
+      heat.height = Math.round(hh * dpr);
+    }
+    const x = heat.getContext("2d");
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, w, hh);
+    x.globalCompositeOperation = "lighter";
+    const r = Math.max(60, w * 0.22);
+    for (const p of walkers.values()) {
+      const cx = p.x + 30, cy = p.y + 70;
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, "rgba(240,107,91,0.32)");
+      g.addColorStop(0.5, "rgba(247,178,103,0.12)");
+      g.addColorStop(1, "rgba(247,178,103,0)");
+      x.fillStyle = g;
+      x.fillRect(cx - r, cy - r, r * 2, r * 2);
+    }
+  };
+  const heatTimer = setInterval(drawHeat, 700);
   const refresh = () =>
     api("GET", "/api/plenary")
       .then((d) => alive && sync(d.people))
@@ -1389,6 +1436,7 @@ function viewPlenary(screen) {
   return () => {
     alive = false;
     clearInterval(timer);
+    clearInterval(heatTimer);
     for (const w of walkers.values()) clearTimeout(w.timer);
   };
 }
@@ -1420,6 +1468,8 @@ async function poll() {
         window.dispatchEvent(new Event("announcements-updated"));
         if (here() !== "/info") toast(t("newAnnouncementToast"));
       }
+      if (d.approvals) window.dispatchEvent(new Event("approvals-updated"));
+      if (d.quest) window.dispatchEvent(new Event("quest-updated"));
       if (d.request) {
         window.dispatchEvent(new Event("requests-updated"));
         if (here() !== "/requests") toast(t("requestToast"));
@@ -1671,6 +1721,838 @@ function viewProfile(screen) {
   );
 }
 
+// ------------------------------------------------------------------ celebrations
+// Confetti and a short buzz for matches, quest check-ins and rewards.
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+function celebrate({ buzz = true } = {}) {
+  if (buzz) try { navigator.vibrate?.([25, 40, 70]); } catch {}
+  if (reduceMotion()) return;
+  const c = h("canvas", { class: "confetti", "aria-hidden": "true" });
+  document.body.append(c);
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  const W = (c.width = innerWidth * dpr), H = (c.height = innerHeight * dpr);
+  const ctx = c.getContext("2d");
+  const colors = ["#8B1E3F", "#F06B5B", "#F7B267", "#4DB6A0", "#2E86C1", "#FFFFFF"];
+  const parts = Array.from({ length: 140 }, (_, i) => ({
+    x: W / 2 + (Math.random() - 0.5) * W * 0.2,
+    y: H * 0.42,
+    vx: (Math.random() - 0.5) * 22 * dpr,
+    vy: (-14 - Math.random() * 16) * dpr,
+    r: (4 + Math.random() * 5) * dpr,
+    a: Math.random() * Math.PI,
+    va: (Math.random() - 0.5) * 0.4,
+    c: colors[i % colors.length],
+    round: Math.random() < 0.3,
+  }));
+  const t0 = performance.now();
+  const frame = (now) => {
+    const k = (now - t0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.vy += 0.55 * dpr;
+      p.vx *= 0.985;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.a += p.va;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - Math.max(0, k - 1.6));
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.a);
+      ctx.fillStyle = p.c;
+      if (p.round) {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      } else ctx.fillRect(-p.r / 2, -p.r, p.r, p.r * 2);
+      ctx.restore();
+    }
+    if (k < 2.6) requestAnimationFrame(frame);
+    else c.remove();
+  };
+  requestAnimationFrame(frame);
+}
+
+// Count a number up to its value (big totals, points).
+function countUp(el, to, ms = 900) {
+  const from = Number(el.dataset.n || 0);
+  el.dataset.n = to;
+  if (reduceMotion() || from === to) return (el.textContent = fmtNum(to));
+  const t0 = performance.now();
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / ms);
+    const e = 1 - Math.pow(1 - k, 3);
+    el.textContent = fmtNum(Math.round(from + (to - from) * e));
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+const fmtNum = (n) => Number(n).toLocaleString(locale());
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = h("script", { src });
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.append(s);
+  });
+}
+
+// ------------------------------------------------------------------ sunset theme
+// In the evening (Antalya time) the accent colours turn to sunset tones.
+function sunsetNow() {
+  const d = new Date(nowMs() + TZ_OFFSET);
+  const m = d.getUTCHours() * 60 + d.getUTCMinutes();
+  return m >= 17 * 60 && m < 21 * 60;
+}
+function applySunset() {
+  const on = sunsetNow();
+  document.documentElement.classList.toggle("sunset", on);
+}
+applySunset();
+setInterval(applySunset, 60000);
+
+// ------------------------------------------------------------------ explorer quest
+function stationCodeFrom(text) {
+  const s = String(text || "").trim();
+  const m = s.match(/\/q\/([A-Za-z0-9]{4,12})/);
+  return (m ? m[1] : s).toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+async function questCheckin(code) {
+  try {
+    const r = await api("POST", "/api/quest/checkin", { code });
+    if (r.fresh) {
+      celebrate();
+      toast(t("questGot", { pts: r.station.pts, name: r.station.name }));
+    } else toast(t("questAlready", { name: r.station.name }));
+    if (r.all) setTimeout(() => toast(t("questAll")), 2800);
+    window.dispatchEvent(new Event("quest-updated"));
+    return r;
+  } catch (err) {
+    toast(err.code === "bad_code" ? t("questBadCode") : errText(err));
+    return null;
+  }
+}
+
+// Camera scanner: the browser's own detector where there is one (Android
+// Chrome), otherwise the bundled jsQR (iPhone).
+function openScanner(onCode) {
+  const video = h("video", { playsinline: true, muted: true, autoplay: true });
+  const status = h("p", { class: "scan-status" }, t("scanHint"));
+  let stream = null, raf = 0, done = false;
+  const close = () => {
+    done = true;
+    cancelAnimationFrame(raf);
+    stream?.getTracks().forEach((tr) => tr.stop());
+    ov.remove();
+  };
+  const ov = h(
+    "div",
+    { class: "scanner", role: "dialog", "aria-modal": "true", "aria-label": t("scanTitle") },
+    video,
+    h("div", { class: "scan-frame" }),
+    h("div", { class: "scan-top" }, h("button", { type: "button", class: "icon-btn scan-x", "aria-label": t("close"), onclick: close }, icon("xmark"))),
+    status
+  );
+  document.body.append(ov);
+  (async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    } catch {
+      status.textContent = t("scanNoCamera");
+      return;
+    }
+    if (done) return close();
+    video.srcObject = stream;
+    await video.play().catch(() => {});
+    let detect;
+    if ("BarcodeDetector" in window) {
+      try {
+        const bd = new BarcodeDetector({ formats: ["qr_code"] });
+        detect = async () => (await bd.detect(video))[0]?.rawValue;
+      } catch {}
+    }
+    if (!detect) {
+      await loadScript("/vendor/qr/jsQR.js");
+      const cv = document.createElement("canvas");
+      const cx = cv.getContext("2d", { willReadFrequently: true });
+      detect = async () => {
+        const w = video.videoWidth, hh = video.videoHeight;
+        if (!w) return null;
+        const s = Math.min(1, 640 / w);
+        cv.width = w * s;
+        cv.height = hh * s;
+        cx.drawImage(video, 0, 0, cv.width, cv.height);
+        const img = cx.getImageData(0, 0, cv.width, cv.height);
+        return window.jsQR(img.data, img.width, img.height, { inversionAttempts: "dontInvert" })?.data;
+      };
+    }
+    let last = 0;
+    const loop = async (now) => {
+      if (done) return;
+      if (now - last > 180) {
+        last = now;
+        const v = await detect().catch(() => null);
+        if (v && stationCodeFrom(v)) {
+          close();
+          return onCode(stationCodeFrom(v));
+        }
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+  })();
+}
+
+function viewQuest(screen) {
+  const admin = state.user.role === "admin";
+  const head = h("section", { class: "quest-head" });
+  const body = h("div", {}, h("div", { class: "loading" }));
+  const codeIn = h("input", { type: "text", maxlength: 12, placeholder: t("questCodeHint"), autocapitalize: "characters", "aria-label": t("questCode") });
+  screen.append(
+    navBar({ title: t("quest"), back: "/home", action: admin ? h("a", { href: "/quest/admin", "data-link": true, class: "nav-action" }, t("organizer")) : null }),
+    head,
+    h(
+      "div",
+      { class: "quest-actions" },
+      h("button", { type: "button", class: "btn btn-filled", onclick: () => openScanner(async (c) => (await questCheckin(c)) && draw()) }, icon("qr"), t("scanStation")),
+      h("form", { class: "quest-code", onsubmit: async (e) => {
+        e.preventDefault();
+        const c = stationCodeFrom(codeIn.value);
+        if (!c) return;
+        if (await questCheckin(c)) codeIn.value = "";
+        draw();
+      } }, codeIn, h("button", { type: "submit", class: "btn btn-small" }, t("ok")))
+    ),
+    body
+  );
+  const ptsEl = h("span", { class: "quest-pts" }, "0");
+  const draw = async () => {
+    let d;
+    try {
+      d = await api("GET", "/api/quest");
+    } catch (err) {
+      body.replaceChildren(h("p", { class: "empty" }, errText(err)));
+      return;
+    }
+    const done = d.stations.filter((s) => s.done).length;
+    const ring = h("span", { class: "quest-ring" });
+    ring.style.setProperty("--p", String(done / d.stations.length));
+    head.replaceChildren(
+      ring,
+      h("div", { class: "quest-head-text" },
+        h("span", { class: "kicker" }, t("questScore")),
+        h("span", {}, ptsEl, h("span", { class: "quest-pts-unit" }, " " + t("pts"))),
+        h("span", { class: "quest-sub" }, [t("questStations", { n: done, total: d.stations.length }), d.rank ? t("questRank", { n: d.rank }) : null].filter(Boolean).join(" · ")))
+    );
+    countUp(ptsEl, d.points);
+    body.replaceChildren(
+      h("h2", { class: "group-header" }, t("questTrail")),
+      h("ol", { class: "trail" }, d.stations.map((s, i) =>
+        h("li", { class: "trail-stop" + (s.done ? " done" : "") },
+          h("span", { class: "trail-dot" }, s.done ? icon("check") : String(i + 1)),
+          h("span", { class: "trail-name" }, s.name),
+          h("span", { class: "trail-pts" }, `+${s.pts}`)))),
+      h("h2", { class: "group-header" }, `${t("questRewards")} · ${t("questBalance", { n: d.balance })}`),
+      h("div", { class: "group" }, d.rewards.map((r) => {
+        const can = !r.claimed && d.balance >= r.cost;
+        return h("div", { class: "row reward" },
+          h("span", { class: "row-text" }, h("span", { class: "row-value" }, r.name), h("span", { class: "row-label" }, `${r.cost} ${t("pts")}`)),
+          r.claimed
+            ? h("span", { class: "status " + (r.claimed === "given" ? "status-ok" : "status-wait") }, r.claimed === "given" ? t("questGiven") : t("questPending"))
+            : h("button", { type: "button", class: "btn btn-small" + (can ? "" : " btn-muted"), disabled: !can, onclick: async () => {
+                try {
+                  await api("POST", "/api/quest/claim", { rewardId: r.id });
+                  celebrate();
+                  toast(t("questClaimed"));
+                  draw();
+                } catch (err) {
+                  toast(errText(err));
+                }
+              } }, t("questClaim")));
+      })),
+      h("p", { class: "group-footer" }, t("questRewardHint")),
+      d.board.length
+        ? h("div", {},
+            h("h2", { class: "group-header" }, t("questBoard")),
+            h("ol", { class: "group board" }, d.board.map((p, i) =>
+              h("li", { class: "row" + (p.id === state.user.id ? " me" : "") },
+                h("span", { class: "board-rank" }, String(i + 1)),
+                avatar(p),
+                h("span", { class: "row-text" }, h("span", { class: "row-value" }, p.name), h("span", { class: "row-label" }, p.entity)),
+                h("span", { class: "board-pts" }, fmtNum(p.points))))))
+        : ""
+    );
+  };
+  draw();
+  window.addEventListener("quest-updated", draw);
+  return () => window.removeEventListener("quest-updated", draw);
+}
+
+// /q/CODE: what the printed QR codes open.
+function viewQuestCode(screen, { code }) {
+  screen.append(navBar({ title: t("quest"), back: "/home" }), h("div", { class: "loading" }));
+  questCheckin(stationCodeFrom(code)).finally(() => go("/quest", { replace: true }));
+}
+
+function viewQuestAdmin(screen) {
+  const box = h("div", {}, h("div", { class: "loading" }));
+  screen.append(navBar({ title: t("questCodes"), back: "/quest", action: h("button", { type: "button", class: "nav-action", onclick: () => print() }, t("print")) }), box);
+  (async () => {
+    const [{ stations }, { claims }] = await Promise.all([api("GET", "/api/quest"), api("GET", "/api/quest/claims")]);
+    await loadScript("/vendor/qr/qrcode.js");
+    const qrSvg = (text) => {
+      const q = window.qrcode(0, "M");
+      q.addData(text);
+      q.make();
+      const n = q.getModuleCount();
+      let d = "";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + 4},${r + 4}h1v1h-1z`;
+      return `<svg viewBox="0 0 ${n + 8} ${n + 8}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+    };
+    box.replaceChildren(
+      h("p", { class: "fineprint" }, t("questCodesHint")),
+      h("div", { class: "qr-grid" }, stations.map((s) =>
+        h("figure", { class: "qr-card" },
+          h("span", { class: "qr-img", html: qrSvg(`${location.origin}/q/${s.code}`) }),
+          h("figcaption", {}, h("strong", {}, s.name), h("span", {}, `${s.code} · +${s.pts} ${t("pts")}`))))),
+      h("h2", { class: "group-header no-print" }, t("questClaims")),
+      claims.length
+        ? h("div", { class: "group no-print" }, claims.map((c) => {
+            const btn = h("button", { type: "button", class: "btn btn-small" + (c.status === "given" ? " btn-muted" : "") }, c.status === "given" ? t("questGiven") : t("questMarkGiven"));
+            btn.addEventListener("click", async () => {
+              const r = await api("POST", `/api/quest/claims/${c.uid}/${c.rid}`).catch((e) => toast(errText(e)));
+              if (!r) return;
+              c.status = r.status;
+              btn.textContent = r.status === "given" ? t("questGiven") : t("questMarkGiven");
+              btn.classList.toggle("btn-muted", r.status === "given");
+            });
+            return h("div", { class: "row" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, c.reward), h("span", { class: "row-label" }, [c.name, c.entity].filter(Boolean).join(" · "))), btn);
+          }))
+        : h("p", { class: "empty no-print" }, t("questNoClaims"))
+    );
+  })().catch((e) => box.replaceChildren(h("p", { class: "empty" }, errText(e))));
+}
+
+// ------------------------------------------------------------------ approvals league
+const pct = (a, g) => (g ? Math.round((a / g) * 100) : 0);
+function groupByMc(lcs) {
+  const m = new Map();
+  for (const x of lcs) {
+    const g = m.get(x.mc) || { id: x.mc, name: x.mc, mc: x.mc, approved: 0, goal: 0, week: 0, n: 0 };
+    g.approved += x.approved;
+    g.goal += x.goal;
+    g.week += x.week || 0;
+    g.n++;
+    m.set(x.mc, g);
+  }
+  return [...m.values()];
+}
+
+function viewApprovals(screen) {
+  const admin = state.user.role === "admin";
+  let mode = "lc";
+  let mc = "all";
+  let data = null;
+  const total = h("section", { class: "appr-total" });
+  const chips = h("div", { class: "chips chips-scroll" });
+  const list = h("ol", { class: "league" }, h("div", { class: "loading" }));
+  screen.append(
+    navBar({ title: t("approvals"), back: "/home", action: admin ? h("a", { href: "/approvals/edit", "data-link": true, class: "nav-action" }, t("edit")) : null }),
+    total,
+    h("div", { class: "pad-x appr-tools" },
+      segmented([["lc", t("apprLc")], ["mc", t("apprMc")]], mode, (v) => {
+        mode = v;
+        draw();
+      }, t("approvals")),
+      h("a", { href: "/approvals/live", "data-link": true, class: "btn btn-small appr-live-btn" }, icon("tv"), t("apprLive"))),
+    chips,
+    list
+  );
+  const totalNum = h("span", { class: "appr-big" }, "0");
+  const draw = () => {
+    if (!data) return;
+    const all = data.lcs;
+    const A = all.reduce((a, x) => a + x.approved, 0), G = all.reduce((a, x) => a + x.goal, 0);
+    const bar = h("span", { class: "appr-bar" }, h("span", {}));
+    bar.firstChild.style.setProperty("--w", Math.min(100, pct(A, G)) + "%");
+    total.replaceChildren(
+      h("span", { class: "kicker" }, t("apprTotal")),
+      h("span", { class: "appr-line" }, totalNum, h("span", { class: "appr-goal" }, ` / ${fmtNum(G)}`)),
+      bar,
+      h("span", { class: "appr-meta" }, [t("apprToGoal", { p: pct(A, G) }), t("apprLcs", { n: all.length }), t("apprMcs", { n: new Set(all.map((x) => x.mc)).size })].join(" · ")),
+      data.demo ? h("span", { class: "appr-demo" }, t("apprDemo")) : ""
+    );
+    countUp(totalNum, A);
+    const mcs = [...new Set(all.map((x) => x.mc))].sort();
+    chips.hidden = mode !== "lc";
+    chips.replaceChildren(...["all", ...mcs].map((v) => h("button", { type: "button", class: "chip" + (v === mc ? " on" : ""), onclick: () => {
+      mc = v;
+      draw();
+    } }, v === "all" ? t("all") : v)));
+    const rows = (mode === "mc" ? groupByMc(all) : all.filter((x) => mc === "all" || x.mc === mc)).sort((a, b) => pct(b.approved, b.goal) - pct(a.approved, a.goal) || b.approved - a.approved);
+    list.replaceChildren(...rows.map((x, i) => {
+      const p = pct(x.approved, x.goal);
+      const fill = h("span", { class: "league-fill" + (p >= 100 ? " done" : "") });
+      fill.style.setProperty("--w", Math.min(100, p) + "%");
+      fill.style.setProperty("--d", i * 40 + "ms");
+      return h("li", { class: "league-row" },
+        h("span", { class: "league-rank" + (i < 3 ? " top" : "") }, String(i + 1)),
+        h("span", { class: "league-main" },
+          h("span", { class: "league-name" }, x.name, h("span", { class: "league-mc" }, mode === "mc" ? t("apprLcs", { n: x.n }) : x.mc)),
+          h("span", { class: "league-track" }, fill),
+          h("span", { class: "league-nums" }, `${fmtNum(x.approved)} / ${fmtNum(x.goal)}`, h("span", { class: "league-pct" }, `${p}%`),
+            x.week ? h("span", { class: "league-week " + (x.week > 0 ? "up" : "down") }, `${x.week > 0 ? "▲" : "▼"} ${Math.abs(x.week)}`) : null)));
+    }));
+  };
+  const load = () => api("GET", "/api/approvals").then((d) => {
+    data = d;
+    draw();
+  }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
+  load();
+  window.addEventListener("approvals-updated", load);
+  return () => window.removeEventListener("approvals-updated", load);
+}
+
+// Full-screen race for the big screen in the plenary.
+function viewApprovalsLive(screen) {
+  screen.classList.add("live-board");
+  const bars = h("div", { class: "race" });
+  const big = h("span", { class: "lb-big" }, "0");
+  const goal = h("span", { class: "lb-goal" });
+  const pctEl = h("span", { class: "lb-pct" });
+  const clock = h("span", { class: "lb-clock" });
+  let mode = "lc";
+  const rows = new Map();
+  screen.append(
+    h("header", { class: "lb-head" },
+      h("a", { href: "/approvals", "data-link": true, class: "lb-back", "aria-label": t("back") }, icon("back")),
+      wordmark(),
+      h("span", { class: "lb-title" }, t("apprLiveTitle")),
+      clock,
+      h("button", { type: "button", class: "lb-btn", onclick: () => {
+        mode = mode === "lc" ? "mc" : "lc";
+        rows.clear();
+        bars.replaceChildren();
+        load();
+      } }, t("apprSwitch")),
+      h("button", { type: "button", class: "lb-btn", onclick: () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.()) }, t("fullscreen"))),
+    h("section", { class: "lb-total" }, h("span", { class: "kicker" }, t("apprTotal")), h("span", { class: "lb-line" }, big, goal), pctEl),
+    bars
+  );
+  const draw = (d) => {
+    const items = (mode === "mc" ? groupByMc(d.lcs) : d.lcs).slice().sort((a, b) => b.approved - a.approved).slice(0, 12);
+    const max = Math.max(1, ...items.map((x) => Math.max(x.approved, x.goal)));
+    const A = d.lcs.reduce((a, x) => a + x.approved, 0), G = d.lcs.reduce((a, x) => a + x.goal, 0);
+    countUp(big, A, 1400);
+    goal.textContent = ` / ${fmtNum(G)}`;
+    pctEl.textContent = t("apprToGoal", { p: pct(A, G) });
+    // FLIP: remember where rows were, re-order, then animate from there.
+    const before = new Map([...rows].map(([id, r]) => [id, r.el.getBoundingClientRect().top]));
+    const seen = new Set();
+    items.forEach((x, i) => {
+      seen.add(x.id);
+      let r = rows.get(x.id);
+      if (!r) {
+        const fill = h("span", { class: "race-fill" });
+        const goalMark = h("span", { class: "race-goal" });
+        const num = h("span", { class: "race-num" }, "0");
+        const el = h("div", { class: "race-row" },
+          h("span", { class: "race-rank" }),
+          h("span", { class: "race-name" }, x.name.replace(/^AIESEC in /i, ""), h("span", { class: "race-mc" }, mode === "mc" ? "" : x.mc)),
+          h("span", { class: "race-track" }, fill, goalMark),
+          num);
+        r = { el, fill, goalMark, num };
+        rows.set(x.id, r);
+      }
+      r.el.querySelector(".race-rank").textContent = String(i + 1);
+      r.el.classList.toggle("lead", i === 0);
+      r.fill.style.setProperty("--w", (x.approved / max) * 100 + "%");
+      r.goalMark.style.setProperty("--g", (x.goal / max) * 100 + "%");
+      countUp(r.num, x.approved, 1200);
+      bars.append(r.el);
+    });
+    for (const [id, r] of rows) if (!seen.has(id)) (r.el.remove(), rows.delete(id));
+    if (reduceMotion()) return;
+    for (const [id, r] of rows) {
+      const old = before.get(id);
+      if (old == null) continue;
+      const dy = old - r.el.getBoundingClientRect().top;
+      if (!dy) continue;
+      r.el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 900, easing: "cubic-bezier(.2,.8,.2,1)" });
+    }
+  };
+  const load = () => api("GET", "/api/approvals").then(draw).catch(() => {});
+  load();
+  const tick = () => (clock.textContent = new Date(nowMs()).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" }));
+  tick();
+  const timers = [setInterval(load, 20000), setInterval(tick, 10000)];
+  window.addEventListener("approvals-updated", load);
+  return () => {
+    timers.forEach(clearInterval);
+    window.removeEventListener("approvals-updated", load);
+  };
+}
+
+function viewApprovalsEdit(screen) {
+  const tbody = h("div", { class: "appr-edit" }, h("div", { class: "loading" }));
+  let rows = [];
+  const save = h("button", { type: "button", class: "btn btn-filled" }, t("save"));
+  screen.append(
+    navBar({ title: t("apprEdit"), back: "/approvals" }),
+    h("p", { class: "fineprint" }, t("apprEditHint")),
+    tbody,
+    h("div", { class: "pad-x appr-edit-actions" },
+      h("button", { type: "button", class: "btn", onclick: () => {
+        rows.push({ id: "", name: "AIESEC in ", mc: "", approved: 0, goal: 0 });
+        draw();
+      } }, t("apprAdd")),
+      save,
+      h("button", { type: "button", class: "btn", onclick: async () => {
+        if (!confirm(t("apprNewWeekQ"))) return;
+        await api("POST", "/api/approvals/new-week").then(() => toast(t("saved"))).catch((e) => toast(errText(e)));
+      } }, t("apprNewWeek")))
+  );
+  const draw = () => {
+    tbody.replaceChildren(...rows.map((r, i) => {
+      const inp = (k, type, cls) => {
+        const el = h("input", { type, class: cls, value: r[k], "aria-label": k, inputmode: type === "number" ? "numeric" : null });
+        el.addEventListener("input", () => (r[k] = type === "number" ? Number(el.value) : el.value));
+        return el;
+      };
+      return h("div", { class: "appr-edit-row" },
+        inp("name", "text", "e-name"), inp("mc", "text", "e-mc"), inp("approved", "number", "e-num"), inp("goal", "number", "e-num"),
+        h("button", { type: "button", class: "icon-btn", "aria-label": t("delete"), onclick: () => {
+          rows.splice(i, 1);
+          draw();
+        } }, icon("xmark")));
+    }));
+  };
+  api("GET", "/api/approvals").then((d) => {
+    rows = d.lcs.map((x) => ({ ...x }));
+    draw();
+  });
+  save.addEventListener("click", async () => {
+    save.disabled = true;
+    try {
+      await api("POST", "/api/approvals", { lcs: rows });
+      toast(t("saved"));
+      go("/approvals");
+    } catch (e) {
+      toast(errText(e));
+    } finally {
+      save.disabled = false;
+    }
+  });
+}
+
+// ------------------------------------------------------------------ conference store
+function productArt(p) {
+  const art = h("span", { class: "product-art art-" + (p.id.startsWith("wb") ? "band" : p.id) });
+  art.style.setProperty("--c", p.color);
+  return art;
+}
+
+function viewStore(screen) {
+  const admin = state.user.role === "admin";
+  const basket = new Map(); // key id|size -> {id,size,qty,price,name}
+  const grid = h("div", { class: "store-grid" }, h("div", { class: "loading" }));
+  const mine = h("div", {});
+  const bar = h("div", { class: "basket", hidden: true });
+  screen.append(
+    navBar({ title: t("store"), back: "/home" }),
+    h("section", { class: "store-hero" }, h("span", { class: "kicker" }, t("storeKicker")), h("h2", {}, t("storeTitle")), h("p", {}, t("storeSub"))),
+    grid,
+    mine,
+    bar
+  );
+  const drawBar = () => {
+    const items = [...basket.values()];
+    bar.hidden = !items.length;
+    const n = items.reduce((a, x) => a + x.qty, 0);
+    const sum = items.reduce((a, x) => a + x.qty * x.price, 0);
+    bar.replaceChildren(
+      h("span", { class: "basket-text" }, h("strong", {}, t("storeItems", { n })), ` · €${sum}`),
+      h("button", { type: "button", class: "btn btn-small", onclick: async () => {
+        try {
+          await api("POST", "/api/store/reserve", { items });
+          basket.clear();
+          celebrate();
+          toast(t("storeReserved"));
+          load();
+        } catch (e) {
+          toast(errText(e));
+        }
+      } }, t("storeReserve"))
+    );
+  };
+  const load = async () => {
+    let d;
+    try {
+      d = await api("GET", "/api/store");
+    } catch (e) {
+      return grid.replaceChildren(h("p", { class: "empty" }, errText(e)));
+    }
+    grid.replaceChildren(...d.products.filter((p) => p.on || admin).map((p) => {
+      const size = p.sizes.length ? h("select", { class: "size", "aria-label": t("storeSize") }, p.sizes.map((s) => h("option", { value: s }, s))) : null;
+      if (size) size.value = p.sizes.includes("M") ? "M" : p.sizes[0];
+      const add = h("button", { type: "button", class: "btn btn-small", disabled: !p.on }, t("storeAdd"));
+      add.addEventListener("click", () => {
+        const key = p.id + "|" + (size?.value || "");
+        const cur = basket.get(key) || { id: p.id, size: size?.value || "", qty: 0, price: p.price, name: p.name };
+        cur.qty = Math.min(10, cur.qty + 1);
+        basket.set(key, cur);
+        try { navigator.vibrate?.(12); } catch {}
+        add.classList.remove("pop");
+        void add.offsetWidth;
+        add.classList.add("pop");
+        drawBar();
+      });
+      const toggle = admin ? h("button", { type: "button", class: "chip" + (p.on ? " on" : ""), onclick: async () => {
+        await api("POST", "/api/store/products/" + p.id, { on: !p.on }).catch((e) => toast(errText(e)));
+        load();
+      } }, p.on ? t("storeOn") : t("storeOff")) : null;
+      return h("article", { class: "product" + (p.on ? "" : " off") }, productArt(p),
+        h("span", { class: "product-cat" }, t("cat_" + p.cat)),
+        h("h3", {}, p.name),
+        h("span", { class: "product-foot" }, h("span", { class: "price" }, `€${p.price}`), size, add),
+        toggle);
+    }));
+    const res = d.reservations.filter((r) => admin || r.status !== "cancelled");
+    if (!res.length) return mine.replaceChildren();
+    const totals = new Map();
+    if (admin) for (const r of res) if (r.status !== "cancelled") for (const it of r.items) totals.set(it.name + (it.size ? ` (${it.size})` : ""), (totals.get(it.name + (it.size ? ` (${it.size})` : "")) || 0) + it.qty);
+    mine.replaceChildren(...[
+      admin ? h("h2", { class: "group-header" }, t("storeTotals")) : null,
+      admin ? h("div", { class: "group" }, [...totals].map(([k, v]) => h("div", { class: "row" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, k)), h("strong", {}, `× ${v}`)))) : null,
+      h("h2", { class: "group-header" }, admin ? t("storeAllRes") : t("storeMine")),
+      h("div", { class: "group" }, res.map((r) => {
+        const st = h("span", { class: "status " + (r.status === "collected" ? "status-ok" : r.status === "cancelled" ? "status-off" : "status-wait") }, t("res_" + r.status));
+        const act = admin
+          ? r.status !== "cancelled" && h("button", { type: "button", class: "btn btn-small", onclick: async () => {
+              await api("POST", "/api/store/reservations/" + r.id, { status: r.status === "collected" ? "reserved" : "collected" }).catch((e) => toast(errText(e)));
+              load();
+            } }, r.status === "collected" ? t("undo") : t("storeCollected"))
+          : r.status === "reserved" && h("button", { type: "button", class: "btn btn-small btn-muted", onclick: async () => {
+              await api("POST", "/api/store/reservations/" + r.id, { status: "cancelled" }).catch((e) => toast(errText(e)));
+              load();
+            } }, t("cancel"));
+        return h("div", { class: "row res" },
+          h("span", { class: "row-text" },
+            h("span", { class: "row-value" }, admin ? [r.name, r.entity].filter(Boolean).join(" · ") : r.items.map((i) => `${i.qty}× ${i.name}${i.size ? " " + i.size : ""}`).join(", ")),
+            h("span", { class: "row-label" }, admin ? r.items.map((i) => `${i.qty}× ${i.name}${i.size ? " " + i.size : ""}`).join(", ") + ` · €${r.total}` : `€${r.total} · ${t("storePayThere")}`)),
+          st, act || null);
+      }))
+    ].filter(Boolean));
+  };
+  load();
+}
+
+// ------------------------------------------------------------------ world map of delegates
+// Entity names are free text ("AIESEC in Poland", "AIESEC in Warsaw"); match
+// them to a country by its name in any of our languages or a big city.
+const COUNTRIES = [
+  ["TR", "Türkiye", 39.0, 35.2, "turkey|türkiye|turkiye|istanbul|ankara|izmir|antalya|bursa|eskisehir|eskişehir|adana|konya|trabzon|kayseri"],
+  ["PL", "Poland", 52.1, 19.4, "poland|polska|polonya|warsaw|warszawa|krakow|kraków|wroclaw|wrocław|gdansk|gdańsk|poznan|poznań|lodz|łódź|katowice|lublin"],
+  ["DE", "Germany", 51.2, 10.4, "germany|deutschland|almanya|niemcy|berlin|munich|münchen|hamburg|cologne|köln|frankfurt|stuttgart"],
+  ["IT", "Italy", 42.8, 12.6, "italy|italia|italya|włochy|rome|roma|milan|milano|turin|torino|naples|bologna"],
+  ["ES", "Spain", 40.3, -3.7, "spain|españa|ispanya|hiszpania|madrid|barcelona|seville|sevilla|valencia"],
+  ["FR", "France", 46.6, 2.4, "france|fransa|francja|paris|lyon|marseille|toulouse|lille"],
+  ["PT", "Portugal", 39.6, -8.0, "portugal|portekiz|portugalia|lisbon|lisboa|porto"],
+  ["GB", "United Kingdom", 53.0, -1.8, "united kingdom|uk|britain|ingiltere|birleşik krallık|wielka brytania|london|manchester|edinburgh|glasgow"],
+  ["IE", "Ireland", 53.3, -7.9, "ireland|irlanda|irlandia|dublin"],
+  ["NL", "Netherlands", 52.2, 5.5, "netherlands|holland|hollanda|holandia|amsterdam|rotterdam|utrecht"],
+  ["BE", "Belgium", 50.6, 4.6, "belgium|belçika|belgia|brussels|antwerp|ghent|leuven"],
+  ["AT", "Austria", 47.6, 14.1, "austria|avusturya|österreich|vienna|wien|graz|linz|innsbruck|salzburg"],
+  ["CH", "Switzerland", 46.8, 8.2, "switzerland|isviçre|szwajcaria|zurich|zürich|geneva|bern|lausanne"],
+  ["CZ", "Czechia", 49.8, 15.5, "czech|çekya|czechy|prague|praha|brno"],
+  ["SK", "Slovakia", 48.7, 19.7, "slovakia|slovakya|słowacja|bratislava|kosice"],
+  ["HU", "Hungary", 47.2, 19.4, "hungary|macaristan|węgry|budapest|szeged|debrecen"],
+  ["RO", "Romania", 45.9, 24.9, "romania|romanya|rumunia|bucharest|bucuresti|cluj|iasi|iași|timisoara|timișoara"],
+  ["BG", "Bulgaria", 42.7, 25.3, "bulgaria|bulgaristan|bułgaria|sofia|varna|plovdiv"],
+  ["GR", "Greece", 39.3, 22.0, "greece|yunanistan|grecja|athens|thessaloniki"],
+  ["CY", "Cyprus", 35.1, 33.3, "cyprus|kıbrıs|cypr|nicosia"],
+  ["HR", "Croatia", 45.1, 15.5, "croatia|hırvatistan|chorwacja|zagreb|split"],
+  ["SI", "Slovenia", 46.1, 14.8, "slovenia|slovenya|słowenia|ljubljana|maribor"],
+  ["RS", "Serbia", 44.0, 20.9, "serbia|sırbistan|belgrade|beograd|novi sad"],
+  ["BA", "Bosnia and Herzegovina", 44.2, 17.8, "bosnia|bosna|sarajevo"],
+  ["MK", "North Macedonia", 41.6, 21.7, "macedonia|makedonya|skopje"],
+  ["AL", "Albania", 41.2, 20.0, "albania|arnavutluk|tirana"],
+  ["ME", "Montenegro", 42.7, 19.3, "montenegro|karadağ|podgorica"],
+  ["XK", "Kosovo", 42.6, 20.9, "kosovo|pristina|prishtina"],
+  ["DK", "Denmark", 56.0, 9.5, "denmark|danimarka|dania|copenhagen|aarhus"],
+  ["SE", "Sweden", 62.0, 15.0, "sweden|isveç|szwecja|stockholm|gothenburg|lund|uppsala"],
+  ["NO", "Norway", 61.0, 9.0, "norway|norveç|norwegia|oslo|bergen|trondheim"],
+  ["FI", "Finland", 62.5, 26.0, "finland|finlandiya|finlandia|helsinki|tampere|turku"],
+  ["IS", "Iceland", 64.9, -18.6, "iceland|izlanda|islandia|reykjavik"],
+  ["EE", "Estonia", 58.7, 25.5, "estonia|estonya|tallinn|tartu"],
+  ["LV", "Latvia", 56.9, 24.6, "latvia|letonya|łotwa|riga"],
+  ["LT", "Lithuania", 55.3, 23.9, "lithuania|litvanya|litwa|vilnius|kaunas"],
+  ["UA", "Ukraine", 49.0, 31.4, "ukraine|ukrayna|ukraina|kyiv|kiev|lviv|kharkiv|odesa"],
+  ["MD", "Moldova", 47.2, 28.5, "moldova|mołdawia|chisinau"],
+  ["GE", "Georgia", 42.3, 43.4, "georgia|gürcistan|gruzja|tbilisi"],
+  ["AM", "Armenia", 40.2, 44.9, "armenia|ermenistan|yerevan"],
+  ["AZ", "Azerbaijan", 40.3, 47.7, "azerbaijan|azerbaycan|baku"],
+  ["MT", "Malta", 35.9, 14.4, "malta|valletta"],
+  ["LU", "Luxembourg", 49.8, 6.1, "luxembourg|lüksemburg"],
+];
+const COUNTRY_RE = COUNTRIES.map(([code, name, lat, lng, words]) => ({ code, name, lat, lng, re: new RegExp(`(^|[^\\p{L}])(${words})([^\\p{L}]|$)`, "iu") }));
+const countryOf = (entity) => COUNTRY_RE.find((c) => c.re.test(entity || "")) || null;
+const flag = (code) => (code === "XK" ? "🇽🇰" : String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)));
+
+function viewWorld(screen) {
+  const mapEl = h("div", { class: "world-map", role: "img", "aria-label": t("worldTitle") });
+  const list = h("div", { class: "group" });
+  const head = h("p", { class: "world-sum" });
+  screen.append(navBar({ title: t("worldTitle"), back: "/people" }), h("div", { class: "world-wrap" }, mapEl), head, list);
+  const L = window.L;
+  let map = null;
+  if (L) {
+    map = L.map(mapEl, { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView([48, 18], 3);
+    L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png`, {
+      maxZoom: 8,
+      subdomains: "abcd",
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    }).addTo(map);
+  }
+  api("GET", "/api/world").then(({ entities }) => {
+    const counts = new Map();
+    for (const e of entities) {
+      const c = countryOf(e);
+      if (c) counts.set(c, (counts.get(c) || 0) + 1);
+    }
+    const rows = [...counts].sort((a, b) => b[1] - a[1]);
+    const max = Math.max(1, ...rows.map((r) => r[1]));
+    head.textContent = t("worldSum", { n: entities.length, c: rows.length });
+    if (map) {
+      for (const [c, n] of rows) {
+        const size = 18 + Math.sqrt(n / max) * 46;
+        L.marker([c.lat, c.lng], {
+          icon: L.divIcon({ className: "heat-dot", html: `<span class="heat-core"></span><span class="heat-label">${n}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }),
+          title: `${c.name}: ${n}`,
+        }).addTo(map);
+      }
+      if (rows.length) map.fitBounds(L.latLngBounds([[36.9, 30.7], ...rows.map(([c]) => [c.lat, c.lng])]), { padding: [40, 40], maxZoom: 5 });
+      // Antalya, where everyone is heading.
+      L.marker([36.9, 30.7], { icon: L.divIcon({ className: "heat-home", html: "<span></span>", iconSize: [14, 14], iconAnchor: [7, 7] }), title: "Antalya" }).addTo(map);
+    }
+    list.replaceChildren(...rows.map(([c, n]) => {
+      const bar = h("span", { class: "world-bar" });
+      bar.style.setProperty("--w", (n / max) * 100 + "%");
+      return h("div", { class: "row" }, h("span", { class: "world-flag" }, flag(c.code)), h("span", { class: "row-text" }, h("span", { class: "row-value" }, c.name), bar), h("strong", {}, String(n)));
+    }));
+  }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
+  return () => map?.remove();
+}
+
+// ------------------------------------------------------------------ congress recap (a story to share)
+const CONGRESS_END = Date.parse("2027-04-04T18:00:00+03:00");
+
+function viewRecap(screen) {
+  screen.classList.add("recap-screen");
+  const deck = h("div", { class: "story" }, h("div", { class: "loading" }));
+  const share = h("button", { type: "button", class: "btn btn-filled" }, icon("share"), t("recapShare"));
+  screen.append(navBar({ title: t("recapTitle"), back: "/home" }), deck, h("div", { class: "pad-x recap-actions" }, share), h("p", { class: "fineprint center" }, nowMs() < CONGRESS_END ? t("recapSoFar") : t("recapDone")));
+  let d = null;
+  api("GET", "/api/recap").then((r) => {
+    d = r;
+    const countries = new Set(r.entities.map((e) => countryOf(e)?.code).filter(Boolean));
+    const stat = (n, label, cls = "") => h("div", { class: "story-stat " + cls }, h("span", { class: "story-num", "data-n": "0" }, "0"), h("span", { class: "story-label" }, label));
+    const s1 = stat(r.matches, t("recapMet"));
+    const s2 = stat(r.messages, t("recapMessages"));
+    const s3 = stat(r.points, t("recapPoints"), "accent");
+    const s4 = stat(countries.size, t("recapCountries"));
+    deck.replaceChildren(
+      h("div", { class: "story-card" },
+        h("span", { class: "story-sun" }),
+        h("div", { class: "story-top" }, wordmark(), h("span", { class: "story-dates" }, "Antalya · 31.03–04.04.2027")),
+        h("p", { class: "story-hi" }, t("recapHi", { name: r.name.split(" ")[0] })),
+        h("div", { class: "story-grid" }, s1, s2, s3, s4),
+        r.topPeer
+          ? h("div", { class: "story-peer" }, avatar(r.topPeer, "avatar-lg"), h("span", {}, h("span", { class: "story-label" }, t("recapTop")), h("strong", {}, r.topPeer.name), h("span", { class: "story-small" }, t("recapTopN", { n: r.topPeer.messages }))))
+          : null,
+        r.rank ? h("p", { class: "story-small" }, t("recapRank", { n: r.rank, total: r.players })) : null,
+        h("p", { class: "story-tag" }, "#EUROXPRO27")
+      )
+    );
+    [[s1, r.matches], [s2, r.messages], [s3, r.points], [s4, countries.size]].forEach(([el, n], i) => setTimeout(() => countUp(el.firstChild, n, 1100), 250 + i * 180));
+  }).catch((e) => deck.replaceChildren(h("p", { class: "empty" }, errText(e))));
+
+  // 1080×1920 image for Instagram stories, drawn on a canvas.
+  share.addEventListener("click", async () => {
+    if (!d) return;
+    const c = document.createElement("canvas");
+    c.width = 1080;
+    c.height = 1920;
+    const x = c.getContext("2d");
+    const g = x.createLinearGradient(0, 0, 0, 1920);
+    g.addColorStop(0, "#2B0F2E");
+    g.addColorStop(0.45, "#8B1E3F");
+    g.addColorStop(0.75, "#F06B5B");
+    g.addColorStop(1, "#F7B267");
+    x.fillStyle = g;
+    x.fillRect(0, 0, 1080, 1920);
+    x.fillStyle = "rgba(255,214,150,0.9)";
+    x.beginPath();
+    x.arc(540, 1560, 230, 0, Math.PI * 2);
+    x.fill();
+    x.fillStyle = "rgba(31,77,107,0.85)";
+    x.fillRect(0, 1600, 1080, 320);
+    const font = (w, s) => `${w} ${s}px -apple-system, "SF Pro Display", "Inter", "Segoe UI", sans-serif`;
+    x.fillStyle = "#fff";
+    x.font = font(800, 64);
+    x.fillText("EUROXPRO'27", 90, 170);
+    x.font = font(500, 36);
+    x.globalAlpha = 0.8;
+    x.fillText("Antalya · 31.03–04.04.2027", 90, 225);
+    x.globalAlpha = 1;
+    x.font = font(800, 84);
+    const hi = t("recapHi", { name: d.name.split(" ")[0] });
+    hi.split("\n").forEach((line, i) => x.fillText(line, 90, 400 + i * 96));
+    const countries = new Set(d.entities.map((e) => countryOf(e)?.code).filter(Boolean)).size;
+    const stats = [[d.matches, t("recapMet")], [d.messages, t("recapMessages")], [d.points, t("recapPoints")], [countries, t("recapCountries")]];
+    stats.forEach(([n, label], i) => {
+      const cx = 90 + (i % 2) * 470, cy = 640 + Math.floor(i / 2) * 300;
+      x.fillStyle = "rgba(255,255,255,0.12)";
+      x.beginPath();
+      x.roundRect(cx, cy, 430, 260, 36);
+      x.fill();
+      x.fillStyle = "#fff";
+      x.font = font(800, 120);
+      x.fillText(fmtNum(n), cx + 36, cy + 150);
+      x.font = font(600, 34);
+      x.globalAlpha = 0.85;
+      x.fillText(label, cx + 36, cy + 215);
+      x.globalAlpha = 1;
+    });
+    if (d.topPeer) {
+      x.font = font(600, 36);
+      x.globalAlpha = 0.85;
+      x.fillText(t("recapTop"), 90, 1310);
+      x.globalAlpha = 1;
+      x.font = font(800, 60);
+      x.fillText(d.topPeer.name, 90, 1385);
+    }
+    x.font = font(800, 44);
+    x.fillText("#EUROXPRO27", 90, 1820);
+    const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+    const file = new File([blob], "euroxpro27-recap.png", { type: "image/png" });
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "EUROXPRO'27" });
+        return;
+      } catch (e) {
+        if (e.name === "AbortError") return;
+      }
+    }
+    const a = h("a", { href: URL.createObjectURL(blob), download: "euroxpro27-recap.png" });
+    document.body.append(a);
+    a.click();
+    a.remove();
+  });
+}
+
 // ------------------------------------------------------------------ push notifications
 // Reminders 10 minutes before a session, programme changes, announcements
 // and direct messages, even when the app is closed. On iPhone this needs
@@ -1855,6 +2737,14 @@ function viewHome(screen) {
   const teamT = tile("/team", "team", t("team"));
   const reqT = tile("/requests", "inbox", t("requests"));
   const mapT = tile("/map", "map", t("tabMap"));
+  const questT = tile("/quest", "compass", t("quest"), "sunset-tile");
+  const apprT = tile("/approvals", "trophy", t("approvals"), "wide dark");
+  const storeT = tile("/store", "bag", t("store"));
+  const recapT = tile("/recap", "sparkle", t("recapTitle"), "wide recap-tile");
+  questT.sub.textContent = t("questTile");
+  storeT.sub.textContent = t("storeTile");
+  recapT.sub.textContent = t("recapTile");
+  apprT.sub.textContent = t("apprTile");
   agendaT.sub.textContent = t("homeAgendaSub");
   peopleT.sub.textContent = t("directoryHint");
   hallT.sub.textContent = t("plenaryTile");
@@ -1901,7 +2791,7 @@ function viewHome(screen) {
   screen.append(
     hero,
     nudge,
-    h("div", { class: "bento" }, [agendaT, peopleT, hallT, meetT, teamT, annT, reqT, mapT].map((x, i) => {
+    h("div", { class: "bento" }, [...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
       x.el.style.setProperty("--i", i);
       return x.el;
     }))
@@ -1951,6 +2841,33 @@ function viewHome(screen) {
   drawAnn();
   window.addEventListener("announcements-updated", drawAnn);
   cleanups.push(() => window.removeEventListener("announcements-updated", drawAnn));
+
+  // Quest points and the approvals race, live.
+  api("GET", "/api/quest").then((d) => {
+    const done = d.stations.filter((s) => s.done).length;
+    questT.extra.replaceChildren(h("span", { class: "tile-num" }, `${d.points} ${t("pts")}`));
+    questT.sub.textContent = t("questStations", { n: done, total: d.stations.length });
+  }).catch(() => {});
+  api("GET", "/api/approvals").then((d) => {
+    const top = d.lcs.slice().sort((a, b) => b.approved / (b.goal || 1) - a.approved / (a.goal || 1)).slice(0, 4);
+    const A = d.lcs.reduce((a, x) => a + x.approved, 0), G = d.lcs.reduce((a, x) => a + x.goal, 0);
+    apprT.extra.replaceChildren(
+      h("span", { class: "mini-race" }, top.map((x) => {
+        const b = h("span", { class: "mini-bar" }, h("span", {}), h("em", {}, x.name.replace(/^AIESEC in /, "")));
+        b.firstChild.style.setProperty("--w", Math.min(100, pct(x.approved, x.goal)) + "%");
+        return b;
+      })),
+      h("span", { class: "tile-num" }, `${pct(A, G)}%`)
+    );
+    apprT.sub.textContent = t("apprTileSub", { a: fmtNum(A), g: fmtNum(G) });
+  }).catch(() => {});
+
+  // Opened a station QR before signing in: check in now.
+  const pendingCode = sessionStorage.getItem("questCode");
+  if (pendingCode) {
+    sessionStorage.removeItem("questCode");
+    setTimeout(() => go("/q/" + pendingCode), 0);
+  }
 
   return () => cleanups.forEach((f) => f());
 }
@@ -2009,7 +2926,7 @@ function viewDirectory(screen) {
   let filter = sessionStorage.getItem("dirPos") || "";
   const chips = h("div", { class: "chips chips-scroll", role: "radiogroup", "aria-label": t("position") });
   const list = h("div", { class: "group" }, h("div", { class: "loading" }));
-  screen.append(navBar({ title: t("directory"), back: "/home" }), h("div", { class: "pad" }, search), chips, list);
+  screen.append(navBar({ title: t("directory"), back: "/home", action: h("a", { href: "/world", "data-link": true, class: "nav-action" }, icon("globe"), t("worldShort")) }), h("div", { class: "pad" }, search), chips, list);
   let people = [];
   const drawChips = () =>
     chips.replaceChildren(

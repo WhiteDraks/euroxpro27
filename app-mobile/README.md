@@ -51,3 +51,11 @@ node dev-server.js   # http://localhost:3000, data is kept in memory
 ```
 
 To see the live agenda before the congress, add `?now=2027-04-01T10:05` to the URL. `?now=off` turns it off.
+
+## Notifications, quest, approvals, store (since #24/#25)
+
+- **Push notifications** (`lib/push.js`, no packages): VAPID keys are made once and kept in storage (`dvapid`). Reminders 10 min before a session run while anyone polls the app and from `.github/workflows/app-reminders.yml` (congress week, every 5 min; set `CRON_SECRET` on Vercel and `APP_CRON_SECRET` in GitHub to lock `/api/push/cron`).
+- **Explorer Quest** `/quest`: organizers print station QR codes from `/quest/admin` (each opens `/q/<code>`), delegates scan in-app (BarcodeDetector or bundled jsQR) and claim rewards.
+- **Approvals league** `/approvals`, big-screen race `/approvals/live`, organizers edit at `/approvals/edit`. Sample numbers until saved.
+- **Store** `/store`: reserve, pay and collect at the venue; organizers see totals and mark collected.
+- **World map** `/world`, plenary heat layer, **recap story** `/recap` (shareable 1080×1920 PNG), **sunset theme** 17:00–21:00 Antalya time, confetti on matches, check-ins and rewards.
