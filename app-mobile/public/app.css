@@ -1963,3 +1963,19 @@ a {
 }
 .home-tile:active { background: var(--card-press); }
 .pad-top { height: 12px; }
+
+/* ---------- static splash (shown until app.js renders) ---------- */
+.splash {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+  background: #000;
+  color: #fff;
+  text-align: center;
+}
+.splash .wordmark { font-size: 40px; }
+.splash-msg { max-width: 30ch; margin: 0; color: rgba(255, 255, 255, 0.75); font-size: 16px; line-height: 1.4; }
