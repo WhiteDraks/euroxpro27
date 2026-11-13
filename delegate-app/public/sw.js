@@ -2,8 +2,8 @@
 // The app shell is saved on install so the app opens without internet.
 // API calls always go to the network; map tiles are kept in a small cache.
 const VERSION = "v1";
-const SHELL = `shell-${VERSION}`;
-const TILES = `tiles-${VERSION}`;
+const SHELL = `app-shell-${VERSION}`;
+const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
 
 const SHELL_FILES = [
@@ -29,7 +29,7 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => ![SHELL, TILES].includes(k)).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("app-") && ![SHELL, TILES].includes(k)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

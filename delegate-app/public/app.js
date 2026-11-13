@@ -3,12 +3,15 @@ import { t, setLang, getLang, detectLang, LANGS, locale } from "./i18n.js";
 import { PLACES, CENTER } from "./places.js";
 
 const root = document.getElementById("app");
+// Set to e.g. "/app" if the app is ever served from a sub-folder.
+const BASE = "";
+const withBase = (path) => (!BASE || path.startsWith(BASE + "/") || path === BASE ? path : BASE + path);
+const here = () => (BASE && location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) : location.pathname) || "/";
 const state = {
   user: null,
   agenda: null,
   conversations: null,
   unread: 0,
-  stream: null,
   installPrompt: null,
 };
 let cleanup = null; // teardown of the current view (timers, map, listeners)
@@ -22,6 +25,7 @@ function h(tag, attrs, ...children) {
     if (k === "class") el.className = v;
     else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
     else if (k === "html") el.innerHTML = v; // only used with the icon constants below
+    else if (k === "href" && attrs["data-link"] != null) el.setAttribute("href", withBase(v));
     else el.setAttribute(k, v === true ? "" : v);
   }
   for (const c of children.flat()) {
@@ -199,8 +203,9 @@ function match(pathname) {
 }
 
 function go(path, { replace = false } = {}) {
-  if (path === location.pathname) return render();
-  history[replace ? "replaceState" : "pushState"]({}, "", path);
+  const full = withBase(path);
+  if (full === location.pathname) return render();
+  history[replace ? "replaceState" : "pushState"]({}, "", full);
   render();
 }
 
@@ -215,7 +220,7 @@ window.addEventListener("popstate", () => render());
 function render() {
   if (cleanup) cleanup();
   cleanup = null;
-  const found = match(location.pathname);
+  const found = match(here());
   if (!found) return go(state.user ? "/agenda" : "/welcome", { replace: true });
   const { route, params } = found;
   if (route.guest && state.user) return go("/agenda", { replace: true });
@@ -1039,39 +1044,54 @@ function viewChat(screen, { id }) {
 
 // ------------------------------------------------------------------ live stream
 
-function startStream() {
-  if (state.stream || !window.EventSource) return;
-  const es = new EventSource("/api/stream");
-  state.stream = es;
-  es.addEventListener("message", (e) => {
-    const m = JSON.parse(e.data);
-    window.dispatchEvent(new CustomEvent("chat-message", { detail: m }));
-    const viewing = location.pathname === "/messages/" + encodeURIComponent(m.conv);
-    if (!viewing && m.from !== state.user?.id) {
-      refreshConversations().then(() => window.dispatchEvent(new Event("conversations-updated"))).catch(() => {});
-    }
-  });
-  es.addEventListener("agenda", async (e) => {
-    const info = JSON.parse(e.data || "{}");
-    if (info.lang && info.lang !== state.user?.lang) return; // translations for others
+// Vercel functions can't keep a connection open, so the app asks the
+// server for news every few seconds while it is on screen.
+const POLL_MS = 4000;
+let pollTimer = null;
+let syncSince = 0;
+
+async function poll() {
+  clearTimeout(pollTimer);
+  if (!state.user) return;
+  if (document.visibilityState === "visible" && navigator.onLine) {
     try {
-      await loadAgenda(true);
-      window.dispatchEvent(new Event("agenda-updated"));
-      if (info.sessionId && location.pathname.startsWith("/agenda")) toast(t("updatedLive"));
-    } catch {}
-  });
-  es.onerror = () => {
-    if (es.readyState === EventSource.CLOSED) {
-      state.stream = null;
-      setTimeout(() => state.user && startStream(), 5000);
+      const d = await api("GET", "/api/sync?since=" + syncSince);
+      syncSince = d.now;
+      let refreshList = false;
+      for (const m of d.messages) {
+        window.dispatchEvent(new CustomEvent("chat-message", { detail: m }));
+        const viewing = here() === "/messages/" + encodeURIComponent(m.conv) || here() === "/messages/" + m.conv;
+        if (!viewing && m.from !== state.user?.id) refreshList = true;
+      }
+      if (refreshList) refreshConversations().then(() => window.dispatchEvent(new Event("conversations-updated"))).catch(() => {});
+      if (d.agenda) {
+        await loadAgenda(true);
+        window.dispatchEvent(new Event("agenda-updated"));
+        if (d.agendaChange && here().startsWith("/agenda")) toast(t("updatedLive"));
+      }
+    } catch (e) {
+      if (e.status === 401) {
+        state.user = null;
+        return go("/welcome", { replace: true });
+      }
     }
-  };
+  }
+  pollTimer = setTimeout(poll, POLL_MS);
+}
+
+function startStream() {
+  syncSince = Date.now();
+  poll();
 }
 
 function stopStream() {
-  state.stream?.close();
-  state.stream = null;
+  clearTimeout(pollTimer);
+  pollTimer = null;
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && state.user) poll();
+});
 
 // ------------------------------------------------------------------ profile
 
@@ -1248,7 +1268,7 @@ async function boot() {
     } catch {}
   }
   offlineBanner();
-  if (location.pathname === "/" || location.pathname === "/index.html") history.replaceState({}, "", state.user ? "/agenda" : "/welcome");
+  if (here() === "/" || here() === "/index.html") history.replaceState({}, "", withBase(state.user ? "/agenda" : "/welcome"));
   render();
 }
 

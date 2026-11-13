@@ -1,15 +1,14 @@
 {
-  "name": "euroxpro27-app",
+  "name": "euroxpro27-delegate-app",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "EUROXPRO'27 delegate app (PWA): live agenda, map, chat with automatic translation.",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node dev-server.js",
+    "start": "node dev-server.js"
   },
   "engines": {
-    "node": ">=18.17"
-  },
-  "license": "UNLICENSED"
+    "node": ">=20"
+  }
 }
