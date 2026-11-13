@@ -8,7 +8,7 @@ A separate web app for delegates that can be added to the home screen. It lives 
 - **Plenary:** an empty hall where small avatars of everyone signed in (last 30 seconds) wander around. Tap someone to message them.
 - **Profile:** emoji avatar, short bio (translated for the reader), and a switch to show or hide yourself in Meet.
 - **Congress (in Profile):** announcements with deadlines (the nearest one shows on the agenda), a delegate directory filtered by position (MCPc, MCPe, MCVP, LCP, LCVP), the CC Team page (organizers set their team title in Profile), and requests and complaints that only organizers see, with replies. Organizers can tag agenda sessions for certain positions, and delegates can switch to "My programme".
-- **Demo delegates:** two sample people (Zofia, Luca) appear in the directory, Meet and the plenary hall. They always like you back. Set `DEMO_USERS=0` to remove them.
+- **Demo delegates:** two sample people (Zofia, Luca) appear in the directory, Meet and the plenary hall. They always like you back. Set `DEMO_USERS=0` to hide them everywhere.
 - **Chat:** a general room and one-to-one messages. Each message is translated into the reader's language automatically.
 - **Languages:** Turkish, English and Polish. Polish plurals are handled.
 - **Sign-in:** email and password only.

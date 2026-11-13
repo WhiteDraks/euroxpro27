@@ -328,7 +328,7 @@ route("GET", "people", async ({ user }) => {
     const raw = (await cmd("MGET", ...ids.map((x) => "du:" + x)));
     const people = raw
         .map((r) => parse(r))
-        .filter((u) => !!u)
+        .filter((u) => !!u && !(u.demo && !demoOn()))
         .map(publicUser)
         .sort((a, b) => a.name.localeCompare(b.name, user.lang));
     return json({ people });
@@ -450,7 +450,7 @@ route("GET", "meet/deck", async ({ user }) => {
         const j = Math.floor(Math.random() * (i + 1));
         [ids[i], ids[j]] = [ids[j], ids[i]];
     }
-    const users = (await usersByIds(ids.slice(0, 40))).filter((x) => x.meet !== false).slice(0, 15);
+    const users = (await usersByIds(ids.slice(0, 40))).filter((x) => x.meet !== false && !(x.demo && !demoOn())).slice(0, 15);
     return json({ deck: await withBio(u, users) });
 });
 route("GET", "meet/matches", async ({ user }) => {
