@@ -2975,16 +2975,13 @@ function viewHome(screen) {
   }).catch(() => {});
   api("GET", "/api/approvals").then((d) => {
     const top = d.lcs.slice().sort((a, b) => b.approved / (b.goal || 1) - a.approved / (a.goal || 1)).slice(0, 4);
-    const A = d.lcs.reduce((a, x) => a + x.approved, 0), G = d.lcs.reduce((a, x) => a + x.goal, 0);
     apprT.extra.replaceChildren(
       h("span", { class: "mini-race" }, top.map((x) => {
         const b = h("span", { class: "mini-bar" }, h("span", {}), h("em", {}, x.name.replace(/^AIESEC in /, "")));
         b.firstChild.style.setProperty("--w", Math.min(100, pct(x.approved, x.goal)) + "%");
         return b;
-      })),
-      h("span", { class: "tile-num" }, `${pct(A, G)}%`)
+      }))
     );
-    apprT.sub.textContent = t("apprTileSub", { a: fmtNum(A), g: fmtNum(G) });
   }).catch(() => {});
 
   // Opened a station QR before signing in: check in now.
