@@ -2,6 +2,8 @@
 
 A separate web app for delegates that can be added to the home screen. It lives in the same repo as the website, but it is **its own Vercel project with its own address**. The website is not affected.
 
+- **Home:** one big button per area, as in the 2024 app: Agenda, Delegates, CC Team, Requests, Announcements. Below them are the Plenary, Meet and Map.
+- **Avatars:** a person figure, or the delegate's own photo (resized on the phone to a 320 px JPEG).
 - **Live agenda:** a "Now / Up next" card, a day picker and a countdown before the congress. Organizers can mark a session delayed, moved or cancelled and add a note, and every open phone sees the change within a few seconds.
 - **Map:** the airport, bus station, Kaleiçi and beaches in Antalya, with directions in Apple Maps or Google Maps.
 - **Meet:** Tinder-style cards. Swipe right to like, left to pass. When two people like each other it's a match and a private chat opens.

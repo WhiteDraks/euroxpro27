@@ -63,6 +63,7 @@ const ICON = {
   meet: '<svg viewBox="0 0 24 24"><rect x="5.5" y="3.5" width="13" height="17" rx="2.5"/><path d="M12 15.2s-3.2-2-3.2-4.1a1.8 1.8 0 0 1 3.2-1.1 1.8 1.8 0 0 1 3.2 1.1c0 2.1-3.2 4.1-3.2 4.1z"/></svg>',
   heart: '<svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.1A4.2 4.2 0 0 1 12 7.4a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>',
   xmark: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  home: '<svg viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5v10h13v-10M10 19.5v-5h4v5"/></svg>',
   megaphone: '<svg viewBox="0 0 24 24"><path d="M4 10v4h3l7 4.5v-13L7 10z"/><path d="M17.5 9a4 4 0 0 1 0 6"/></svg>',
   inbox: '<svg viewBox="0 0 24 24"><path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z"/><path d="M3.5 13.5H9a3 3 0 0 0 6 0h5.5"/></svg>',
   team: '<svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>',
@@ -79,15 +80,32 @@ function initials(name) {
     .join("");
 }
 
-// Person avatar: their chosen emoji, otherwise initials, on a colour picked
-// from their id so the same person always looks the same.
+// Person avatar: their own photo, otherwise a person silhouette on a colour
+// picked from their id so the same person always looks the same.
 const AVATAR_TONES = ["tone-0", "tone-1", "tone-2", "tone-3", "tone-4"];
-function avatar(person, cls = "") {
-  const p = typeof person === "string" ? { name: person } : person || {};
+const PERSON_SVG = '<svg viewBox="0 0 24 24" class="person-svg"><circle cx="12" cy="8.2" r="4.4"/><path d="M3.6 22.5c.5-5.1 3.9-8.3 8.4-8.3s7.9 3.2 8.4 8.3z"/></svg>';
+function toneOf(p) {
   let hash = 0;
   for (const ch of p.id || p.name || "") hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  const tone = AVATAR_TONES[hash % AVATAR_TONES.length];
-  return h("span", { class: `avatar ${tone} ${p.emoji ? "has-emoji" : ""} ${cls}`, "aria-hidden": "true" }, p.emoji || initials(p.name || "?"));
+  return AVATAR_TONES[hash % AVATAR_TONES.length];
+}
+function avatar(person, cls = "") {
+  const p = typeof person === "string" ? { name: person } : person || {};
+  if (p.photo) return h("span", { class: `avatar has-photo ${cls}`, "aria-hidden": "true" }, h("img", { src: p.photo, alt: "", loading: "lazy", decoding: "async" }));
+  return h("span", { class: `avatar figure ${toneOf(p)} ${cls}`, "aria-hidden": "true", html: PERSON_SVG });
+}
+// Small standing person for the plenary hall; the head is their photo if they have one.
+function figure(p) {
+  return h(
+    "span",
+    { class: `fig ${toneOf(p)}`, "aria-hidden": "true" },
+    h("span", { class: "fig-head" }, p.photo ? h("img", { src: p.photo, alt: "", loading: "lazy", decoding: "async" }) : null),
+    h("span", { class: "fig-arm l" }),
+    h("span", { class: "fig-arm r" }),
+    h("span", { class: "fig-body" }),
+    h("span", { class: "fig-leg l" }),
+    h("span", { class: "fig-leg r" })
+  );
 }
 
 let toastTimer;
@@ -199,19 +217,20 @@ const ROUTES = [
   { path: "/welcome", view: viewWelcome, guest: true },
   { path: "/login", view: viewLogin, guest: true },
   { path: "/register", view: viewRegister, guest: true },
+  { path: "/home", view: viewHome, tab: "home" },
   { path: "/agenda", view: viewAgenda, tab: "agenda" },
   { path: "/agenda/:id", view: viewSession, tab: "agenda" },
   { path: "/map", view: viewMap, tab: "agenda" },
-  { path: "/plenary", view: viewPlenary, tab: "plenary" },
+  { path: "/plenary", view: viewPlenary, tab: "home" },
   { path: "/meet", view: viewMeet, tab: "meet" },
   { path: "/messages", view: viewConversations, tab: "messages" },
   { path: "/messages/new", view: viewPeople, tab: "messages" },
   { path: "/messages/:id", view: viewChat, tab: "messages", hideTabs: true },
   { path: "/profile", view: viewProfile, tab: "profile" },
-  { path: "/people", view: viewDirectory, tab: "profile" },
-  { path: "/team", view: viewTeam, tab: "profile" },
-  { path: "/info", view: viewInfo, tab: "profile" },
-  { path: "/requests", view: viewRequests, tab: "profile" },
+  { path: "/people", view: viewDirectory, tab: "home" },
+  { path: "/team", view: viewTeam, tab: "home" },
+  { path: "/info", view: viewInfo, tab: "home" },
+  { path: "/requests", view: viewRequests, tab: "home" },
 ];
 
 function match(pathname) {
@@ -243,9 +262,9 @@ function render() {
   if (cleanup) cleanup();
   cleanup = null;
   const found = match(here());
-  if (!found) return go(state.user ? "/agenda" : "/welcome", { replace: true });
+  if (!found) return go(state.user ? "/home" : "/welcome", { replace: true });
   const { route, params } = found;
-  if (route.guest && state.user) return go("/agenda", { replace: true });
+  if (route.guest && state.user) return go("/home", { replace: true });
   if (!route.guest && !state.user) return go("/welcome", { replace: true });
 
   const screen = h("main", { class: "screen" + (route.hideTabs ? " no-tabs" : "") });
@@ -260,8 +279,8 @@ function render() {
 
 function tabBar(active) {
   const tabs = [
+    ["home", "/home", "tabHome"],
     ["agenda", "/agenda", "tabAgenda"],
-    ["plenary", "/plenary", "tabPlenary"],
     ["meet", "/meet", "tabMeet"],
     ["messages", "/messages", "tabMessages"],
     ["profile", "/profile", "tabProfile"],
@@ -421,7 +440,7 @@ async function afterAuth(user) {
   } catch {}
   setLang(user.lang);
   startStream();
-  go("/agenda", { replace: true });
+  go("/home", { replace: true });
 }
 
 function viewLogin(screen) {
@@ -1257,9 +1276,16 @@ function viewMeet(screen) {
 // An empty hall where everyone who has the app open right now walks around.
 
 function viewPlenary(screen) {
-  const hall = h("div", { class: "hall", role: "group", "aria-label": t("tabPlenary") }, h("div", { class: "stage" }, "EUROXPRO'27"));
+  const hall = h(
+    "div",
+    { class: "hall", role: "group", "aria-label": t("tabPlenary") },
+    h("div", { class: "stage" }, h("span", { class: "screen-board" }, "EUROXPRO'27"), h("span", { class: "podium" })),
+    h("div", { class: "seats l" }),
+    h("div", { class: "seats r" }),
+    h("div", { class: "aisle" })
+  );
   const count = h("p", { class: "hall-count", "aria-live": "polite" });
-  screen.append(largeTitle(t("tabPlenary")), hall, count, h("p", { class: "fineprint" }, t("plenaryHint")));
+  screen.append(navBar({ title: t("tabPlenary"), back: "/home" }), h("div", { class: "pad-top" }), hall, count, h("p", { class: "fineprint" }, t("plenaryHint")));
   const walkers = new Map(); // id -> { el, x, y, timer }
   let sheet = null;
   let alive = true;
@@ -1267,8 +1293,9 @@ function viewPlenary(screen) {
   const bounds = () => ({ w: hall.clientWidth, h: hall.clientHeight });
   const place = (w, x, y) => {
     const b = bounds();
-    w.x = Math.max(8, Math.min(b.w - 52, x));
-    w.y = Math.max(66, Math.min(b.h - 60, y));
+    w.x = Math.max(4, Math.min(b.w - 64, x));
+    w.y = Math.max(60, Math.min(b.h - 92, y));
+    w.el.style.zIndex = String(Math.round(w.y)); // people nearer the front stand in front
     w.el.style.transform = `translate(${w.x}px, ${w.y}px)`;
   };
   const wander = (w) => {
@@ -1317,7 +1344,7 @@ function viewPlenary(screen) {
       const el = h(
         "button",
         { type: "button", class: "walker" + (mine ? " me" : ""), "aria-label": p.name },
-        avatar(p),
+        figure(p),
         h("span", { class: "walker-name" }, mine ? t("you") : p.name.split(" ")[0])
       );
       el.addEventListener("click", (e) => {
@@ -1344,7 +1371,7 @@ function viewPlenary(screen) {
     if (!me) return;
     const r = hall.getBoundingClientRect();
     me.el.classList.add("bob");
-    place(me, e.clientX - r.left - 19, e.clientY - r.top - 19);
+    place(me, e.clientX - r.left - 30, e.clientY - r.top - 62);
     clearTimeout(me.stop);
     me.stop = setTimeout(() => me.el.classList.remove("bob"), 4000);
   });
@@ -1441,9 +1468,27 @@ function getThemePref() {
   }
 }
 
-const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", "🦁", "🐯", "🐬", "🦉", "🌞", "🌊", "🌴", "🍉", "☕", "🎧", "🎨", "⚽", "🚀", "🌍", "🌷", "🧿"];
+// Square JPEG made on the phone, so uploads stay small (about 20-40 KB).
+async function photoDataUrl(file) {
+  let src;
+  try {
+    src = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    src = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+  const w = src.width, hgt = src.height, side = Math.min(w, hgt);
+  const c = document.createElement("canvas");
+  c.width = c.height = 320;
+  c.getContext("2d").drawImage(src, (w - side) / 2, (hgt - side) / 2, side, side, 0, 0, 320, 320);
+  return c.toDataURL("image/jpeg", 0.82);
+}
 
-// Avatar emoji, short intro and visibility for the Meet tab.
+// Photo, short intro and visibility for the Meet tab.
 function meetProfile(u) {
   const save = async (patch) => {
     try {
@@ -1451,26 +1496,33 @@ function meetProfile(u) {
       state.user = user;
       const big = document.querySelector(".profile-head .avatar");
       if (big) big.replaceWith(avatar(user, "avatar-lg"));
+      drawPhoto();
       toast(t("saved"));
     } catch (err) {
       toast(errText(err));
     }
   };
-  const grid = h(
-    "div",
-    { class: "emoji-grid", role: "radiogroup", "aria-label": t("avatar") },
-    ["", ...EMOJIS].map((e) => {
-      const b = h("button", { type: "button", role: "radio", "aria-checked": String((u.emoji || "") === e), class: (u.emoji || "") === e ? "on" : "", "aria-label": e || t("initialsOption") }, e || initials(u.name));
-      b.addEventListener("click", () => {
-        for (const x of grid.children) {
-          x.classList.toggle("on", x === b);
-          x.setAttribute("aria-checked", String(x === b));
-        }
-        save({ emoji: e });
-      });
-      return b;
-    })
-  );
+  const fileIn = h("input", { type: "file", accept: "image/*", hidden: true });
+  fileIn.addEventListener("change", async () => {
+    const f = fileIn.files?.[0];
+    fileIn.value = "";
+    if (!f) return;
+    try {
+      await save({ photo: await photoDataUrl(f) });
+    } catch {
+      toast(t("err_bad_photo"));
+    }
+  });
+  const photoRow = h("div", { class: "photo-row" });
+  const drawPhoto = () =>
+    photoRow.replaceChildren(
+      avatar(state.user, "avatar-lg"),
+      h("div", { class: "photo-actions" },
+        h("button", { type: "button", class: "btn btn-tinted", onclick: () => fileIn.click() }, state.user.photo ? t("changePhoto") : t("choosePhoto")),
+        state.user.photo ? h("button", { type: "button", class: "link-btn destructive", onclick: () => save({ photo: "" }) }, t("removePhoto")) : null),
+      fileIn
+    );
+  drawPhoto();
   const bio = h("textarea", { rows: 3, maxlength: 160, placeholder: t("bioPlaceholder"), "aria-label": t("bio") }, u.bio || "");
   const bioSave = h("button", { type: "button", class: "btn btn-filled", hidden: true, onclick: () => { save({ bio: bio.value }); bioSave.hidden = true; } }, t("save"));
   bio.addEventListener("input", () => (bioSave.hidden = bio.value.trim() === (state.user.bio || "")));
@@ -1484,7 +1536,7 @@ function meetProfile(u) {
     h(
       "div",
       { class: "group" },
-      h("div", { class: "field field-stack" }, h("span", { class: "field-label" }, t("avatar")), grid),
+      h("div", { class: "field field-stack" }, h("span", { class: "field-label" }, t("photo")), photoRow, h("span", { class: "row-label" }, t("photoHint"))),
       h("label", { class: "field field-stack" }, h("span", { class: "field-label" }, t("bio")), bio),
       h("label", { class: "field switch-row" }, h("span", { class: "field-label" }, t("showInMeet")), sw)
     ),
@@ -1505,8 +1557,6 @@ function viewProfile(screen) {
       nameIn.value.trim() === u.name && entityIn.value.trim() === u.entity && posIn.value === (u.position || "") && (!titleIn || titleIn.value.trim() === (u.title || "")));
   for (const el of [nameIn, entityIn, posIn, titleIn]) el?.addEventListener("input", dirty);
   posIn.addEventListener("change", dirty);
-  const link = (href, ic, title, sub) =>
-    h("a", { href, "data-link": true, class: "row" }, icon(ic, "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, title), h("span", { class: "row-label" }, sub)), icon("chevron", "row-chevron"));
 
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   const ios = /iPhone|iPad/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -1528,15 +1578,6 @@ function viewProfile(screen) {
       { class: "profile-head" },
       avatar(u, "avatar-lg"),
       h("div", {}, h("p", { class: "profile-name" }, u.name), h("p", { class: "profile-sub" }, u.email), u.role === "admin" ? h("span", { class: "status status-admin" }, t("organizer")) : null)
-    ),
-    h("h2", { class: "group-header" }, t("congress")),
-    h(
-      "div",
-      { class: "group" },
-      link("/info", "megaphone", t("announcements"), t("announcementsHint")),
-      link("/people", "people", t("directory"), t("directoryHint")),
-      link("/team", "team", t("team"), t("teamHint")),
-      link("/requests", "inbox", t("requests"), t("requestsHint"))
     ),
     h(
       "form",
@@ -1625,6 +1666,35 @@ function viewProfile(screen) {
   );
 }
 
+// ------------------------------------------------------------------ home
+// Like the 2024 app's main page: one big button per area of the congress.
+function viewHome(screen) {
+  const u = state.user;
+  const big = (href, ic, label, sub, filled) =>
+    h("a", { href, "data-link": true, class: "home-btn" + (filled ? " filled" : "") }, icon(ic, "home-ic"), h("span", { class: "home-text" }, h("span", { class: "home-label" }, label), sub ? h("span", { class: "home-sub" }, sub) : null), icon("chevron", "row-chevron"));
+  const tile = (href, ic, label) => h("a", { href, "data-link": true, class: "home-tile" }, icon(ic, "home-ic"), h("span", {}, label));
+  const banner = h("div");
+  latestAnnouncement().then((a) => a && banner.replaceChildren(announcementBanner(a))).catch(() => {});
+  screen.append(
+    h("header", { class: "home-head" }, wordmark(), h("a", { href: "/profile", "data-link": true, class: "home-me", "aria-label": t("tabProfile") }, avatar(u))),
+    h("p", { class: "home-hello" }, t("hello", { name: u.name.split(" ")[0] })),
+    banner,
+    h(
+      "nav",
+      { class: "home-list", "aria-label": t("tabHome") },
+      big("/agenda", "agenda", t("tabAgenda"), t("homeAgendaSub"), true),
+      big("/people", "people", t("directory"), t("directoryHint")),
+      big("/team", "team", t("team"), t("teamHint"), true),
+      big("/requests", "inbox", t("requests"), t("requestsHint")),
+      big("/info", "megaphone", t("announcements"), t("announcementsHint"), true)
+    ),
+    h("div", { class: "home-tiles" }, tile("/plenary", "plenary", t("tabPlenary")), tile("/meet", "meet", t("tabMeet")), tile("/map", "map", t("tabMap")))
+  );
+  const onAnn = () => latestAnnouncement().then((a) => banner.replaceChildren(a ? announcementBanner(a) : "")).catch(() => {});
+  window.addEventListener("announcements-updated", onAnn);
+  return () => window.removeEventListener("announcements-updated", onAnn);
+}
+
 // ------------------------------------------------------------------ congress modules
 // Modelled on the 2024 delegate app: delegates by position, the CC team,
 // announcements with deadlines, and requests/complaints to the organizers.
@@ -1679,7 +1749,7 @@ function viewDirectory(screen) {
   let filter = sessionStorage.getItem("dirPos") || "";
   const chips = h("div", { class: "chips chips-scroll", role: "radiogroup", "aria-label": t("position") });
   const list = h("div", { class: "group" }, h("div", { class: "loading" }));
-  screen.append(navBar({ title: t("directory"), back: "/profile" }), h("div", { class: "pad" }, search), chips, list);
+  screen.append(navBar({ title: t("directory"), back: "/home" }), h("div", { class: "pad" }, search), chips, list);
   let people = [];
   const drawChips = () =>
     chips.replaceChildren(
@@ -1716,7 +1786,7 @@ function viewDirectory(screen) {
 
 function viewTeam(screen) {
   const grid = h("div", { class: "team-grid" }, h("div", { class: "loading" }));
-  screen.append(navBar({ title: t("team"), back: "/profile" }), grid);
+  screen.append(navBar({ title: t("team"), back: "/home" }), grid);
   api("GET", "/api/team").then(({ team }) => {
     if (!team.length) return grid.replaceChildren(h("p", { class: "empty" }, t("teamEmpty")));
     grid.replaceChildren(
@@ -1761,7 +1831,7 @@ function announcementBanner(a) {
 function viewInfo(screen) {
   const list = h("div", { class: "ann-list" }, h("div", { class: "loading" }));
   const admin = state.user.role === "admin";
-  screen.append(navBar({ title: t("announcements"), back: "/profile" }));
+  screen.append(navBar({ title: t("announcements"), back: "/home" }));
   if (admin) {
     const title = h("input", { type: "text", maxlength: 120, required: true, "aria-label": t("annTitle") });
     const body = h("textarea", { rows: 3, maxlength: 1000, "aria-label": t("annBody") });
@@ -1822,7 +1892,7 @@ function viewRequests(screen) {
   const btn = h("button", { type: "submit", class: "btn btn-filled" }, t("send"));
   const list = h("div", { class: "req-list" }, h("div", { class: "loading" }));
   screen.append(
-    navBar({ title: t("requests"), back: "/profile" }),
+    navBar({ title: t("requests"), back: "/home" }),
     h("form", { onsubmit: async (e) => {
       e.preventDefault();
       btn.disabled = true;
@@ -1927,7 +1997,7 @@ async function boot() {
     } catch {}
   }
   offlineBanner();
-  if (here() === "/" || here() === "/index.html") history.replaceState({}, "", withBase(state.user ? "/agenda" : "/welcome"));
+  if (here() === "/" || here() === "/index.html") history.replaceState({}, "", withBase(state.user ? "/home" : "/welcome"));
   render();
 }
 
