@@ -819,6 +819,7 @@ async function loadApprovals() {
     d.lcs.forEach(normalizeLc);
     return d;
 }
+route("GET", "approvals", async () => json(await loadApprovals()));
 route("POST", "approvals", async ({ req, user }) => {
     if (user.role !== "admin")
         throw new HttpError(403, "forbidden");
@@ -856,87 +857,6 @@ route("POST", "approvals/new-week", async ({ user }) => {
     await pushEvent({ at: data.updatedAt, type: "approvals" });
     return json(data);
 });
-// ------------------------------------------------------------ global ranking (core.aiesec.org.eg "Top Performance Analytics")
-// The league shows the same total ranking as that page: the first Approvals,
-// Realizations and Completes tables, rank by rank. It is fetched from there and
-// cached; if the page cannot be reached, the snapshot below is used.
-const GLOBAL_URL = "https://core.aiesec.org.eg/top-performing-lcs/";
-const REGIONS = { E: "Europe", M: "Middle East and Africa", A: "Asia Pacific", R: "Americas" };
-const GLOBAL_SNAPSHOT = {
-    apd: "KOCAELI|Turkey|E|28\nBARDO|Tunisia|M|28\nISTANBUL ASIA|Turkey|E|23\nISTANBUL|Turkey|E|23\nAlexandria|Egypt|M|21\nMEDINA|Tunisia|M|19\nGUC|Egypt|M|17\nCarthage|Tunisia|M|16\nADANA|Turkey|E|14\nCairo University|Egypt|M|13\nMumbai|India|A|13\nBURSA|Turkey|E|13\nZagazig|Egypt|M|12\n6th October University|Egypt|M|11\nJAIPUR|India|A|11\nKONYA|Turkey|E|11\nHelwan|Egypt|M|10\nBizerte|Tunisia|M|9\nBaku Synergy|Azerbaijan|E|9\nAAST In CAIRO|Egypt|M|9\nM.A.H.E.|India|A|9\nANKARA|Turkey|E|9\nHADRUMET|Tunisia|M|8\nISTANBUL WEST|Turkey|E|8\nSAKARYA|Turkey|E|8\nCOLOMBO NORTH|Sri Lanka|A|7\nMansoura|Egypt|M|7\nSIBIU|Romania|E|7\nBUCURESTI|Romania|E|7\nTacapes|Tunisia|M|7\nGAZIANTEP|Turkey|E|7\nSFAX|Tunisia|M|7\nRUHUNA|Sri Lanka|A|6\nMenofia|Egypt|M|6\nHyderabad|India|A|6\nVisakhapatnam|India|A|6\nCluj-Napoca|Romania|E|6\nİZMİR|Turkey|E|6\nCOLOMBO SOUTH|Sri Lanka|A|6\nMUST|Egypt|M|5\nChennai|India|A|4\nAUC|Egypt|M|4\nTanta|Egypt|M|4\nBaku ADA|Azerbaijan|E|4\nUSJ|Sri Lanka|A|4\nCOLOMBO CENTRAL|Sri Lanka|A|4\nRUSPINA|Tunisia|M|4\nSLIIT|Sri Lanka|A|3\nKHARKIV|Ukraine|E|3\nTIMISOARA|Romania|E|3",
-    re: "Mumbai|India|A|10\nRAJARATA|Sri Lanka|A|8\nPoliTO|Italy|E|7\nADANA|Turkey|E|7\nUNINORTE|Colombia|R|5\nKOCAELI|Turkey|E|5\nBejaia|Algeria|M|5\nLVIV|Ukraine|E|5\nTorino|Italy|E|4\nBARDO|Tunisia|M|4\nAhmedabad|India|A|4\nUNIVERSITY|Tunisia|M|4\nMEDINA|Tunisia|M|4\nHADRUMET|Tunisia|M|3\nPavia|Italy|E|3\nUGM|Indonesia|A|3\nCURITIBA|Brazil|R|3\nCOCHABAMBA|Bolivia|R|3\nKYIV|Ukraine|E|3\nCuenca|Ecuador|R|3\nGAZIANTEP|Turkey|E|3\nHo Chi Minh City|VIETNAM|A|3\nBURSA|Turkey|E|3\nLIMEIRA|Brazil|R|3\nVenezia|Italy|E|2\nBelgium (National)|Belgium|E|2\nMenofia|Egypt|M|2\nCatolica|Peru|R|2\nCarthage|Tunisia|M|2\nTrujillo|Peru|R|2\nFHN|VIETNAM|A|2\nNABEL|Tunisia|M|2\nTacapes|Tunisia|M|2\nPiraeus (UniPi)|Greece|E|2\nMC Spain [oGX National Accounts]|Spain|E|2\nMainland of China, Member Committee|Mainland of China|A|2\nSan Juan Argentina|Argentina|R|2\nHelwan|Egypt|M|2\nMaceio|Brazil|R|2\nSTRATHMORE UNIVERSITY|Kenya|M|2\nTaylor's University (TU) , Subang Jaya|Malaysia|A|2\nBRASÍLIA|Brazil|R|2\nEXTERNADO|Colombia|R|2\nJKUAT|Kenya|M|2\nISTANBUL ASIA|Turkey|E|2\nANKARA|Turkey|E|2\nTILBURG|The Netherlands|E|2\nUTP|Panama|R|2\nHanoi|VIETNAM|A|2\nWASEDA UNIVERSITY|Japan|A|2",
-    co: "ISTANBUL ASIA|Turkey|E|2\nFHCMC|VIETNAM|A|1\nJalandhar|India|A|1\nHADRUMET|Tunisia|M|1\nIPN|Mexico|R|1\nTlemcen|Algeria|M|1\nM.A.H.E.|India|A|1\nUI|Indonesia|A|1\nKOCAELI|Turkey|E|1\nUP (University of Panama)|Panama|R|1\nZagazig|Egypt|M|1",
-};
-const regionKey = (s) => Object.keys(REGIONS).find((k) => REGIONS[k].toLowerCase() === String(s).trim().toLowerCase()) || "M";
-// tables: { apd: [[name, country, regionKey, value], ...], re: ..., co: ... } in page order.
-function buildGlobal(tables, from) {
-    const byKey = new Map();
-    for (const m of METRICS)
-        (tables[m] || []).forEach(([name, country, region, v], i) => {
-            if (!v && m === "co")
-                return; // the completes table is padded with zero rows
-            const key = (name + "|" + country).toLowerCase();
-            let x = byKey.get(key);
-            if (!x) {
-                x = { id: "g" + (byKey.size + 1), name, mc: country, region, goal: 0, week: 0, p: {}, t: { apd: 0, re: 0, co: 0 }, r: {} };
-                byKey.set(key, x);
-            }
-            x.t[m] = v;
-            x.r[m] = i + 1;
-        });
-    const lcs = [...byKey.values()];
-    lcs.forEach((x) => (x.approved = x.t.apd));
-    return { source: "global", from, updatedAt: Date.now(), lcs };
-}
-const snapshotTables = () => Object.fromEntries(METRICS.map((m) => [m, GLOBAL_SNAPSHOT[m].split("\n").map((l) => {
-    const [n, c, g, v] = l.split("|");
-    return [n, c, g, Number(v)];
-})]));
-// The page is a list of tables ("Rank | Local Committee | Approvals"), rows like
-// "1 | KOCAELI (Turkey) - (Europe) | 28". Works on the HTML and on plain text.
-function parseGlobal(html) {
-    const ent = { amp: "&", lt: "<", gt: ">", quot: '"', "#039": "'", "#39": "'", nbsp: " " };
-    const text = html
-        .replace(/<\/t[dh]>/gi, " | ")
-        .replace(/<\/tr>|<br\s*\/?>/gi, "\n")
-        .replace(/<[^>]+>/g, "")
-        .replace(/&(amp|lt|gt|quot|#0?39|nbsp);/g, (_, k) => ent[k] ?? ent["#039"]);
-    const tables = {};
-    let cur = null;
-    for (const line of text.split("\n")) {
-        const head = /Rank\s*\|\s*Local Committee\s*\|\s*(Approvals|Realizations|Completes)/i.exec(line);
-        if (head) {
-            const m = { approvals: "apd", realizations: "re", completes: "co" }[head[1].toLowerCase()];
-            cur = tables[m] ? null : (tables[m] = []);
-            continue;
-        }
-        const row = /^\s*(\d+)\s*\|\s*(.+?)\s*\(([^()]+)\)\s*-\s*\(([^()]+)\)\s*\|\s*(\d+)/.exec(line);
-        if (row && cur && cur.length < 50)
-            cur.push([row[2].trim(), row[3].trim(), regionKey(row[4]), Number(row[5])]);
-    }
-    return (tables.apd?.length || 0) >= 10 && tables.re?.length && tables.co ? tables : null;
-}
-async function loadGlobal() {
-    const cached = parse(await cmd("GET", "dglobal"));
-    if (cached && Date.now() - cached.updatedAt < 6 * 3600 * 1000)
-        return cached;
-    if ((await cmd("SET", "dglobaltry", "1", "EX", 900, "NX")) !== "OK")
-        return cached || buildGlobal(snapshotTables(), "snapshot");
-    try {
-        const r = await fetch(GLOBAL_URL, { signal: AbortSignal.timeout(5000), headers: { "user-agent": "Mozilla/5.0 (EUROXPRO app)" } });
-        const tables = r.ok ? parseGlobal(await r.text()) : null;
-        if (!tables)
-            throw new Error("unparsed");
-        const data = buildGlobal(tables, "live");
-        await cmd("SET", "dglobal", JSON.stringify(data));
-        return data;
-    }
-    catch {
-        return cached || buildGlobal(snapshotTables(), "snapshot");
-    }
-}
-route("GET", "approvals", async () => json(await loadGlobal()));
-route("GET", "approvals/own", async () => json(await loadApprovals()));
 // ------------------------------------------------------------ conference store (reserve now, pay and collect at the venue)
 const STORE_SEED = [
     ["wb-azure", "Wristband · Azure", 4, "accessories", "#2E86C1", ""], ["wb-coral", "Wristband · Coral", 4, "accessories", "#F06B5B", ""],
