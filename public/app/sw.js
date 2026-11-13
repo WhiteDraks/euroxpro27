@@ -2,23 +2,23 @@
 // The app shell is saved on install so the app opens without internet.
 // API calls always go to the network; map tiles are kept in a small cache.
 const VERSION = "v1";
-const SHELL = `shell-${VERSION}`;
-const TILES = `tiles-${VERSION}`;
+const SHELL = `app-shell-${VERSION}`;
+const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
 
 const SHELL_FILES = [
-  "/",
-  "/index.html",
-  "/app.css",
-  "/app.js",
-  "/i18n.js",
-  "/places.js",
-  "/theme-init.js",
-  "/manifest.webmanifest",
-  "/icons/icon.svg",
-  "/icons/icon-192.png",
-  "/vendor/leaflet/leaflet.js",
-  "/vendor/leaflet/leaflet.css",
+  "/app/",
+  "/app/index.html",
+  "/app/app.css",
+  "/app/app.js",
+  "/app/i18n.js",
+  "/app/places.js",
+  "/app/theme-init.js",
+  "/app/manifest.webmanifest",
+  "/app/icons/icon.svg",
+  "/app/icons/icon-192.png",
+  "/app/vendor/leaflet/leaflet.js",
+  "/app/vendor/leaflet/leaflet.css",
 ];
 
 self.addEventListener("install", (e) => {
@@ -29,7 +29,7 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => ![SHELL, TILES].includes(k)).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("app-") && ![SHELL, TILES].includes(k)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -61,17 +61,17 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  if (url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
+  if (url.origin !== location.origin || url.pathname.startsWith("/api/") || !url.pathname.startsWith("/app")) return;
 
   // Pages: always the app shell (client-side routing), fresh when online.
   if (req.mode === "navigate") {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok) caches.open(SHELL).then((c) => c.put("/index.html", res.clone()));
+          if (res.ok) caches.open(SHELL).then((c) => c.put("/app/index.html", res.clone()));
           return res;
         })
-        .catch(() => caches.match("/index.html"))
+        .catch(() => caches.match("/app/index.html"))
     );
     return;
   }

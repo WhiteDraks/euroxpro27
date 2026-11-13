@@ -34,7 +34,8 @@ self.addEventListener("activate", (event) => {
     (async () => {
       const keep = [PAGES, ASSETS, IMAGES];
       for (const key of await caches.keys()) {
-        if (!keep.includes(key)) await caches.delete(key);
+        // "app-" caches belong to the delegate app's own worker (/app/sw.js).
+        if (!keep.includes(key) && !key.startsWith("app-")) await caches.delete(key);
       }
       await self.clients.claim();
     })()
@@ -88,6 +89,8 @@ async function precachePages(images) {
 function isBypassed(url) {
   return (
     url.pathname.startsWith("/admin") ||
+    url.pathname === "/app" ||
+    url.pathname.startsWith("/app/") ||
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/_vercel/") ||
     url.pathname === "/sw.js" ||

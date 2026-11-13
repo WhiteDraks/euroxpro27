@@ -1,0 +1,54 @@
+{
+  "name": "EUROXPRO'27",
+  "short_name": "EXPRO'27",
+  "description": "EUROXPRO'27 delegate app: live agenda, map and chat with automatic translation.",
+  "id": "/app/",
+  "start_url": "/app/agenda",
+  "scope": "/app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "en",
+  "categories": [
+    "events",
+    "social"
+  ],
+  "icons": [
+    {
+      "src": "/app/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/app/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/app/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/app/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agenda",
+      "url": "/app/agenda"
+    },
+    {
+      "name": "Messages",
+      "url": "/app/messages"
+    },
+    {
+      "name": "Map",
+      "url": "/app/map"
+    }
+  ]
+}

@@ -3,12 +3,15 @@ import { t, setLang, getLang, detectLang, LANGS, locale } from "./i18n.js";
 import { PLACES, CENTER } from "./places.js";
 
 const root = document.getElementById("app");
+// The app lives under /app on the congress website.
+const BASE = "/app";
+const withBase = (path) => (path.startsWith(BASE + "/") || path === BASE ? path : BASE + path);
+const here = () => location.pathname.replace(/^\/app(?=\/|$)/, "") || "/";
 const state = {
   user: null,
   agenda: null,
   conversations: null,
   unread: 0,
-  stream: null,
   installPrompt: null,
 };
 let cleanup = null; // teardown of the current view (timers, map, listeners)
@@ -22,6 +25,7 @@ function h(tag, attrs, ...children) {
     if (k === "class") el.className = v;
     else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
     else if (k === "html") el.innerHTML = v; // only used with the icon constants below
+    else if (k === "href" && attrs["data-link"] != null) el.setAttribute("href", withBase(v));
     else el.setAttribute(k, v === true ? "" : v);
   }
   for (const c of children.flat()) {
@@ -199,8 +203,9 @@ function match(pathname) {
 }
 
 function go(path, { replace = false } = {}) {
-  if (path === location.pathname) return render();
-  history[replace ? "replaceState" : "pushState"]({}, "", path);
+  const full = withBase(path);
+  if (full === location.pathname) return render();
+  history[replace ? "replaceState" : "pushState"]({}, "", full);
   render();
 }
 
@@ -215,7 +220,7 @@ window.addEventListener("popstate", () => render());
 function render() {
   if (cleanup) cleanup();
   cleanup = null;
-  const found = match(location.pathname);
+  const found = match(here());
   if (!found) return go(state.user ? "/agenda" : "/welcome", { replace: true });
   const { route, params } = found;
   if (route.guest && state.user) return go("/agenda", { replace: true });
@@ -406,7 +411,7 @@ function viewLogin(screen) {
     ],
     footer: h("p", { class: "auth-switch" }, t("noAccount") + " ", h("a", { href: "/register", "data-link": true }, t("signup"))),
     onSubmit: async (data) => {
-      const { user } = await api("POST", "/api/auth/login", data);
+      const { user } = await api("POST", "/api/app/auth/login", data);
       await afterAuth(user);
     },
   });
@@ -434,7 +439,7 @@ function viewRegister(screen) {
     ],
     footer: h("p", { class: "auth-switch" }, t("haveAccount") + " ", h("a", { href: "/login", "data-link": true }, t("login"))),
     onSubmit: async (data) => {
-      const { user } = await api("POST", "/api/auth/register", { ...data, lang });
+      const { user } = await api("POST", "/api/app/auth/register", { ...data, lang });
       await afterAuth(user);
     },
   });
@@ -445,7 +450,7 @@ function viewRegister(screen) {
 
 async function loadAgenda(force) {
   if (state.agenda && !force) return state.agenda;
-  const { agenda } = await api("GET", "/api/agenda");
+  const { agenda } = await api("GET", "/api/app/agenda");
   state.agenda = agenda;
   try {
     localStorage.setItem("agenda:" + getLang(), JSON.stringify(agenda));
@@ -683,7 +688,7 @@ function adminEditor(s) {
         e.preventDefault();
         btn.disabled = true;
         try {
-          await api("PATCH", "/api/agenda/sessions/" + s.id, { status, start: start.value, end: end.value, location: loc.value, note: note.value });
+          await api("PATCH", "/api/app/agenda/sessions/" + s.id, { status, start: start.value, end: end.value, location: loc.value, note: note.value });
           toast(t("saved"));
           await loadAgenda(true);
           window.dispatchEvent(new Event("agenda-updated"));
@@ -839,7 +844,7 @@ function viewMap(screen) {
 // ------------------------------------------------------------------ messages
 
 async function refreshConversations() {
-  const { conversations } = await api("GET", "/api/conversations");
+  const { conversations } = await api("GET", "/api/app/conversations");
   state.conversations = conversations;
   state.unread = conversations.reduce((n, c) => n + c.unread, 0);
   updateBadge();
@@ -904,7 +909,7 @@ function viewPeople(screen) {
             type: "button",
             class: "row",
             onclick: async () => {
-              const { id } = await api("POST", "/api/conversations/dm", { userId: p.id });
+              const { id } = await api("POST", "/api/app/conversations/dm", { userId: p.id });
               go("/messages/" + encodeURIComponent(id), { replace: true });
             },
           },
@@ -916,7 +921,7 @@ function viewPeople(screen) {
     );
   };
   search.addEventListener("input", draw);
-  api("GET", "/api/people").then((d) => {
+  api("GET", "/api/app/people").then((d) => {
     people = d.people;
     draw();
   }).catch((e) => toast(errText(e)));
@@ -976,9 +981,9 @@ function viewChat(screen, { id }) {
     messages.push(m);
   };
   const toBottom = () => (scroller.scrollTop = scroller.scrollHeight);
-  const markRead = () => api("POST", `/api/conversations/${encodeURIComponent(id)}/read`).then(refreshConversations).catch(() => {});
+  const markRead = () => api("POST", `/api/app/conversations/${encodeURIComponent(id)}/read`).then(refreshConversations).catch(() => {});
 
-  api("GET", `/api/conversations/${encodeURIComponent(id)}/messages`)
+  api("GET", `/api/app/conversations/${encodeURIComponent(id)}/messages`)
     .then((d) => {
       const title = isGeneral ? t("general") : d.peer?.name || "";
       header.querySelector(".nav-title").replaceChildren(
@@ -1011,7 +1016,7 @@ function viewChat(screen, { id }) {
     if (!text) return;
     sendBtn.disabled = true;
     try {
-      const { message } = await api("POST", `/api/conversations/${encodeURIComponent(id)}/messages`, { text });
+      const { message } = await api("POST", `/api/app/conversations/${encodeURIComponent(id)}/messages`, { text });
       scroller.querySelector(".chat-empty")?.remove();
       append(message, true);
       input.value = "";
@@ -1039,39 +1044,54 @@ function viewChat(screen, { id }) {
 
 // ------------------------------------------------------------------ live stream
 
-function startStream() {
-  if (state.stream || !window.EventSource) return;
-  const es = new EventSource("/api/stream");
-  state.stream = es;
-  es.addEventListener("message", (e) => {
-    const m = JSON.parse(e.data);
-    window.dispatchEvent(new CustomEvent("chat-message", { detail: m }));
-    const viewing = location.pathname === "/messages/" + encodeURIComponent(m.conv);
-    if (!viewing && m.from !== state.user?.id) {
-      refreshConversations().then(() => window.dispatchEvent(new Event("conversations-updated"))).catch(() => {});
-    }
-  });
-  es.addEventListener("agenda", async (e) => {
-    const info = JSON.parse(e.data || "{}");
-    if (info.lang && info.lang !== state.user?.lang) return; // translations for others
+// Vercel functions can't keep a connection open, so the app asks the
+// server for news every few seconds while it is on screen.
+const POLL_MS = 4000;
+let pollTimer = null;
+let syncSince = 0;
+
+async function poll() {
+  clearTimeout(pollTimer);
+  if (!state.user) return;
+  if (document.visibilityState === "visible" && navigator.onLine) {
     try {
-      await loadAgenda(true);
-      window.dispatchEvent(new Event("agenda-updated"));
-      if (info.sessionId && location.pathname.startsWith("/agenda")) toast(t("updatedLive"));
-    } catch {}
-  });
-  es.onerror = () => {
-    if (es.readyState === EventSource.CLOSED) {
-      state.stream = null;
-      setTimeout(() => state.user && startStream(), 5000);
+      const d = await api("GET", "/api/app/sync?since=" + syncSince);
+      syncSince = d.now;
+      let refreshList = false;
+      for (const m of d.messages) {
+        window.dispatchEvent(new CustomEvent("chat-message", { detail: m }));
+        const viewing = here() === "/messages/" + encodeURIComponent(m.conv) || here() === "/messages/" + m.conv;
+        if (!viewing && m.from !== state.user?.id) refreshList = true;
+      }
+      if (refreshList) refreshConversations().then(() => window.dispatchEvent(new Event("conversations-updated"))).catch(() => {});
+      if (d.agenda) {
+        await loadAgenda(true);
+        window.dispatchEvent(new Event("agenda-updated"));
+        if (d.agendaChange && here().startsWith("/agenda")) toast(t("updatedLive"));
+      }
+    } catch (e) {
+      if (e.status === 401) {
+        state.user = null;
+        return go("/welcome", { replace: true });
+      }
     }
-  };
+  }
+  pollTimer = setTimeout(poll, POLL_MS);
+}
+
+function startStream() {
+  syncSince = Date.now();
+  poll();
 }
 
 function stopStream() {
-  state.stream?.close();
-  state.stream = null;
+  clearTimeout(pollTimer);
+  pollTimer = null;
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && state.user) poll();
+});
 
 // ------------------------------------------------------------------ profile
 
@@ -1127,7 +1147,7 @@ function viewProfile(screen) {
         onsubmit: async (e) => {
           e.preventDefault();
           try {
-            const { user } = await api("PATCH", "/api/me", { name: nameIn.value, entity: entityIn.value });
+            const { user } = await api("PATCH", "/api/app/me", { name: nameIn.value, entity: entityIn.value });
             state.user = user;
             toast(t("saved"));
             render();
@@ -1154,7 +1174,7 @@ function viewProfile(screen) {
         { class: "field field-stack" },
         segmented(LANGS.map((l) => [l.code, l.label]), u.lang, async (lang) => {
           try {
-            const { user } = await api("PATCH", "/api/me", { lang });
+            const { user } = await api("PATCH", "/api/app/me", { lang });
             state.user = user;
             setLang(lang);
             state.agenda = null;
@@ -1192,7 +1212,7 @@ function viewProfile(screen) {
           type: "button",
           class: "row row-action row-destructive",
           onclick: async () => {
-            await api("POST", "/api/auth/logout").catch(() => {});
+            await api("POST", "/api/app/auth/logout").catch(() => {});
             stopStream();
             Object.assign(state, { user: null, agenda: null, conversations: null, unread: 0 });
             go("/welcome", { replace: true });
@@ -1224,7 +1244,7 @@ async function boot() {
   applyTheme(getThemePref());
   setLang(detectLang());
   try {
-    const { user } = await api("GET", "/api/me");
+    const { user } = await api("GET", "/api/app/me");
     state.user = user;
     setLang(user.lang);
     startStream();
@@ -1248,12 +1268,12 @@ async function boot() {
     } catch {}
   }
   offlineBanner();
-  if (location.pathname === "/" || location.pathname === "/index.html") history.replaceState({}, "", state.user ? "/agenda" : "/welcome");
+  if (here() === "/" || here() === "/index.html") history.replaceState({}, "", withBase(state.user ? "/agenda" : "/welcome"));
   render();
 }
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("/app/sw.js", { scope: "/app/" }).catch(() => {}));
 }
 
 boot();
