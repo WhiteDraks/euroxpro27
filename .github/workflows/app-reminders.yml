@@ -1,0 +1,15 @@
+# Delegate app: sends "starts in 10 minutes" push reminders.
+# The app also checks while anyone has it open; this covers quiet times.
+# Runs only in congress week to save Actions minutes.
+name: App session reminders
+on:
+  schedule:
+    - cron: "*/5 5-20 30,31 3 *"
+    - cron: "*/5 5-20 1-5 4 *"
+  workflow_dispatch:
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: curl -fsS --max-time 60 -H "authorization: Bearer ${{ secrets.APP_CRON_SECRET }}" https://app-mobile-murex.vercel.app/api/push/cron

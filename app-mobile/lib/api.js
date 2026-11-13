@@ -8,6 +8,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import seed from "./agenda-seed.js";
 import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
 import { LANGS, isLang, peekMany, providerName, translate } from "./translate.js";
+import { hasSubscription, publicKey, pushers, removeSubscription, saveSubscription, sendToUser, validSubscription } from "./push.js";
 
 // Run work after the response is sent. On Vercel the platform's request
 // context keeps the function alive until it is done (same mechanism the
@@ -308,9 +309,11 @@ route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
         throw new HttpError(403, "forbidden");
     const b = await readJson(req);
     const a = await loadAgenda();
-    const s = a.days.flatMap((d) => d.sessions).find((x) => x.id === m[1]);
+    const day = a.days.find((d) => d.sessions.some((x) => x.id === m[1]));
+    const s = day?.sessions.find((x) => x.id === m[1]);
     if (!s)
         throw new HttpError(404, "not_found");
+    const before = { status: s.status || "scheduled", start: s.start, location: s.location };
     if (b.status !== undefined) {
         if (!["scheduled", "delayed", "moved", "cancelled"].includes(String(b.status)))
             throw new HttpError(400, "bad_status");
@@ -334,6 +337,27 @@ route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
     s.updatedAt = Date.now();
     await cmd("SET", "dagenda", JSON.stringify(a));
     await pushEvent({ at: s.updatedAt, type: "agenda", sessionId: s.id });
+    // Tell the people in this session when its status, time or room changed,
+    // unless it is already over.
+    const status = s.status || "scheduled";
+    const changed = status !== before.status || s.start !== before.start || s.location !== before.location;
+    if (changed && sessionStart(day, s) + 3600000 > Date.now()) {
+        const subject = pushSubject(req);
+        background(() => notify("changes", subject, async (u) => {
+            if (!forPosition(s, u.position))
+                return null;
+            const parts = [];
+            if (status !== before.status)
+                parts.push(pt(u, status));
+            if (s.start !== before.start)
+                parts.push(pt(u, "newTime", { t: s.start }));
+            if (s.location !== before.location)
+                parts.push(pt(u, "newPlace", { l: await tr(s.location, "en", u) }));
+            if (s.note)
+                parts.push(await tr(s.note, s.noteLang || "en", u));
+            return { title: `${pt(u, "changed")}: ${short(await tr(s.title, "en", u), 70)}`, body: short(parts.join(" · ")), url: "/agenda/" + s.id, tag: "c-" + s.id };
+        }));
+    }
     return json({ ok: true });
 });
 route("GET", "people", async ({ user }) => {
@@ -406,6 +430,16 @@ route("POST", "conversations/([\\w:-]+)/messages", async ({ req, user, m }) => {
     const res = await pipe(["RPUSH", "dm:" + conv, JSON.stringify(msg)], ...(conv !== GENERAL && peer ? [["SADD", "dconvs:" + u.id, conv], ["SADD", "dconvs:" + peer.id, conv]] : []));
     await cmd("HSET", "dr:" + u.id, conv, res[0]);
     await pushEvent({ at: msg.at, type: "message", conv, msg });
+    if (conv !== GENERAL && peer && !peer.demo) {
+        // Only when the other person isn't looking at the app right now.
+        const subject = pushSubject(req);
+        background(async () => {
+            const seen = Number(await cmd("ZSCORE", "dpres", peer.id)) || 0;
+            if (Date.now() - seen < 20000)
+                return;
+            await notify("messages", subject, async (p) => ({ title: u.name, body: short(await tr(text, u.lang, p)), url: "/messages/" + encodeURIComponent(conv), tag: "m-" + conv }), [peer.id]);
+        });
+    }
     return json({ message: (await forReader(u, [msg]))[0] }, 201);
 });
 route("POST", "conversations/([\\w:-]+)/read", async ({ user, m }) => {
@@ -415,8 +449,9 @@ route("POST", "conversations/([\\w:-]+)/read", async ({ user, m }) => {
     return json({ ok: true });
 });
 // Polled by the app every few seconds. Costs one storage read when nothing changed.
-route("GET", "sync", async ({ url, user }) => {
+route("GET", "sync", async ({ req, url, user }) => {
     const u = user;
+    remindersSoon(pushSubject(req));
     const since = Number(url.searchParams.get("since")) || 0;
     // Presence for the plenary hall rides along with the poll (same round trip).
     const [rawLast] = await pipe(["GET", "devat"], ["ZADD", "dpres", Date.now(), u.id]);
@@ -487,6 +522,10 @@ route("POST", "meet/swipe", async ({ req, user }) => {
     if (match) {
         await pipe(["SADD", "dmatch:" + u.id, target.id], ["SADD", "dmatch:" + target.id, u.id]);
         await pushEvent({ at: Date.now(), type: "match", users: [u.id, target.id] });
+        if (!target.demo) {
+            const subject = pushSubject(req);
+            background(() => notify("messages", subject, (p) => ({ title: pt(p, "match"), body: pt(p, "matchBody", { n: u.name }), url: "/messages/" + encodeURIComponent(dmId(u.id, target.id)), tag: "match" }), [target.id]));
+        }
     }
     return json({ match, peer: match ? publicUser(target) : null, conv: match ? dmId(u.id, target.id) : null });
 });
@@ -566,6 +605,8 @@ route("POST", "announcements", async ({ req, user }) => {
     const a = { id: newId(), title, body: clean(b.body, 1000), deadline, lang: user.lang, by: user.name, at: Date.now() };
     await pipe(["LPUSH", "dann", JSON.stringify(a)], ["LTRIM", "dann", 0, 99]);
     await pushEvent({ at: a.at, type: "announce" });
+    const subject = pushSubject(req);
+    background(() => notify("announce", subject, async (u) => ({ title: `${pt(u, "ann")}: ${short(await tr(a.title, a.lang, u), 80)}`, body: short(await tr(a.body, a.lang, u)), url: "/info", tag: "a-" + a.id })));
     return json({ announcement: a }, 201);
 });
 route("POST", "announcements/([\\w-]+)/delete", async ({ user, m }) => {
@@ -621,8 +662,110 @@ route("POST", "requests/([\\w-]+)", async ({ req, user, m }) => {
     q.updatedAt = Date.now();
     await cmd("SET", "dq:" + q.id, JSON.stringify(q));
     await pushEvent({ at: q.updatedAt, type: "request", to: q.uid });
+    if (b.reply !== undefined && q.reply) {
+        const subject = pushSubject(req);
+        background(() => notify("messages", subject, async (p) => ({ title: pt(p, "reply"), body: short(await tr(q.reply, q.replyLang, p)), url: "/requests", tag: "q-" + q.id }), [q.uid]));
+    }
     return json({ request: q });
 });
+// ------------------------------------------------------------ push notifications
+// Kinds a delegate can turn off one by one in Profile.
+const NOTIFY_KINDS = ["sessions", "changes", "announce", "messages"];
+const notifyPrefs = (u) => Object.fromEntries(NOTIFY_KINDS.map((k) => [k, u.notify?.[k] !== false]));
+const PUSH_TEXT = {
+    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek." },
+    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here." },
+    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości." },
+};
+const pt = (u, k, vars = {}) => (PUSH_TEXT[u.lang] || PUSH_TEXT.en)[k].replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? "");
+const short = (s, n = 140) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+const tr = async (text, from, u) => (text && from !== u.lang ? (await translate(text, from, u.lang)).text : text);
+const pushSubject = (req) => process.env.PUSH_SUBJECT || `https://${req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost"}`;
+// Sends to everyone with a device who wants this kind. build(user) returns the message or null.
+async function notify(kind, subject, build, only = null) {
+    const ids = only ? only : await pushers();
+    if (!ids.length)
+        return 0;
+    const users = (await cmd("MGET", ...ids.map((x) => "du:" + x))).map((r) => parse(r)).filter((u) => u && notifyPrefs(u)[kind]);
+    let sent = 0;
+    for (let i = 0; i < users.length; i += 25) {
+        const batch = users.slice(i, i + 25);
+        const counts = await Promise.all(batch.map(async (u) => {
+            const msg = await build(u);
+            return msg ? sendToUser(u.id, msg, subject) : 0;
+        }));
+        sent += counts.reduce((a, b) => a + b, 0);
+    }
+    return sent;
+}
+const forPosition = (s, pos) => !s.audience?.length || !pos || s.audience.includes(pos);
+const sessionStart = (day, s) => Date.parse(`${day.date}T${s.start}:00+03:00`);
+// Sessions starting in the next 10 minutes. Runs from the cron route and,
+// at most once a minute, alongside the app's own polling.
+const REMIND_MS = 10 * 60000;
+async function runReminders(subject, now = Date.now()) {
+    const a = await loadAgenda();
+    let sent = 0;
+    for (const day of a.days)
+        for (const s of day.sessions) {
+            const until = sessionStart(day, s) - now;
+            if (s.status === "cancelled" || until <= 0 || until > REMIND_MS + 60000)
+                continue;
+            if ((await cmd("SET", `drem:${s.id}:${day.date}T${s.start}`, "1", "EX", 2 * 86400, "NX")) !== "OK")
+                continue;
+            sent += await notify("sessions", subject, async (u) => forPosition(s, u.position)
+                ? { title: await tr(s.title, "en", u), body: `${s.start} · ${await tr(s.location, "en", u)} · ${pt(u, "soon")}`, url: "/agenda/" + s.id, tag: "s-" + s.id }
+                : null);
+        }
+    return sent;
+}
+let remindTried = 0;
+function remindersSoon(subject) {
+    if (Date.now() - remindTried < 55000)
+        return; // per instance, so polling doesn't add a storage call every time
+    remindTried = Date.now();
+    background(async () => {
+        if ((await cmd("SET", "dremlock", "1", "EX", 55, "NX")) === "OK")
+            await runReminders(subject);
+    });
+}
+route("GET", "push", async ({ user }) => json({ key: await publicKey(), subscribed: await hasSubscription(user.id), prefs: notifyPrefs(user) }));
+route("POST", "push/subscribe", async ({ req, user }) => {
+    const b = await readJson(req);
+    if (!validSubscription(b.subscription))
+        throw new HttpError(400, "bad_subscription");
+    await saveSubscription(user.id, b.subscription);
+    return json({ ok: true });
+});
+route("POST", "push/unsubscribe", async ({ req, user }) => {
+    const b = await readJson(req);
+    if (b.endpoint)
+        await removeSubscription(user.id, b.endpoint);
+    return json({ ok: true });
+});
+route("POST", "push/prefs", async ({ req, user }) => {
+    const b = await readJson(req);
+    user.notify = { ...notifyPrefs(user) };
+    for (const k of NOTIFY_KINDS)
+        if (typeof b[k] === "boolean")
+            user.notify[k] = b[k];
+    await saveUser(user);
+    return json({ prefs: notifyPrefs(user) });
+});
+route("POST", "push/test", async ({ req, user }) => {
+    if (await limited("ptest:" + user.id, 5, 300))
+        throw new HttpError(429, "rate_limited");
+    const sent = await sendToUser(user.id, { title: pt(user, "test"), body: pt(user, "testBody"), url: "/home", tag: "test" }, pushSubject(req));
+    return json({ sent });
+});
+// Called every few minutes by a scheduler (see .github/workflows/app-reminders.yml).
+route("GET", "push/cron", async ({ req, url }) => {
+    if (process.env.CRON_SECRET && url.searchParams.get("key") !== process.env.CRON_SECRET && req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`)
+        throw new HttpError(401, "unauthorized");
+    // Testing aid outside Vercel: ?now=2027-04-01T09:52 (Antalya time).
+    const sim = !process.env.VERCEL && url.searchParams.get("now") ? Date.parse(url.searchParams.get("now") + ":00+03:00") : NaN;
+    return json({ sent: await runReminders(pushSubject(req), Number.isNaN(sim) ? Date.now() : sim) });
+}, true);
 // ------------------------------------------------------------ demo delegates
 // A couple of sample people so the directory, Meet and the plenary hall are
 // not empty while testing. They can't sign in, always like you back in Meet

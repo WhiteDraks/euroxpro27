@@ -68,6 +68,7 @@ const ICON = {
   inbox: '<svg viewBox="0 0 24 24"><path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z"/><path d="M3.5 13.5H9a3 3 0 0 0 6 0h5.5"/></svg>',
   team: '<svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>',
   share: '<svg viewBox="0 0 24 24"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg>',
+  bell: '<svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
 };
 const icon = (name, cls = "") => h("span", { class: "icon " + cls, "aria-hidden": "true", html: ICON[name] });
 
@@ -442,6 +443,7 @@ async function afterAuth(user) {
   } catch {}
   setLang(user.lang);
   startStream();
+  pushResync();
   go("/home", { replace: true });
 }
 
@@ -1645,6 +1647,7 @@ function viewProfile(screen) {
         }, t("appearance"))
       )
     ),
+    notificationSettings(),
     h("div", { class: "group group-spaced" }, installRow),
     h(
       "div",
@@ -1666,6 +1669,126 @@ function viewProfile(screen) {
     ),
     h("p", { class: "fineprint center" }, "EUROXPRO'27 · AIESEC in Türkiye")
   );
+}
+
+// ------------------------------------------------------------------ push notifications
+// Reminders 10 minutes before a session, programme changes, announcements
+// and direct messages, even when the app is closed. On iPhone this needs
+// iOS 16.4+ and the app added to the Home Screen.
+const isIos = () => /iPhone|iPad/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+
+function b64uBytes(s) {
+  const b = atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4));
+  return Uint8Array.from(b, (c) => c.charCodeAt(0));
+}
+
+// "on" | "off" | "denied" | "ios-install" | "unsupported"
+async function pushStatus() {
+  if (!pushSupported()) return isIos() && !isStandalone() ? "ios-install" : "unsupported";
+  if (Notification.permission === "denied") return "denied";
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    return sub && Notification.permission === "granted" ? "on" : "off";
+  } catch {
+    return "unsupported";
+  }
+}
+
+async function pushSubscribe() {
+  if (!pushSupported()) throw Object.assign(new Error("push_unsupported"), { code: "push_unsupported" });
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw Object.assign(new Error("push_denied"), { code: "push_denied" });
+  const reg = await navigator.serviceWorker.ready;
+  const { key } = await api("GET", "/api/push");
+  const want = b64uBytes(key);
+  let sub = await reg.pushManager.getSubscription();
+  const have = sub?.options?.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+  if (sub && (!have || have.length !== want.length || have.some((b, i) => b !== want[i]))) {
+    await sub.unsubscribe().catch(() => {});
+    sub = null;
+  }
+  sub ||= await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: want });
+  await api("POST", "/api/push/subscribe", { subscription: sub.toJSON() });
+}
+
+async function pushUnsubscribe() {
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (!sub) return;
+  await api("POST", "/api/push/unsubscribe", { endpoint: sub.endpoint }).catch(() => {});
+  await sub.unsubscribe().catch(() => {});
+}
+
+// After signing in, make sure the server knows this device (it may have been
+// subscribed under another account, or the server lost it).
+async function pushResync() {
+  if ((await pushStatus()) !== "on") return;
+  try {
+    const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+    await api("POST", "/api/push/subscribe", { subscription: sub.toJSON() });
+  } catch {}
+}
+
+const pushErrText = (e) => (e.code === "push_denied" ? t("pushDenied") : e.code === "push_unsupported" ? t("pushUnsupported") : errText(e));
+
+function notificationSettings() {
+  const wrap = h("div", {});
+  const draw = async () => {
+    const st = await pushStatus();
+    let prefs = null;
+    if (st === "on") prefs = (await api("GET", "/api/push").catch(() => ({}))).prefs || null;
+    const master = h("input", { type: "checkbox", class: "switch", role: "switch", "aria-label": t("pushTitle") });
+    master.checked = st === "on";
+    master.disabled = st === "unsupported" || st === "ios-install" || st === "denied";
+    master.addEventListener("change", async () => {
+      master.disabled = true;
+      try {
+        if (master.checked) {
+          await pushSubscribe();
+          toast(t("pushOn"));
+        } else await pushUnsubscribe();
+      } catch (err) {
+        toast(pushErrText(err));
+      }
+      draw();
+    });
+    const rows = [h("label", { class: "field switch-row" }, h("span", { class: "field-label" }, icon("bell", "inline-icon"), t("pushTitle")), master)];
+    if (st === "on" && prefs) {
+      for (const k of ["sessions", "changes", "announce", "messages"]) {
+        const sw = h("input", { type: "checkbox", class: "switch", role: "switch", "aria-label": t("push_" + k) });
+        sw.checked = prefs[k] !== false;
+        sw.addEventListener("change", () => api("POST", "/api/push/prefs", { [k]: sw.checked }).catch((err) => toast(errText(err))));
+        rows.push(h("label", { class: "field switch-row" }, h("span", { class: "field-label sub" }, t("push_" + k)), sw));
+      }
+      rows.push(
+        h("button", { type: "button", class: "row row-action", onclick: async () => {
+          try {
+            const { sent } = await api("POST", "/api/push/test");
+            toast(sent ? t("pushTestSent") : t("pushTestNone"));
+          } catch (err) {
+            toast(errText(err));
+          }
+        } }, h("span", { class: "row-text" }, h("span", { class: "row-value tint" }, t("pushTest"))))
+      );
+    }
+    const hint = { "ios-install": t("pushIosHint"), unsupported: t("pushUnsupported"), denied: t("pushDenied"), off: t("pushHint"), on: t("pushHint") }[st];
+    wrap.replaceChildren(h("h2", { class: "group-header" }, t("notifications")), h("div", { class: "group" }, rows), h("p", { class: "group-footer" }, hint));
+  };
+  draw();
+  return wrap;
+}
+
+if ("serviceWorker" in navigator) {
+  // A tapped notification while the app is open: go to its page.
+  navigator.serviceWorker.addEventListener("message", (e) => {
+    if (e.data?.type === "open" && e.data.url) {
+      const u = new URL(e.data.url, location.origin);
+      if (u.origin === location.origin) go(u.pathname + u.search);
+    }
+  });
 }
 
 // ------------------------------------------------------------------ home
@@ -1741,8 +1864,43 @@ function viewHome(screen) {
   reqT.sub.textContent = t("requestsHint");
   mapT.sub.textContent = t("mapTile");
 
+  const nudge = h("div", { class: "push-nudge-slot" });
+  pushStatus().then((st) => {
+    let dismissed = false;
+    try {
+      dismissed = localStorage.getItem("pushNudge") === "off";
+    } catch {}
+    if (dismissed || !["off", "ios-install"].includes(st)) return;
+    const close = () => {
+      try {
+        localStorage.setItem("pushNudge", "off");
+      } catch {}
+      nudge.replaceChildren();
+    };
+    const card = h(
+      "div",
+      { class: "push-nudge" },
+      icon("bell", "push-nudge-icon"),
+      h("div", { class: "push-nudge-text" }, h("strong", {}, t("pushNudgeTitle")), h("span", {}, st === "ios-install" ? t("pushIosHint") : t("pushNudgeBody"))),
+      st === "off"
+        ? h("button", { type: "button", class: "btn btn-small", onclick: async () => {
+            try {
+              await pushSubscribe();
+              toast(t("pushOn"));
+              close();
+            } catch (err) {
+              toast(pushErrText(err));
+            }
+          } }, t("pushTurnOn"))
+        : null,
+      h("button", { type: "button", class: "icon-btn push-nudge-x", "aria-label": t("close"), onclick: close }, icon("xmark"))
+    );
+    nudge.replaceChildren(card);
+  });
+
   screen.append(
     hero,
+    nudge,
     h("div", { class: "bento" }, [agendaT, peopleT, hallT, meetT, teamT, annT, reqT, mapT].map((x, i) => {
       x.el.style.setProperty("--i", i);
       return x.el;
@@ -2079,6 +2237,7 @@ async function boot() {
     state.user = user;
     setLang(user.lang);
     startStream();
+    pushResync();
     refreshConversations().catch(() => {});
   } catch (e) {
     // Offline but signed in before: keep the last known profile so the
