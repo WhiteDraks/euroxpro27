@@ -7,6 +7,7 @@ A separate web app for delegates that can be added to the home screen. It lives 
 - **Meet:** Tinder-style cards. Swipe right to like, left to pass. When two people like each other it's a match and a private chat opens.
 - **Plenary:** an empty hall where small avatars of everyone signed in (last 30 seconds) wander around. Tap someone to message them.
 - **Profile:** emoji avatar, short bio (translated for the reader), and a switch to show or hide yourself in Meet.
+- **Congress (in Profile):** announcements with deadlines (the nearest one shows on the agenda), a delegate directory filtered by position (MCPc, MCPe, MCVP, LCP, LCVP), the CC Team page (organizers set their team title in Profile), and requests and complaints that only organizers see, with replies. Organizers can tag agenda sessions for certain positions, and delegates can switch to "My programme".
 - **Chat:** a general room and one-to-one messages. Each message is translated into the reader's language automatically.
 - **Languages:** Turkish, English and Polish. Polish plurals are handled.
 - **Sign-in:** email and password only.
