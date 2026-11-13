@@ -77,6 +77,35 @@ function memCmd(args) {
         }
         case "SMEMBERS":
             return v instanceof Set ? [...v] : [];
+        case "SISMEMBER":
+            return v instanceof Set && v.has(rest[0]) ? 1 : 0;
+        case "ZADD": {
+            const z = v && v.zset ? v : { zset: new Map() };
+            for (let i = 0; i < rest.length; i += 2)
+                z.zset.set(rest[i + 1], Number(rest[i]));
+            mem.data.set(key, z);
+            return 1;
+        }
+        case "ZRANGEBYSCORE": {
+            if (!v || !v.zset)
+                return [];
+            const lo = rest[0] === "-inf" ? -Infinity : Number(rest[0]);
+            const hi = rest[1] === "+inf" ? Infinity : Number(rest[1]);
+            return [...v.zset].filter(([, sc]) => sc >= lo && sc <= hi).sort((a, b) => a[1] - b[1]).map(([m]) => m);
+        }
+        case "ZREMRANGEBYSCORE": {
+            if (!v || !v.zset)
+                return 0;
+            const lo = rest[0] === "-inf" ? -Infinity : Number(rest[0]);
+            const hi = Number(rest[1]);
+            let n = 0;
+            for (const [m, sc] of v.zset)
+                if (sc >= lo && sc <= hi) {
+                    v.zset.delete(m);
+                    n++;
+                }
+            return n;
+        }
         case "RPUSH":
         case "LPUSH": {
             const l = Array.isArray(v) ? v : [];

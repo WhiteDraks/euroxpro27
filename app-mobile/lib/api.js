@@ -90,8 +90,10 @@ async function readJson(req) {
         throw new HttpError(400, "bad_json");
     }
 }
-const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role });
-const me = (u) => ({ ...publicUser(u), email: u.email });
+// Small set of avatar emojis people can pick in their profile.
+const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", "🦁", "🐯", "🐬", "🦉", "🌞", "🌊", "🌴", "🍉", "☕", "🎧", "🎨", "⚽", "🚀", "🌍", "🌷", "🧿"];
+const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "" });
+const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false });
 async function getUser(id) {
     return parse(await cmd("GET", "du:" + id));
 }
@@ -267,6 +269,14 @@ route("PATCH", "me", async ({ req, user }) => {
         u.entity = clean(b.entity, 60);
     if (isLang(b.lang))
         u.lang = b.lang;
+    if (b.emoji !== undefined)
+        u.emoji = EMOJIS.includes(String(b.emoji)) ? String(b.emoji) : "";
+    if (b.bio !== undefined) {
+        u.bio = clean(b.bio, 160);
+        u.bioLang = u.lang;
+    }
+    if (b.meet !== undefined)
+        u.meet = Boolean(b.meet);
     await saveUser(u);
     return json({ user: me(u) });
 });
@@ -384,9 +394,11 @@ route("POST", "conversations/([\\w:-]+)/read", async ({ user, m }) => {
 route("GET", "sync", async ({ url, user }) => {
     const u = user;
     const since = Number(url.searchParams.get("since")) || 0;
-    const lastAt = Number(await cmd("GET", "devat")) || 0;
+    // Presence for the plenary hall rides along with the poll (same round trip).
+    const [rawLast] = await pipe(["GET", "devat"], ["ZADD", "dpres", Date.now(), u.id]);
+    const lastAt = Number(rawLast) || 0;
     if (!since || lastAt <= since)
-        return json({ now: Math.max(lastAt, since || Date.now()), messages: [], agenda: false });
+        return json({ now: Math.max(lastAt, since || Date.now()), messages: [], agenda: false, matches: [] });
     const events = (await cmd("LRANGE", "dev", 0, 99))
         .map((r) => parse(r))
         .filter((e) => !!e && e.at > since)
@@ -394,7 +406,72 @@ route("GET", "sync", async ({ url, user }) => {
     const msgs = events.filter((e) => e.type === "message" && e.msg && canSee(u, e.msg.conv)).map((e) => e.msg);
     const agenda = events.some((e) => e.type === "agenda" && (!e.lang || e.lang === u.lang));
     const agendaChange = events.some((e) => e.type === "agenda" && e.sessionId);
-    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange });
+    const matches = events.filter((e) => e.type === "match" && e.users?.includes(u.id)).map((e) => e.users.find((x) => x !== u.id));
+    const matchUsers = (await Promise.all(matches.map(getUser))).filter(Boolean).map(publicUser);
+    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers });
+});
+// ------------------------------------------------------------ meet (swipe to get to know people)
+async function usersByIds(ids) {
+    if (!ids.length)
+        return [];
+    const raw = await cmd("MGET", ...ids.map((x) => "du:" + x));
+    return raw.map((r) => parse(r)).filter(Boolean);
+}
+async function withBio(reader, users) {
+    const bios = await peekMany(users.map((x) => ({ text: x.bio || "", from: x.bioLang || x.lang })), reader.lang);
+    return Promise.all(users.map(async (x, i) => {
+        const out = { ...publicUser(x), bio: x.bio || "", bioTranslated: false };
+        const from = x.bioLang || x.lang;
+        if (!x.bio || from === reader.lang)
+            return out;
+        const tr = bios[i] != null ? { text: bios[i], translated: true } : await translate(x.bio, from, reader.lang);
+        return { ...out, bio: tr.text, bioOriginal: x.bio, bioTranslated: tr.translated };
+    }));
+}
+route("GET", "meet/deck", async ({ user }) => {
+    const u = user;
+    const [all, swiped] = await pipe(["SMEMBERS", "dusers"], ["SMEMBERS", "dsw:" + u.id]);
+    const seen = new Set(swiped);
+    const ids = all.filter((x) => x !== u.id && !seen.has(x));
+    // Shuffle, then take a small batch.
+    for (let i = ids.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    const users = (await usersByIds(ids.slice(0, 40))).filter((x) => x.meet !== false).slice(0, 15);
+    return json({ deck: await withBio(u, users) });
+});
+route("GET", "meet/matches", async ({ user }) => {
+    const ids = await cmd("SMEMBERS", "dmatch:" + user.id);
+    const users = (await usersByIds(ids)).map(publicUser);
+    return json({ matches: users.map((p) => ({ ...p, conv: dmId(user.id, p.id) })) });
+});
+route("POST", "meet/swipe", async ({ req, user }) => {
+    const u = user;
+    const b = await readJson(req);
+    const target = typeof b.userId === "string" ? await getUser(b.userId) : null;
+    if (!target || target.id === u.id)
+        throw new HttpError(404, "not_found");
+    if (await limited("swipe:" + u.id, 120, 60))
+        throw new HttpError(429, "rate_limited");
+    const like = Boolean(b.like);
+    const res = await pipe(["SADD", "dsw:" + u.id, target.id], ...(like ? [["SADD", "dlk:" + u.id, target.id], ["SISMEMBER", "dlk:" + target.id, u.id]] : []));
+    const match = like && res[2] === 1;
+    if (match) {
+        await pipe(["SADD", "dmatch:" + u.id, target.id], ["SADD", "dmatch:" + target.id, u.id]);
+        await pushEvent({ at: Date.now(), type: "match", users: [u.id, target.id] });
+    }
+    return json({ match, peer: match ? publicUser(target) : null, conv: match ? dmId(u.id, target.id) : null });
+});
+// ------------------------------------------------------------ plenary hall (who is in the app right now)
+const ONLINE_MS = 30000;
+route("GET", "plenary", async ({ user }) => {
+    const now = Date.now();
+    const [, , ids] = await pipe(["ZADD", "dpres", now, user.id], ["ZREMRANGEBYSCORE", "dpres", "-inf", now - 10 * 60000], ["ZRANGEBYSCORE", "dpres", now - ONLINE_MS, "+inf"]);
+    if (!ids.includes(user.id))
+        ids.push(user.id);
+    const people = (await usersByIds(ids.slice(-150))).map(publicUser);
+    return json({ people });
 });
 // ------------------------------------------------------------ dispatcher
 function sameOrigin(req) {
