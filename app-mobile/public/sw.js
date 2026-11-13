@@ -1,7 +1,7 @@
 // EUROXPRO'27 app — offline support.
 // The app shell is saved on install so the app opens without internet.
 // API calls always go to the network; map tiles are kept in a small cache.
-const VERSION = "v5";
+const VERSION = "v6";
 const SHELL = `app-shell-${VERSION}`;
 const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
@@ -87,6 +87,43 @@ self.addEventListener("fetch", (e) => {
         })
         .catch(() => hit);
       return hit || fresh;
+    })
+  );
+});
+
+// ------------------------------------------------------------ push notifications
+// The server sends {title, body, url, tag}; tapping opens that page.
+self.addEventListener("push", (e) => {
+  let d = {};
+  try {
+    d = e.data ? e.data.json() : {};
+  } catch {
+    d = { body: e.data ? e.data.text() : "" };
+  }
+  e.waitUntil(
+    self.registration.showNotification(d.title || "EUROXPRO'27", {
+      body: d.body || "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: d.tag || undefined,
+      renotify: Boolean(d.tag),
+      data: { url: d.url || "/home" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || "/home", self.location.origin).href;
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if (new URL(c.url).origin === self.location.origin && "focus" in c) {
+          c.postMessage({ type: "open", url });
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(url);
     })
   );
 });

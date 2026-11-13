@@ -86,6 +86,10 @@ function memCmd(args) {
             mem.data.set(key, z);
             return 1;
         }
+        case "ZSCORE": {
+            const sc = v && v.zset ? v.zset.get(rest[0]) : undefined;
+            return sc === undefined ? null : String(sc);
+        }
         case "ZRANGEBYSCORE": {
             if (!v || !v.zset)
                 return [];
@@ -135,6 +139,14 @@ function memCmd(args) {
                 m.set(rest[i], rest[i + 1]);
             mem.data.set(key, m);
             return 1;
+        }
+        case "HDEL": {
+            if (!(v instanceof Map))
+                return 0;
+            let n = 0;
+            for (const f of rest)
+                n += v.delete(f) ? 1 : 0;
+            return n;
         }
         default:
             throw new Error("memory kv: unsupported " + c);
