@@ -137,7 +137,7 @@ async function forReader(u, msgs) {
         if (!needs[i])
             return { ...base, text: m.text, translated: false };
         if (cached[i])
-            return { ...base, text: cached[i], translated: true };
+            return { ...base, text: cached[i], translated: cached[i] !== m.text };
         const r = await translate(m.text, m.lang, u.lang);
         return { ...base, text: r.text, translated: r.translated };
     }));
@@ -174,7 +174,7 @@ async function agendaFor(lang) {
         const text = items[i].text;
         if (!text || f.from === lang)
             return;
-        if (hits[i] != null) {
+        if (hits[i] != null && hits[i] !== text) {
             f.obj[f.key + "Original"] = text;
             f.obj[f.key] = hits[i];
         }
@@ -451,7 +451,7 @@ async function withBio(reader, users) {
         const from = x.bioLang || x.lang;
         if (!x.bio || from === reader.lang)
             return out;
-        const tr = bios[i] != null ? { text: bios[i], translated: true } : await translate(x.bio, from, reader.lang);
+        const tr = bios[i] != null ? { text: bios[i], translated: bios[i] !== x.bio } : await translate(x.bio, from, reader.lang);
         return { ...out, bio: tr.text, bioOriginal: x.bio, bioTranslated: tr.translated };
     }));
 }
@@ -543,7 +543,7 @@ async function translatedFields(reader, items, keys) {
     await Promise.all(flat.map(async (f, i) => {
         if (!f.text || f.from === reader.lang)
             return;
-        const tr = hits[i] != null ? { text: hits[i], translated: true } : await translate(f.text, f.from, reader.lang);
+        const tr = hits[i] != null ? { text: hits[i], translated: hits[i] !== f.text } : await translate(f.text, f.from, reader.lang);
         if (tr.translated) {
             f.it[f.k + "Original"] = f.text;
             f.it[f.k] = tr.text;
