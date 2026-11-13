@@ -12,8 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Delegate app: its own Vercel project (see delegate-app/README.md).
-    "delegate-app/**",
+    // Delegate app: its own Vercel project (see app-mobile/README.md).
+    "app-mobile/**",
   ]),
 ]);
 
