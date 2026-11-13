@@ -368,6 +368,8 @@ function wordmark() {
 function viewWelcome(screen) {
   screen.classList.add("welcome");
   screen.append(
+    h("img", { class: "welcome-img", src: HERO_IMG, alt: "", decoding: "async", fetchpriority: "high" }),
+    h("div", { class: "welcome-shade" }),
     h("div", { class: "welcome-top" }, langSwitch(render)),
     h(
       "div",
@@ -1668,31 +1670,131 @@ function viewProfile(screen) {
 
 // ------------------------------------------------------------------ home
 // Like the 2024 app's main page: one big button per area of the congress.
+// Kaleiçi harbour, the same photo the website opens with.
+const HERO_IMG = "https://images.unsplash.com/photo-1654162115137-4f083a2ac627?auto=format&fit=crop&w=1200&q=70";
+const CONGRESS_START = Date.parse("2027-03-31T10:00:00+03:00");
+
+function countdownParts(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return [Math.floor(s / 86400), Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60];
+}
+
 function viewHome(screen) {
   const u = state.user;
-  const big = (href, ic, label, sub, filled) =>
-    h("a", { href, "data-link": true, class: "home-btn" + (filled ? " filled" : "") }, icon(ic, "home-ic"), h("span", { class: "home-text" }, h("span", { class: "home-label" }, label), sub ? h("span", { class: "home-sub" }, sub) : null), icon("chevron", "row-chevron"));
-  const tile = (href, ic, label) => h("a", { href, "data-link": true, class: "home-tile" }, icon(ic, "home-ic"), h("span", {}, label));
-  const banner = h("div");
-  latestAnnouncement().then((a) => a && banner.replaceChildren(announcementBanner(a))).catch(() => {});
-  screen.append(
-    h("header", { class: "home-head" }, wordmark(), h("a", { href: "/profile", "data-link": true, class: "home-me", "aria-label": t("tabProfile") }, avatar(u))),
-    h("p", { class: "home-hello" }, t("hello", { name: u.name.split(" ")[0] })),
-    banner,
-    h(
-      "nav",
-      { class: "home-list", "aria-label": t("tabHome") },
-      big("/agenda", "agenda", t("tabAgenda"), t("homeAgendaSub"), true),
-      big("/people", "people", t("directory"), t("directoryHint")),
-      big("/team", "team", t("team"), t("teamHint"), true),
-      big("/requests", "inbox", t("requests"), t("requestsHint")),
-      big("/info", "megaphone", t("announcements"), t("announcementsHint"), true)
-    ),
-    h("div", { class: "home-tiles" }, tile("/plenary", "plenary", t("tabPlenary")), tile("/meet", "meet", t("tabMeet")), tile("/map", "map", t("tabMap")))
+  screen.classList.add("home");
+  const cleanups = [];
+
+  // Hero: photo of Antalya with a live countdown, or what's on during the congress.
+  const heroBody = h("div", { class: "hero-body" });
+  const hero = h(
+    "section",
+    { class: "hero" },
+    h("img", { class: "hero-img", src: HERO_IMG, alt: "", decoding: "async", fetchpriority: "high" }),
+    h("div", { class: "hero-shade" }),
+    h("div", { class: "hero-top" }, wordmark(), h("a", { href: "/profile", "data-link": true, class: "home-me", "aria-label": t("tabProfile") }, avatar(u))),
+    heroBody
   );
-  const onAnn = () => latestAnnouncement().then((a) => banner.replaceChildren(a ? announcementBanner(a) : "")).catch(() => {});
-  window.addEventListener("announcements-updated", onAnn);
-  return () => window.removeEventListener("announcements-updated", onAnn);
+  const units = ["cdDays", "cdHours", "cdMin", "cdSec"];
+  const cells = units.map(() => h("span", { class: "cd-num" }, "0"));
+  const drawHero = () => {
+    const now = nowMs();
+    if (now < CONGRESS_START) {
+      if (!heroBody.querySelector(".cd")) {
+        heroBody.replaceChildren(
+          h("p", { class: "hero-hello" }, t("hello", { name: u.name.split(" ")[0] })),
+          h("p", { class: "hero-kicker" }, t("untilCongress")),
+          h("div", { class: "cd" }, units.map((k, i) => h("span", { class: "cd-cell" }, cells[i], h("span", { class: "cd-unit" }, t(k))))),
+          h("p", { class: "hero-sub" }, t("dates"))
+        );
+      }
+      countdownParts(CONGRESS_START - now).forEach((v, i) => (cells[i].textContent = i ? String(v).padStart(2, "0") : v));
+    } else {
+      const agenda = state.agenda || cachedAgenda();
+      heroBody.replaceChildren(h("p", { class: "hero-hello" }, t("hello", { name: u.name.split(" ")[0] })), agenda ? liveCard(agenda) : h("p", { class: "hero-sub" }, t("dates")));
+    }
+  };
+  drawHero();
+  const tick = setInterval(drawHero, 1000);
+  cleanups.push(() => clearInterval(tick));
+
+  // Tiles fill in with live numbers as they arrive.
+  const tile = (href, ic, label, cls = "") => {
+    const sub = h("span", { class: "tile-sub" });
+    const extra = h("span", { class: "tile-extra" });
+    const el = h("a", { href, "data-link": true, class: "tile " + cls }, h("span", { class: "tile-head" }, icon(ic, "tile-ic"), icon("chevron", "tile-go")), extra, h("span", { class: "tile-label" }, label), sub);
+    return { el, sub, extra };
+  };
+  const agendaT = tile("/agenda", "agenda", t("tabAgenda"), "wide accent");
+  const peopleT = tile("/people", "people", t("directory"));
+  const hallT = tile("/plenary", "plenary", t("tabPlenary"), "dark");
+  const meetT = tile("/meet", "meet", t("tabMeet"), "accent-soft");
+  const annT = tile("/info", "megaphone", t("announcements"), "wide");
+  const teamT = tile("/team", "team", t("team"));
+  const reqT = tile("/requests", "inbox", t("requests"));
+  const mapT = tile("/map", "map", t("tabMap"));
+  agendaT.sub.textContent = t("homeAgendaSub");
+  peopleT.sub.textContent = t("directoryHint");
+  hallT.sub.textContent = t("plenaryTile");
+  meetT.sub.textContent = t("meetTile");
+  annT.sub.textContent = t("announcementsHint");
+  teamT.sub.textContent = t("teamHint");
+  reqT.sub.textContent = t("requestsHint");
+  mapT.sub.textContent = t("mapTile");
+
+  screen.append(
+    hero,
+    h("div", { class: "bento" }, [agendaT, peopleT, hallT, meetT, teamT, annT, reqT, mapT].map((x, i) => {
+      x.el.style.setProperty("--i", i);
+      return x.el;
+    }))
+  );
+
+  // Next session for the agenda tile.
+  const nextSession = (agenda) => {
+    const now = nowMs();
+    const up = allSessions(agenda).filter((x) => x.s.status !== "cancelled" && x.end > now).sort((a, b) => a.start - b.start)[0];
+    if (!up) return;
+    agendaT.extra.replaceChildren(h("span", { class: "tile-big" }, up.s.title), h("span", { class: "tile-meta" }, `${fmtDay(up.day.date, { weekday: "short", day: "numeric", month: "short" })} · ${up.s.start} · ${up.s.location}`));
+    agendaT.sub.textContent = "";
+  };
+  const cachedA = state.agenda || cachedAgenda();
+  if (cachedA) nextSession(cachedA);
+  loadAgenda().then(nextSession).catch(() => {});
+
+  // Faces of a few delegates and how many there are.
+  api("GET", "/api/people").then(({ people }) => {
+    const faces = people.slice(0, 4).map((p) => avatar(p, "face"));
+    peopleT.extra.replaceChildren(h("span", { class: "faces" }, faces), h("span", { class: "tile-num" }, String(people.length + 1)));
+  }).catch(() => {});
+
+  // Matches so far for the Meet tile.
+  api("GET", "/api/meet/matches").then(({ matches }) => {
+    if (!matches.length) return;
+    meetT.extra.replaceChildren(h("span", { class: "faces" }, matches.slice(0, 4).map((p) => avatar(p, "face"))), h("span", { class: "tile-num" }, String(matches.length)));
+    meetT.sub.textContent = t("matchesCount", { n: matches.length });
+  }).catch(() => {});
+
+  // How many people are in the hall right now, with tiny figures.
+  const hallCount = () =>
+    api("GET", "/api/plenary").then(({ people }) => {
+      hallT.extra.replaceChildren(h("span", { class: "mini-hall" }, people.slice(0, 6).map((p) => figure(p))), h("span", { class: "tile-num" }, String(people.length)));
+      hallT.sub.textContent = t("inHall", { n: people.length });
+    }).catch(() => {});
+  hallCount();
+  const hallTimer = setInterval(() => document.visibilityState === "visible" && hallCount(), 15000);
+  cleanups.push(() => clearInterval(hallTimer));
+
+  const drawAnn = () =>
+    latestAnnouncement().then((a) => {
+      if (!a) return;
+      annT.extra.replaceChildren(h("span", { class: "tile-big" }, a.title), a.deadline ? h("span", { class: "tile-meta strong" }, deadlineText(a)) : null);
+      annT.sub.textContent = "";
+    }).catch(() => {});
+  drawAnn();
+  window.addEventListener("announcements-updated", drawAnn);
+  cleanups.push(() => window.removeEventListener("announcements-updated", drawAnn));
+
+  return () => cleanups.forEach((f) => f());
 }
 
 // ------------------------------------------------------------------ congress modules
