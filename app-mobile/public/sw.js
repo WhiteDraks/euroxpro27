@@ -1,7 +1,7 @@
 // EUROXPRO'27 app — offline support.
 // The app shell is saved on install so the app opens without internet.
 // API calls always go to the network; map tiles are kept in a small cache.
-const VERSION = "v6";
+const VERSION = "v7";
 const SHELL = `app-shell-${VERSION}`;
 const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
