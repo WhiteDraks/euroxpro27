@@ -2328,3 +2328,30 @@ ol.group { list-style: none; margin: 0; padding: 0; }
 .appr-line, .appr-meta, .podium-val, .league-nums, .lb-line, .lb-pct, .race-num { display: none; }
 .race-row { grid-template-columns: clamp(26px, 3vw, 46px) minmax(110px, 22%) 1fr; }
 .podium-sub { margin-bottom: 6px; }
+
+/* Store: my reservations and the organizers' list */
+.store-link { display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 14px 16px; border-radius: 16px; background: var(--card); color: inherit; text-decoration: none; }
+.store-link > svg { flex: none; width: 22px; height: 22px; }
+.store-link > svg:last-child { width: 16px; height: 16px; opacity: 0.4; }
+.store-link .row-text { flex: 1; }
+.store-cta { display: block; width: fit-content; margin: 0 auto; }
+.res-sum { display: flex; flex-direction: column; gap: 4px; margin: 14px 0 0; padding: 18px; border-radius: 20px; color: #fff; background: linear-gradient(160deg, #1f4d6b 0%, #2e86c1 60%, #4db6a0 100%); }
+.res-sum strong { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+.res-sum span:last-child { font-size: 14px; opacity: 0.85; }
+.res-card { margin: 12px 0 0; padding: 14px 16px; border-radius: 16px; background: var(--card); }
+.res-card.off, .res-line.off { opacity: 0.55; }
+.res-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.res-head .status { margin: 0; }
+.res-date { font-size: 13px; color: var(--label-2); }
+.res-who { display: flex; flex-direction: column; min-width: 0; }
+.res-who span { font-size: 13px; color: var(--label-2); }
+.res-items { margin: 10px 0 0; padding: 0; list-style: none; }
+.res-items li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 0.5px solid var(--sep); }
+.res-price { color: var(--label-2); font-variant-numeric: tabular-nums; }
+.res-foot { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 0; }
+.res-line { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; padding: 10px 0 0; border-top: 0.5px solid var(--sep); }
+.res-line { flex-wrap: wrap; }
+.res-line .row-text { flex: 1 1 100%; min-width: 0; }
+.res-line .status { margin-right: auto !important; }
+.store-search-wrap { margin: 16px 0 4px; }
+.res-line .status { flex: none; margin: 0; }

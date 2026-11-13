@@ -1,7 +1,7 @@
 // EUROXPRO'27 app — offline support.
 // The app shell is saved on install so the app opens without internet.
 // API calls always go to the network; map tiles are kept in a small cache.
-const VERSION = "v11";
+const VERSION = "v12";
 const SHELL = `app-shell-${VERSION}`;
 const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
@@ -45,7 +45,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  if (url.hostname.endsWith("basemaps.cartocdn.com")) {
+  if (url.hostname === "server.arcgisonline.com") {
     e.respondWith(
       caches.open(TILES).then(async (c) => {
         const hit = await c.match(req);
