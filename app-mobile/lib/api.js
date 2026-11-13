@@ -901,8 +901,20 @@ route("POST", "store/reservations/([\\w-]+)", async ({ req, user, m }) => {
     if (!r || (r.uid !== user.id && user.role !== "admin"))
         throw new HttpError(404, "not_found");
     const b = await readJson(req);
-    // Delegates can cancel their own; organizers mark collected.
-    if (b.status === "cancelled" && r.status === "reserved")
+    // Take one item out of a reservation that is not collected yet; the last
+    // item out cancels it.
+    if (Number.isInteger(b.remove)) {
+        if (r.status !== "reserved" || !r.items[b.remove])
+            throw new HttpError(400, "bad_status");
+        if (r.items.length === 1)
+            r.status = "cancelled";
+        else {
+            r.items.splice(b.remove, 1);
+            r.total = r.items.reduce((a, x) => a + x.qty * x.price, 0);
+        }
+    }
+    // Delegates and organizers can cancel; organizers mark collected.
+    else if (b.status === "cancelled" && r.status === "reserved")
         r.status = "cancelled";
     else if (user.role === "admin" && ["reserved", "collected"].includes(b.status))
         r.status = b.status;
