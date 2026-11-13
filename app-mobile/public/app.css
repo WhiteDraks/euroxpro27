@@ -2291,3 +2291,35 @@ ol.group { list-style: none; margin: 0; padding: 0; }
 :root.sunset .hall { background: radial-gradient(ellipse 90% 45% at 50% 0%, rgba(247, 178, 103, 0.35), transparent 70%), linear-gradient(180deg, #2b0f2e 0%, #1a0710 60%, #0a0505 100%); }
 
 #app[data-view="/approvals/live"] { max-width: none; }
+
+/* approvals: product chips, podium, edit cards */
+.prod-chips { margin-top: 10px; }
+.league-val { color: var(--label); font-size: 15px; }
+.podium-wrap:empty { display: none; }
+.lbpod { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; margin-top: 16px; }
+.podium-col { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; text-align: center; animation: tile-in 0.5s both; }
+.podium-col.first { animation-delay: 0.15s; }
+.podium-name { max-width: 100%; font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium-sub { font-size: 12px; color: var(--label-2); }
+.podium-val { margin: 4px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.podium-step { display: grid; place-items: start center; width: 100%; padding-top: 10px; border-radius: 14px 14px 4px 4px; color: #fff; background: linear-gradient(180deg, #b8b8c0, #8e8e96); }
+.podium-place { font-size: 26px; font-weight: 900; }
+.p1 .podium-step { height: 104px; background: linear-gradient(180deg, #f7b267, #d4892f); box-shadow: 0 10px 24px rgba(212, 137, 47, 0.3); }
+.p2 .podium-step { height: 76px; }
+.p3 .podium-step { height: 58px; background: linear-gradient(180deg, #d8946a, #a8653d); }
+.lb-tabs { display: flex; gap: 8px; margin-top: 10px; }
+.lb-tab { min-height: 34px; padding: 0 16px; border: 0; border-radius: 17px; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); font: inherit; font-size: clamp(13px, 1.3vw, 18px); font-weight: 600; cursor: pointer; }
+.lb-tab.on { background: linear-gradient(90deg, #f06b5b, #f7b267); color: #1a0710; }
+.lb-btn.on { background: rgba(247, 178, 103, 0.2); border-color: #f7b267; }
+.race-goal[hidden] { display: none; }
+.appr-import { margin-top: 12px; padding: 12px; border-radius: 14px; background: var(--card); }
+.appr-import summary { font-weight: 600; color: var(--tint); cursor: pointer; }
+.appr-import .fineprint { margin: 8px 0; }
+.appr-paste { width: 100%; padding: 10px; border: 0; border-radius: 10px; background: var(--fill); color: var(--label); font: 13px ui-monospace, Menlo, monospace; }
+.appr-import .btn-small { margin-top: 8px; }
+.appr-card { padding: 10px; border-radius: 14px; background: var(--card); }
+.appr-card-head { display: grid; grid-template-columns: 1fr 0.7fr 36px; gap: 6px; align-items: center; }
+.appr-card input { min-width: 0; min-height: 38px; padding: 0 8px; border: 0; border-radius: 10px; background: var(--fill); color: var(--label); font: inherit; font-size: 14px; }
+.appr-card .icon-btn { width: 36px; height: 36px; margin: 0; border: 0; background: none; color: var(--label-2); }
+.appr-grid { display: grid; grid-template-columns: 44px repeat(3, 1fr); gap: 6px; margin-top: 8px; align-items: center; }
+.appr-grid-h { font-size: 12px; font-weight: 700; color: var(--label-2); text-align: center; }

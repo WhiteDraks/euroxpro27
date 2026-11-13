@@ -782,32 +782,61 @@ route("POST", "quest/claims/([\\w-]+)/([\\w-]+)", async ({ user, m }) => {
     await cmd("SET", "dqst:" + m[1], JSON.stringify(mine));
     return json({ ok: true, status: c.status });
 });
-// ------------------------------------------------------------ approvals league (LC/MC race to the approvals goal)
+// ------------------------------------------------------------ approvals league (LC/MC race, like AIESEC's "top performing LCs")
+// Per LC and product: approvals (apd), realizations (re), completes (co).
 // Starts with illustrative numbers ("demo": true) until organizers save real ones.
+const PRODUCTS = ["GV", "GTa", "GTe"];
+const METRICS = ["apd", "re", "co"];
 const APPR_SEED = [
-    ["Istanbul", "Türkiye", 168, 190, 6], ["Ankara", "Türkiye", 142, 170, 4], ["Antalya", "Türkiye", 121, 150, 9], ["Izmir", "Türkiye", 133, 160, -1],
-    ["Warsaw", "Poland", 151, 175, 3], ["Krakow", "Poland", 129, 160, 7], ["Munich", "Germany", 182, 200, 12], ["Berlin", "Germany", 117, 165, 2],
-    ["Milan", "Italy", 158, 180, 5], ["Rome", "Italy", 140, 170, 11], ["Madrid", "Spain", 136, 175, -2], ["Seville", "Spain", 149, 168, 10],
-    ["Vienna", "Austria", 147, 172, 4], ["Bucharest", "Romania", 171, 185, 8], ["Porto", "Portugal", 110, 150, 3], ["Lyon", "France", 98, 150, 6],
-    ["Athens", "Greece", 105, 140, -3], ["Prague", "Czechia", 126, 150, 5], ["Budapest", "Hungary", 119, 155, 2], ["Antwerp", "Belgium", 162, 176, 3],
-].map(([city, mc, approved, goal, week], i) => ({ id: "lc" + (i + 1), name: "AIESEC in " + city, mc, approved, goal, week }));
+    ["Istanbul", "Türkiye", 190, 6], ["Ankara", "Türkiye", 170, 4], ["Antalya", "Türkiye", 150, 9], ["Izmir", "Türkiye", 160, -1], ["Kocaeli", "Türkiye", 150, 7],
+    ["Warsaw", "Poland", 175, 3], ["Krakow", "Poland", 160, 7], ["Munich", "Germany", 200, 12], ["Berlin", "Germany", 165, 2],
+    ["Milan", "Italy", 180, 5], ["Rome", "Italy", 170, 11], ["Madrid", "Spain", 175, -2], ["Seville", "Spain", 168, 10],
+    ["Vienna", "Austria", 172, 4], ["Bucharest", "Romania", 185, 8], ["Porto", "Portugal", 150, 3], ["Lyon", "France", 150, 6],
+    ["Athens", "Greece", 140, -3], ["Prague", "Czechia", 150, 5], ["Budapest", "Hungary", 155, 2], ["Antwerp", "Belgium", 176, 3],
+].map(([city, mc, goal, week], i) => {
+    // Stable pseudo-random split so the sample looks like real data.
+    const r = (k) => ((Math.sin((i + 1) * 97.3 + k * 13.7) + 1) / 2);
+    const gv = Math.round(goal * (0.45 + r(1) * 0.2)), gta = Math.round(goal * (0.15 + r(2) * 0.15)), gte = Math.round(goal * (0.05 + r(3) * 0.1));
+    const p = {};
+    [["GV", gv], ["GTa", gta], ["GTe", gte]].forEach(([k, apd], j) => {
+        const re = Math.round(apd * (0.55 + r(4 + j) * 0.3));
+        p[k] = { apd, re, co: Math.round(re * (0.3 + r(7 + j) * 0.4)) };
+    });
+    return { id: "lc" + (i + 1), name: "AIESEC in " + city, mc, goal, week, p };
+});
+const lcTotal = (x, m = "apd") => PRODUCTS.reduce((a, k) => a + (x.p?.[k]?.[m] || 0), 0);
+// Older saves had one "approved" number per LC: count it as GV approvals.
+function normalizeLc(x) {
+    if (!x.p)
+        x.p = { GV: { apd: x.approved || 0, re: 0, co: 0 } };
+    for (const k of PRODUCTS)
+        x.p[k] = { apd: 0, re: 0, co: 0, ...(x.p[k] || {}) };
+    x.approved = lcTotal(x);
+    return x;
+}
 async function loadApprovals() {
-    return parse(await cmd("GET", "dappr")) || { demo: true, updatedAt: 0, lcs: APPR_SEED };
+    const d = parse(await cmd("GET", "dappr")) || { demo: true, updatedAt: 0, lcs: JSON.parse(JSON.stringify(APPR_SEED)) };
+    d.lcs.forEach(normalizeLc);
+    return d;
 }
 route("GET", "approvals", async () => json(await loadApprovals()));
 route("POST", "approvals", async ({ req, user }) => {
     if (user.role !== "admin")
         throw new HttpError(403, "forbidden");
-    const b = await readJson(req, 64 * 1024);
-    if (!Array.isArray(b.lcs) || b.lcs.length > 200)
+    const b = await readJson(req, 128 * 1024);
+    if (!Array.isArray(b.lcs) || b.lcs.length > 300)
         throw new HttpError(400, "bad_data");
     const old = await loadApprovals();
     const num = (v) => Math.max(0, Math.min(100000, Math.round(Number(v) || 0)));
     const lcs = b.lcs
         .map((x) => {
             const prev = old.lcs.find((o) => o.id === x.id);
-            const approved = num(x.approved);
-            return { id: /^[\w-]{1,20}$/.test(String(x.id || "")) ? String(x.id) : newId(), name: clean(x.name, 60), mc: clean(x.mc, 40), approved, goal: num(x.goal), week: prev ? (prev.week || 0) + approved - prev.approved : 0 };
+            const p = {};
+            for (const k of PRODUCTS)
+                p[k] = Object.fromEntries(METRICS.map((m) => [m, num(x.p?.[k]?.[m])]));
+            const lc = normalizeLc({ id: /^[\w-]{1,20}$/.test(String(x.id || "")) ? String(x.id) : newId(), name: clean(x.name, 60), mc: clean(x.mc, 40), goal: num(x.goal), p });
+            lc.week = prev ? (prev.week || 0) + lc.approved - prev.approved : 0;
+            return lc;
         })
         .filter((x) => x.name);
     const data = { demo: false, updatedAt: Date.now(), lcs };

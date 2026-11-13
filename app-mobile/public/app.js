@@ -2036,74 +2036,131 @@ function viewQuestAdmin(screen) {
 }
 
 // ------------------------------------------------------------------ approvals league
+// Like AIESEC's "top performing LCs": rank by approvals, realizations or
+// completes, per product, with the top three on a podium.
 const pct = (a, g) => (g ? Math.round((a / g) * 100) : 0);
+const PRODUCTS = ["GV", "GTa", "GTe"];
+const METRICS = ["apd", "re", "co"];
+const metricVal = (x, m, prod) => (prod === "all" ? PRODUCTS.reduce((a, k) => a + (x.p?.[k]?.[m] || 0), 0) : x.p?.[prod]?.[m] || 0);
+const shortLc = (name) => name.replace(/^AIESEC in /i, "");
 function groupByMc(lcs) {
   const m = new Map();
   for (const x of lcs) {
-    const g = m.get(x.mc) || { id: x.mc, name: x.mc, mc: x.mc, approved: 0, goal: 0, week: 0, n: 0 };
+    const g = m.get(x.mc) || { id: "mc:" + x.mc, name: x.mc, mc: "", approved: 0, goal: 0, week: 0, n: 0, p: Object.fromEntries(PRODUCTS.map((k) => [k, { apd: 0, re: 0, co: 0 }])) };
     g.approved += x.approved;
     g.goal += x.goal;
     g.week += x.week || 0;
     g.n++;
+    for (const k of PRODUCTS) for (const mm of METRICS) g.p[k][mm] += x.p?.[k]?.[mm] || 0;
     m.set(x.mc, g);
   }
   return [...m.values()];
 }
+// Rank with ties sharing a place (1, 2, 2, 4).
+function ranked(items, val) {
+  const sorted = items.slice().sort((a, b) => val(b) - val(a) || a.name.localeCompare(b.name));
+  let place = 0;
+  return sorted.map((x, i) => {
+    if (i === 0 || val(x) !== val(sorted[i - 1])) place = i + 1;
+    return { x, v: val(x), place };
+  });
+}
 
 function viewApprovals(screen) {
   const admin = state.user.role === "admin";
-  let mode = "lc";
-  let mc = "all";
+  const pref = (k, d) => sessionStorage.getItem("appr." + k) || d;
+  let mode = pref("mode", "lc"), mc = pref("mc", "all"), metric = pref("metric", "apd"), prod = pref("prod", "all");
+  const remember = () => Object.entries({ mode, mc, metric, prod }).forEach(([k, v]) => sessionStorage.setItem("appr." + k, v));
   let data = null;
   const total = h("section", { class: "appr-total" });
-  const chips = h("div", { class: "chips chips-scroll" });
+  const prodChips = h("div", { class: "chips chips-scroll prod-chips" });
+  const mcChips = h("div", { class: "chips chips-scroll" });
+  const podium = h("div", { class: "podium-wrap" });
   const list = h("ol", { class: "league" }, h("div", { class: "loading" }));
   screen.append(
     navBar({ title: t("approvals"), back: "/home", action: admin ? h("a", { href: "/approvals/edit", "data-link": true, class: "nav-action" }, t("edit")) : null }),
     total,
+    h("div", { class: "pad-x" }, segmented(METRICS.map((m) => [m, t("m_" + m)]), metric, (v) => {
+      metric = v;
+      draw();
+    }, t("approvals"))),
+    prodChips,
     h("div", { class: "pad-x appr-tools" },
       segmented([["lc", t("apprLc")], ["mc", t("apprMc")]], mode, (v) => {
         mode = v;
         draw();
       }, t("approvals")),
       h("a", { href: "/approvals/live", "data-link": true, class: "btn btn-small appr-live-btn" }, icon("tv"), t("apprLive"))),
-    chips,
+    mcChips,
+    podium,
     list
   );
   const totalNum = h("span", { class: "appr-big" }, "0");
+  const chipRow = (el, values, cur, label, set) =>
+    el.replaceChildren(...values.map((v) => h("button", { type: "button", class: "chip" + (v === cur ? " on" : ""), onclick: () => {
+      set(v);
+      draw();
+    } }, label(v))));
   const draw = () => {
     if (!data) return;
+    remember();
     const all = data.lcs;
-    const A = all.reduce((a, x) => a + x.approved, 0), G = all.reduce((a, x) => a + x.goal, 0);
+    const val = (x) => metricVal(x, metric, prod);
+    const T = all.reduce((a, x) => a + val(x), 0);
+    const G = all.reduce((a, x) => a + x.goal, 0);
+    const apdT = all.reduce((a, x) => a + metricVal(x, "apd", prod), 0);
+    const showGoal = metric === "apd" && prod === "all";
     const bar = h("span", { class: "appr-bar" }, h("span", {}));
-    bar.firstChild.style.setProperty("--w", Math.min(100, pct(A, G)) + "%");
+    bar.firstChild.style.setProperty("--w", (showGoal ? Math.min(100, pct(T, G)) : metric === "apd" ? 100 : Math.min(100, pct(T, apdT))) + "%");
     total.replaceChildren(
-      h("span", { class: "kicker" }, t("apprTotal")),
-      h("span", { class: "appr-line" }, totalNum, h("span", { class: "appr-goal" }, ` / ${fmtNum(G)}`)),
+      h("span", { class: "kicker" }, `${t("apprEurope")} · `, h("span", { lang: "en" }, `${t("m_" + metric)}${prod === "all" ? "" : " · " + prod}`)),
+      h("span", { class: "appr-line" }, totalNum, showGoal ? h("span", { class: "appr-goal" }, ` / ${fmtNum(G)}`) : ""),
       bar,
-      h("span", { class: "appr-meta" }, [t("apprToGoal", { p: pct(A, G) }), t("apprLcs", { n: all.length }), t("apprMcs", { n: new Set(all.map((x) => x.mc)).size })].join(" · ")),
+      h("span", { class: "appr-meta" }, [
+        showGoal ? t("apprToGoal", { p: pct(T, G) }) : metric !== "apd" ? t("apprConv", { p: pct(T, apdT) }) : null,
+        t("apprLcs", { n: all.length }),
+        t("apprMcs", { n: new Set(all.map((x) => x.mc)).size }),
+      ].filter(Boolean).join(" · ")),
       data.demo ? h("span", { class: "appr-demo" }, t("apprDemo")) : ""
     );
-    countUp(totalNum, A);
+    countUp(totalNum, T);
+    chipRow(prodChips, ["all", ...PRODUCTS], prod, (v) => (v === "all" ? t("allProducts") : v), (v) => (prod = v));
     const mcs = [...new Set(all.map((x) => x.mc))].sort();
-    chips.hidden = mode !== "lc";
-    chips.replaceChildren(...["all", ...mcs].map((v) => h("button", { type: "button", class: "chip" + (v === mc ? " on" : ""), onclick: () => {
-      mc = v;
-      draw();
-    } }, v === "all" ? t("all") : v)));
-    const rows = (mode === "mc" ? groupByMc(all) : all.filter((x) => mc === "all" || x.mc === mc)).sort((a, b) => pct(b.approved, b.goal) - pct(a.approved, a.goal) || b.approved - a.approved);
-    list.replaceChildren(...rows.map((x, i) => {
-      const p = pct(x.approved, x.goal);
+    mcChips.hidden = mode !== "lc";
+    chipRow(mcChips, ["all", ...mcs], mc, (v) => (v === "all" ? t("all") : v), (v) => (mc = v));
+    const items = mode === "mc" ? groupByMc(all) : all.filter((x) => mc === "all" || x.mc === mc);
+    const rows = ranked(items, val);
+    const top = Math.max(1, rows[0]?.v || 0);
+    const sub = (x) => (mode === "mc" ? t("apprLcs", { n: x.n }) : x.mc);
+    // Podium: 2nd, 1st, 3rd.
+    const podiumRows = rows.slice(0, 3);
+    podium.replaceChildren(
+      ...(podiumRows.length === 3
+        ? [h("div", { class: "lbpod" }, [podiumRows[1], podiumRows[0], podiumRows[2]].map((r, i) => {
+            const step = h("span", { class: "podium-step" }, h("span", { class: "podium-place" }, String(r.place)));
+            return h("div", { class: "podium-col p" + r.place + (i === 1 ? " first" : "") },
+              h("span", { class: "podium-name" }, mode === "mc" ? r.x.name : shortLc(r.x.name)),
+              h("span", { class: "podium-sub" }, sub(r.x)),
+              h("span", { class: "podium-val" }, fmtNum(r.v)),
+              step);
+          }))]
+        : [])
+    );
+    list.replaceChildren(...rows.slice(podiumRows.length === 3 ? 3 : 0).map((r, i) => {
+      const x = r.x;
+      const p = showGoal ? pct(x.approved, x.goal) : null;
       const fill = h("span", { class: "league-fill" + (p >= 100 ? " done" : "") });
-      fill.style.setProperty("--w", Math.min(100, p) + "%");
-      fill.style.setProperty("--d", i * 40 + "ms");
+      fill.style.setProperty("--w", (showGoal ? Math.min(100, p) : (r.v / top) * 100) + "%");
+      fill.style.setProperty("--d", i * 30 + "ms");
       return h("li", { class: "league-row" },
-        h("span", { class: "league-rank" + (i < 3 ? " top" : "") }, String(i + 1)),
+        h("span", { class: "league-rank" }, String(r.place)),
         h("span", { class: "league-main" },
-          h("span", { class: "league-name" }, x.name, h("span", { class: "league-mc" }, mode === "mc" ? t("apprLcs", { n: x.n }) : x.mc)),
+          h("span", { class: "league-name" }, mode === "mc" ? x.name : shortLc(x.name), h("span", { class: "league-mc" }, sub(x))),
           h("span", { class: "league-track" }, fill),
-          h("span", { class: "league-nums" }, `${fmtNum(x.approved)} / ${fmtNum(x.goal)}`, h("span", { class: "league-pct" }, `${p}%`),
-            x.week ? h("span", { class: "league-week " + (x.week > 0 ? "up" : "down") }, `${x.week > 0 ? "▲" : "▼"} ${Math.abs(x.week)}`) : null)));
+          h("span", { class: "league-nums" },
+            showGoal ? `${fmtNum(x.approved)} / ${fmtNum(x.goal)}` : h("strong", { class: "league-val" }, fmtNum(r.v)),
+            showGoal ? h("span", { class: "league-pct" }, `${p}%`) : h("span", {}, METRICS.filter((m) => m !== metric).map((m) => `${t("m_" + m + "_s")} ${fmtNum(metricVal(x, m, prod))}`).join(" · ")),
+            showGoal && x.week ? h("span", { class: "league-week " + (x.week > 0 ? "up" : "down") }, `${x.week > 0 ? "▲" : "▼"} ${Math.abs(x.week)}`) : null)));
     }));
   };
   const load = () => api("GET", "/api/approvals").then((d) => {
@@ -2115,7 +2172,8 @@ function viewApprovals(screen) {
   return () => window.removeEventListener("approvals-updated", load);
 }
 
-// Full-screen race for the big screen in the plenary.
+// Full-screen race for the big screen in the plenary. It cycles through
+// approvals, realizations and completes on its own.
 function viewApprovalsLive(screen) {
   screen.classList.add("live-board");
   const bars = h("div", { class: "race" });
@@ -2123,35 +2181,55 @@ function viewApprovalsLive(screen) {
   const goal = h("span", { class: "lb-goal" });
   const pctEl = h("span", { class: "lb-pct" });
   const clock = h("span", { class: "lb-clock" });
+  const label = h("span", { class: "kicker" });
+  const tabs = h("div", { class: "lb-tabs" });
   let mode = "lc";
+  let metric = "apd";
+  let auto = true;
+  let data = null;
   const rows = new Map();
+  const autoBtn = h("button", { type: "button", class: "lb-btn on" }, t("apprAuto"));
+  autoBtn.addEventListener("click", () => {
+    auto = !auto;
+    autoBtn.classList.toggle("on", auto);
+  });
   screen.append(
     h("header", { class: "lb-head" },
       h("a", { href: "/approvals", "data-link": true, class: "lb-back", "aria-label": t("back") }, icon("back")),
       wordmark(),
       h("span", { class: "lb-title" }, t("apprLiveTitle")),
       clock,
+      autoBtn,
       h("button", { type: "button", class: "lb-btn", onclick: () => {
         mode = mode === "lc" ? "mc" : "lc";
         rows.clear();
         bars.replaceChildren();
-        load();
+        draw();
       } }, t("apprSwitch")),
       h("button", { type: "button", class: "lb-btn", onclick: () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.()) }, t("fullscreen"))),
-    h("section", { class: "lb-total" }, h("span", { class: "kicker" }, t("apprTotal")), h("span", { class: "lb-line" }, big, goal), pctEl),
+    h("section", { class: "lb-total" }, label, h("span", { class: "lb-line" }, big, goal), pctEl, tabs),
     bars
   );
-  const draw = (d) => {
-    const items = (mode === "mc" ? groupByMc(d.lcs) : d.lcs).slice().sort((a, b) => b.approved - a.approved).slice(0, 12);
-    const max = Math.max(1, ...items.map((x) => Math.max(x.approved, x.goal)));
-    const A = d.lcs.reduce((a, x) => a + x.approved, 0), G = d.lcs.reduce((a, x) => a + x.goal, 0);
-    countUp(big, A, 1400);
-    goal.textContent = ` / ${fmtNum(G)}`;
-    pctEl.textContent = t("apprToGoal", { p: pct(A, G) });
+  const draw = () => {
+    if (!data) return;
+    const d = data;
+    tabs.replaceChildren(...METRICS.map((m) => h("button", { type: "button", class: "lb-tab" + (m === metric ? " on" : ""), onclick: () => {
+      metric = m;
+      draw();
+    } }, t("m_" + m))));
+    const val = (x) => metricVal(x, metric, "all");
+    const items = ranked(mode === "mc" ? groupByMc(d.lcs) : d.lcs, val).slice(0, 12);
+    const max = Math.max(1, ...items.map((r) => Math.max(r.v, metric === "apd" ? r.x.goal : 0)));
+    const T = d.lcs.reduce((a, x) => a + val(x), 0), G = d.lcs.reduce((a, x) => a + x.goal, 0), A = d.lcs.reduce((a, x) => a + x.approved, 0);
+    label.replaceChildren(`${t("apprEurope")} · `, h("span", { lang: "en" }, t("m_" + metric)));
+    countUp(big, T, 1400);
+    goal.textContent = metric === "apd" ? ` / ${fmtNum(G)}` : "";
+    pctEl.textContent = metric === "apd" ? t("apprToGoal", { p: pct(T, G) }) : t("apprConv", { p: pct(T, A) });
     // FLIP: remember where rows were, re-order, then animate from there.
     const before = new Map([...rows].map(([id, r]) => [id, r.el.getBoundingClientRect().top]));
     const seen = new Set();
-    items.forEach((x, i) => {
+    items.forEach((it, i) => {
+      const x = it.x;
       seen.add(x.id);
       let r = rows.get(x.id);
       if (!r) {
@@ -2160,17 +2238,18 @@ function viewApprovalsLive(screen) {
         const num = h("span", { class: "race-num" }, "0");
         const el = h("div", { class: "race-row" },
           h("span", { class: "race-rank" }),
-          h("span", { class: "race-name" }, x.name.replace(/^AIESEC in /i, ""), h("span", { class: "race-mc" }, mode === "mc" ? "" : x.mc)),
+          h("span", { class: "race-name" }, mode === "mc" ? x.name : shortLc(x.name), h("span", { class: "race-mc" }, mode === "mc" ? "" : x.mc)),
           h("span", { class: "race-track" }, fill, goalMark),
           num);
         r = { el, fill, goalMark, num };
         rows.set(x.id, r);
       }
-      r.el.querySelector(".race-rank").textContent = String(i + 1);
-      r.el.classList.toggle("lead", i === 0);
-      r.fill.style.setProperty("--w", (x.approved / max) * 100 + "%");
+      r.el.querySelector(".race-rank").textContent = String(it.place);
+      r.el.classList.toggle("lead", it.place === 1);
+      r.fill.style.setProperty("--w", (it.v / max) * 100 + "%");
+      r.goalMark.hidden = metric !== "apd";
       r.goalMark.style.setProperty("--g", (x.goal / max) * 100 + "%");
-      countUp(r.num, x.approved, 1200);
+      countUp(r.num, it.v, 1200);
       bars.append(r.el);
     });
     for (const [id, r] of rows) if (!seen.has(id)) (r.el.remove(), rows.delete(id));
@@ -2183,11 +2262,22 @@ function viewApprovalsLive(screen) {
       r.el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 900, easing: "cubic-bezier(.2,.8,.2,1)" });
     }
   };
-  const load = () => api("GET", "/api/approvals").then(draw).catch(() => {});
+  const load = () => api("GET", "/api/approvals").then((d) => {
+    data = d;
+    draw();
+  }).catch(() => {});
   load();
   const tick = () => (clock.textContent = new Date(nowMs()).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" }));
   tick();
-  const timers = [setInterval(load, 20000), setInterval(tick, 10000)];
+  const timers = [
+    setInterval(load, 20000),
+    setInterval(tick, 10000),
+    setInterval(() => {
+      if (!auto) return;
+      metric = METRICS[(METRICS.indexOf(metric) + 1) % METRICS.length];
+      draw();
+    }, 15000),
+  ];
   window.addEventListener("approvals-updated", load);
   return () => {
     timers.forEach(clearInterval);
@@ -2195,17 +2285,43 @@ function viewApprovalsLive(screen) {
   };
 }
 
+// Organizers: one card per LC with approvals, realizations and completes per
+// product, or paste rows straight from a spreadsheet.
 function viewApprovalsEdit(screen) {
-  const tbody = h("div", { class: "appr-edit" }, h("div", { class: "loading" }));
+  const box = h("div", { class: "appr-edit" }, h("div", { class: "loading" }));
   let rows = [];
   const save = h("button", { type: "button", class: "btn btn-filled" }, t("save"));
+  const paste = h("textarea", { rows: 5, class: "appr-paste", placeholder: "AIESEC in Istanbul; Türkiye; GV; 40; 25; 10\nAIESEC in Warsaw; Poland; GTa; 12; 8; 3", "aria-label": t("apprPaste") });
   screen.append(
     navBar({ title: t("apprEdit"), back: "/approvals" }),
     h("p", { class: "fineprint" }, t("apprEditHint")),
-    tbody,
+    h("details", { class: "appr-import" },
+      h("summary", {}, t("apprPaste")),
+      h("p", { class: "fineprint" }, t("apprPasteHint")),
+      paste,
+      h("button", { type: "button", class: "btn btn-small", onclick: () => {
+        let n = 0;
+        for (const line of paste.value.split(/\r?\n/)) {
+          const c = line.split(/[;\t,]/).map((s) => s.trim());
+          if (c.length < 4 || !c[0]) continue;
+          const prodKey = PRODUCTS.find((k) => k.toLowerCase() === c[2].replace(/^[io]/i, "").toLowerCase());
+          if (!prodKey) continue;
+          let r = rows.find((x) => x.name.toLowerCase() === c[0].toLowerCase());
+          if (!r) {
+            r = { id: "", name: c[0], mc: c[1], goal: 0, p: Object.fromEntries(PRODUCTS.map((k) => [k, { apd: 0, re: 0, co: 0 }])) };
+            rows.push(r);
+          }
+          if (c[1]) r.mc = c[1];
+          r.p[prodKey] = { apd: Number(c[3]) || 0, re: Number(c[4]) || 0, co: Number(c[5]) || 0 };
+          n++;
+        }
+        toast(t("apprPasted", { n }));
+        draw();
+      } }, t("apprApply"))),
+    box,
     h("div", { class: "pad-x appr-edit-actions" },
       h("button", { type: "button", class: "btn", onclick: () => {
-        rows.push({ id: "", name: "AIESEC in ", mc: "", approved: 0, goal: 0 });
+        rows.unshift({ id: "", name: "AIESEC in ", mc: "", goal: 0, p: Object.fromEntries(PRODUCTS.map((k) => [k, { apd: 0, re: 0, co: 0 }])) });
         draw();
       } }, t("apprAdd")),
       save,
@@ -2214,23 +2330,32 @@ function viewApprovalsEdit(screen) {
         await api("POST", "/api/approvals/new-week").then(() => toast(t("saved"))).catch((e) => toast(errText(e)));
       } }, t("apprNewWeek")))
   );
+  const numIn = (get, set, label) => {
+    const el = h("input", { type: "number", min: 0, inputmode: "numeric", value: get(), "aria-label": label });
+    el.addEventListener("input", () => set(Number(el.value) || 0));
+    return el;
+  };
   const draw = () => {
-    tbody.replaceChildren(...rows.map((r, i) => {
-      const inp = (k, type, cls) => {
-        const el = h("input", { type, class: cls, value: r[k], "aria-label": k, inputmode: type === "number" ? "numeric" : null });
-        el.addEventListener("input", () => (r[k] = type === "number" ? Number(el.value) : el.value));
+    box.replaceChildren(...rows.map((r, i) => {
+      const txt = (k, cls) => {
+        const el = h("input", { type: "text", class: cls, value: r[k], "aria-label": t(k === "name" ? "apprLc" : "apprMc") });
+        el.addEventListener("input", () => (r[k] = el.value));
         return el;
       };
-      return h("div", { class: "appr-edit-row" },
-        inp("name", "text", "e-name"), inp("mc", "text", "e-mc"), inp("approved", "number", "e-num"), inp("goal", "number", "e-num"),
-        h("button", { type: "button", class: "icon-btn", "aria-label": t("delete"), onclick: () => {
-          rows.splice(i, 1);
-          draw();
-        } }, icon("xmark")));
+      return h("div", { class: "appr-card" },
+        h("div", { class: "appr-card-head" }, txt("name", "e-name"), txt("mc", "e-mc"),
+          h("button", { type: "button", class: "icon-btn", "aria-label": t("delete"), onclick: () => {
+            rows.splice(i, 1);
+            draw();
+          } }, icon("xmark"))),
+        h("div", { class: "appr-grid" },
+          h("span", {}), ...METRICS.map((m) => h("span", { class: "appr-grid-h" }, t("m_" + m + "_s"))),
+          ...PRODUCTS.flatMap((k) => [h("span", { class: "appr-grid-h" }, k), ...METRICS.map((m) => numIn(() => r.p[k][m], (v) => (r.p[k][m] = v), `${k} ${t("m_" + m)}`))]),
+          h("span", { class: "appr-grid-h" }, t("apprGoal")), numIn(() => r.goal, (v) => (r.goal = v), t("apprGoal"))));
     }));
   };
   api("GET", "/api/approvals").then((d) => {
-    rows = d.lcs.map((x) => ({ ...x }));
+    rows = d.lcs.map((x) => JSON.parse(JSON.stringify(x)));
     draw();
   });
   save.addEventListener("click", async () => {
