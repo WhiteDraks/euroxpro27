@@ -4,6 +4,9 @@ A separate web app for delegates that can be added to the home screen. It lives 
 
 - **Live agenda:** a "Now / Up next" card, a day picker and a countdown before the congress. Organizers can mark a session delayed, moved or cancelled and add a note, and every open phone sees the change within a few seconds.
 - **Map:** the airport, bus station, Kaleiçi and beaches in Antalya, with directions in Apple Maps or Google Maps.
+- **Meet:** Tinder-style cards. Swipe right to like, left to pass. When two people like each other it's a match and a private chat opens.
+- **Plenary:** an empty hall where small avatars of everyone signed in (last 30 seconds) wander around. Tap someone to message them.
+- **Profile:** emoji avatar, short bio (translated for the reader), and a switch to show or hide yourself in Meet.
 - **Chat:** a general room and one-to-one messages. Each message is translated into the reader's language automatically.
 - **Languages:** Turkish, English and Polish. Polish plurals are handled.
 - **Sign-in:** email and password only.

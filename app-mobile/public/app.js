@@ -57,6 +57,11 @@ const ICON = {
   people:
     '<svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.3"/><path d="M3 19c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"/><circle cx="17" cy="8" r="2.6"/><path d="M16.5 13.2c2.4.1 4.1 1.5 4.6 4"/></svg>',
   shirt: '<svg viewBox="0 0 24 24"><path d="M8.5 3.5 4 6l1.8 4 2-1V20.5h8.4V9l2 1L20 6l-4.5-2.5c-.5 1.5-1.9 2.5-3.5 2.5S9 5 8.5 3.5z"/></svg>',
+  plenary:
+    '<svg viewBox="0 0 24 24"><path d="M3.5 9 12 4l8.5 5M5 9v8.5M9.7 9v8.5M14.3 9v8.5M19 9v8.5M3.5 20h17"/></svg>',
+  meet: '<svg viewBox="0 0 24 24"><rect x="5.5" y="3.5" width="13" height="17" rx="2.5"/><path d="M12 15.2s-3.2-2-3.2-4.1a1.8 1.8 0 0 1 3.2-1.1 1.8 1.8 0 0 1 3.2 1.1c0 2.1-3.2 4.1-3.2 4.1z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.1A4.2 4.2 0 0 1 12 7.4a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>',
+  xmark: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   share: '<svg viewBox="0 0 24 24"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg>',
 };
 const icon = (name, cls = "") => h("span", { class: "icon " + cls, "aria-hidden": "true", html: ICON[name] });
@@ -70,8 +75,15 @@ function initials(name) {
     .join("");
 }
 
-function avatar(name, cls = "") {
-  return h("span", { class: "avatar " + cls, "aria-hidden": "true" }, initials(name || "?"));
+// Person avatar: their chosen emoji, otherwise initials, on a colour picked
+// from their id so the same person always looks the same.
+const AVATAR_TONES = ["tone-0", "tone-1", "tone-2", "tone-3", "tone-4"];
+function avatar(person, cls = "") {
+  const p = typeof person === "string" ? { name: person } : person || {};
+  let hash = 0;
+  for (const ch of p.id || p.name || "") hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  const tone = AVATAR_TONES[hash % AVATAR_TONES.length];
+  return h("span", { class: `avatar ${tone} ${p.emoji ? "has-emoji" : ""} ${cls}`, "aria-hidden": "true" }, p.emoji || initials(p.name || "?"));
 }
 
 let toastTimer;
@@ -185,7 +197,9 @@ const ROUTES = [
   { path: "/register", view: viewRegister, guest: true },
   { path: "/agenda", view: viewAgenda, tab: "agenda" },
   { path: "/agenda/:id", view: viewSession, tab: "agenda" },
-  { path: "/map", view: viewMap, tab: "map" },
+  { path: "/map", view: viewMap, tab: "agenda" },
+  { path: "/plenary", view: viewPlenary, tab: "plenary" },
+  { path: "/meet", view: viewMeet, tab: "meet" },
   { path: "/messages", view: viewConversations, tab: "messages" },
   { path: "/messages/new", view: viewPeople, tab: "messages" },
   { path: "/messages/:id", view: viewChat, tab: "messages", hideTabs: true },
@@ -239,7 +253,8 @@ function render() {
 function tabBar(active) {
   const tabs = [
     ["agenda", "/agenda", "tabAgenda"],
-    ["map", "/map", "tabMap"],
+    ["plenary", "/plenary", "tabPlenary"],
+    ["meet", "/meet", "tabMeet"],
     ["messages", "/messages", "tabMessages"],
     ["profile", "/profile", "tabProfile"],
   ];
@@ -561,7 +576,9 @@ function sessionRow(day, s, now) {
 }
 
 function viewAgenda(screen) {
-  screen.append(largeTitle(t("tabAgenda")));
+  screen.append(
+    largeTitle(t("tabAgenda"), h("a", { href: "/map", "data-link": true, class: "icon-btn", "aria-label": t("tabMap"), title: t("tabMap") }, icon("map")))
+  );
   const body = h("div", { class: "agenda" });
   screen.append(body);
   let selected = sessionStorage.getItem("agendaDay");
@@ -741,7 +758,7 @@ function viewMap(screen) {
 
   screen.classList.add("map-screen");
   screen.append(
-    largeTitle(t("tabMap")),
+    navBar({ title: t("tabMap"), back: "/agenda" }),
     h("div", { class: "map-wrap" }, mapEl, locateBtn, card),
     h(
       "div",
@@ -867,7 +884,7 @@ function viewConversations(screen) {
         return h(
           "a",
           { href: "/messages/" + encodeURIComponent(c.id), "data-link": true, class: "row conv" + (c.unread ? " has-unread" : "") },
-          c.id === "general" ? h("span", { class: "avatar avatar-general" }, icon("people")) : avatar(c.peer.name),
+          c.id === "general" ? h("span", { class: "avatar avatar-general" }, icon("people")) : avatar(c.peer),
           h(
             "span",
             { class: "row-text" },
@@ -913,7 +930,7 @@ function viewPeople(screen) {
               go("/messages/" + encodeURIComponent(id), { replace: true });
             },
           },
-          avatar(p.name),
+          avatar(p),
           h("span", { class: "row-text" }, h("span", { class: "row-value" }, p.name), h("span", { class: "row-label" }, [p.entity, LANGS.find((l) => l.code === p.lang)?.label].filter(Boolean).join(" · "))),
           icon("chevron", "row-chevron")
         )
@@ -1042,6 +1059,274 @@ function viewChat(screen, { id }) {
   return () => window.removeEventListener("chat-message", onMsg);
 }
 
+// ------------------------------------------------------------------ meet (swipe)
+
+function matchOverlay(peer, conv) {
+  const close = () => box.remove();
+  const box = h(
+    "div",
+    { class: "overlay", role: "dialog", "aria-modal": "true", "aria-label": t("itsAMatch") },
+    h(
+      "div",
+      { class: "match-box" },
+      h("div", { class: "match-pair" }, avatar(state.user), avatar(peer)),
+      h("h2", {}, t("itsAMatch")),
+      h("p", {}, t("matchText", { name: peer.name })),
+      h("button", { type: "button", class: "btn btn-filled", onclick: () => { close(); go("/messages/" + encodeURIComponent(conv)); } }, t("sayHello")),
+      h("button", { type: "button", class: "btn btn-plain", onclick: close }, t("keepSwiping"))
+    )
+  );
+  document.body.append(box);
+  box.querySelector(".btn-filled").focus();
+}
+
+function viewMeet(screen) {
+  const strip = h("div", { class: "matches-strip", "aria-label": t("matches") });
+  const deckEl = h("div", { class: "deck" });
+  const nopeBtn = h("button", { type: "button", class: "swipe-btn nope", "aria-label": t("pass") }, icon("xmark"));
+  const likeBtn = h("button", { type: "button", class: "swipe-btn like", "aria-label": t("like") }, icon("heart"));
+  screen.append(
+    largeTitle(t("tabMeet")),
+    h("p", { class: "group-footer meet-intro" }, t("meetIntro")),
+    strip,
+    deckEl,
+    h("div", { class: "swipe-actions" }, nopeBtn, likeBtn)
+  );
+  let deck = [];
+  let busy = false;
+
+  const drawMatches = async () => {
+    try {
+      const { matches } = await api("GET", "/api/meet/matches");
+      strip.hidden = !matches.length;
+      strip.replaceChildren(
+        ...matches.map((m) =>
+          h("a", { class: "match-chip", href: "/messages/" + encodeURIComponent(m.conv), "data-link": true }, avatar(m), h("span", {}, m.name.split(" ")[0]))
+        )
+      );
+    } catch {}
+  };
+
+  const card = (p, behind) => {
+    const langLabel = LANGS.find((l) => l.code === p.lang)?.label;
+    return h(
+      "article",
+      { class: "card" + (behind ? " behind" : ""), "data-id": p.id, "aria-label": p.name },
+      h("span", { class: "card-stamp like" }, t("like")),
+      h("span", { class: "card-stamp nope" }, t("pass")),
+      h("div", { class: "card-face" }, avatar(p)),
+      h("h2", { class: "card-name" }, p.name),
+      h("p", { class: "card-sub" }, [p.entity, langLabel].filter(Boolean).join(" · ")),
+      p.bio ? h("p", { class: "card-bio" }, p.bio) : null,
+      p.bioTranslated ? h("p", { class: "card-note" }, t("translatedFrom")) : null
+    );
+  };
+
+  const draw = () => {
+    if (!deck.length) {
+      nopeBtn.disabled = likeBtn.disabled = true;
+      deckEl.replaceChildren(h("div", { class: "deck-empty" }, icon("meet"), h("p", {}, t("deckEmpty"))));
+      return;
+    }
+    nopeBtn.disabled = likeBtn.disabled = false;
+    const cards = deck.slice(0, 2).map((p, i) => card(p, i === 1)).reverse();
+    deckEl.replaceChildren(...cards);
+    attachDrag(deckEl.lastElementChild);
+  };
+
+  const decide = async (like, el) => {
+    if (busy || !deck.length) return;
+    busy = true;
+    const p = deck[0];
+    const top = el || deckEl.querySelector(".card:not(.behind)");
+    if (top) {
+      top.classList.add("leaving");
+      top.style.transform = `translateX(${like ? 140 : -140}%) rotate(${like ? 24 : -24}deg)`;
+      top.style.opacity = "0";
+    }
+    try {
+      const r = await api("POST", "/api/meet/swipe", { userId: p.id, like });
+      if (r.match) {
+        matchOverlay(r.peer, r.conv);
+        drawMatches();
+      }
+    } catch (e) {
+      toast(errText(e));
+    }
+    setTimeout(() => {
+      deck.shift();
+      busy = false;
+      if (deck.length < 3) load(); else draw();
+    }, 300);
+  };
+
+  function attachDrag(el) {
+    if (!el) return;
+    let startX = 0, startY = 0, dx = 0, dragging = false;
+    const like = el.querySelector(".card-stamp.like");
+    const nope = el.querySelector(".card-stamp.nope");
+    el.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      dx = 0;
+      el.classList.remove("snap");
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      dx = e.clientX - startX;
+      const dy = (e.clientY - startY) * 0.3;
+      el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg)`;
+      like.style.opacity = String(Math.max(0, Math.min(1, dx / 90)));
+      nope.style.opacity = String(Math.max(0, Math.min(1, -dx / 90)));
+    });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (Math.abs(dx) > 100) return decide(dx > 0, el);
+      el.classList.add("snap");
+      el.style.transform = "";
+      like.style.opacity = nope.style.opacity = "0";
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+  }
+
+  const load = async () => {
+    try {
+      const { deck: fresh } = await api("GET", "/api/meet/deck");
+      const have = new Set(deck.map((p) => p.id));
+      deck = deck.concat(fresh.filter((p) => !have.has(p.id)));
+    } catch (e) {
+      toast(errText(e));
+    }
+    draw();
+  };
+
+  nopeBtn.addEventListener("click", () => decide(false));
+  likeBtn.addEventListener("click", () => decide(true));
+  const onKey = (e) => {
+    if (e.target.closest("input, textarea")) return;
+    if (e.key === "ArrowLeft") decide(false);
+    if (e.key === "ArrowRight") decide(true);
+  };
+  document.addEventListener("keydown", onKey);
+  deckEl.append(h("div", { class: "loading" }));
+  load();
+  drawMatches();
+  return () => document.removeEventListener("keydown", onKey);
+}
+
+// ------------------------------------------------------------------ plenary hall
+// An empty hall where everyone who has the app open right now walks around.
+
+function viewPlenary(screen) {
+  const hall = h("div", { class: "hall", role: "group", "aria-label": t("tabPlenary") }, h("div", { class: "stage" }, "EUROXPRO'27"));
+  const count = h("p", { class: "hall-count", "aria-live": "polite" });
+  screen.append(largeTitle(t("tabPlenary")), hall, count, h("p", { class: "fineprint" }, t("plenaryHint")));
+  const walkers = new Map(); // id -> { el, x, y, timer }
+  let sheet = null;
+  let alive = true;
+
+  const bounds = () => ({ w: hall.clientWidth, h: hall.clientHeight });
+  const place = (w, x, y) => {
+    const b = bounds();
+    w.x = Math.max(8, Math.min(b.w - 52, x));
+    w.y = Math.max(66, Math.min(b.h - 60, y));
+    w.el.style.transform = `translate(${w.x}px, ${w.y}px)`;
+  };
+  const wander = (w) => {
+    if (!alive) return;
+    const b = bounds();
+    const nx = w.x + (Math.random() - 0.5) * b.w * 0.6;
+    const ny = w.y + (Math.random() - 0.5) * b.h * 0.5;
+    w.el.classList.add("bob");
+    place(w, nx, ny);
+    clearTimeout(w.stop);
+    w.stop = setTimeout(() => w.el.classList.remove("bob"), 4000);
+    w.timer = setTimeout(() => wander(w), 4500 + Math.random() * 5000);
+  };
+
+  const showPerson = (p) => {
+    sheet?.remove();
+    const mine = p.id === state.user.id;
+    sheet = h(
+      "div",
+      { class: "person-sheet" },
+      avatar(p),
+      h("span", { class: "row-text" }, h("span", { class: "row-value" }, mine ? `${p.name} (${t("you")})` : p.name), h("span", { class: "row-label" }, [p.entity, LANGS.find((l) => l.code === p.lang)?.label].filter(Boolean).join(" · "))),
+      mine
+        ? null
+        : h("button", { type: "button", class: "btn btn-small", onclick: async () => {
+            const { id } = await api("POST", "/api/conversations/dm", { userId: p.id });
+            go("/messages/" + encodeURIComponent(id));
+          } }, t("send"))
+    );
+    hall.append(sheet);
+  };
+
+  const sync = (people) => {
+    const b = bounds();
+    const ids = new Set(people.map((p) => p.id));
+    for (const [id, w] of walkers) {
+      if (!ids.has(id)) {
+        clearTimeout(w.timer);
+        w.el.remove();
+        walkers.delete(id);
+      }
+    }
+    for (const p of people) {
+      if (walkers.has(p.id)) continue;
+      const mine = p.id === state.user.id;
+      const el = h(
+        "button",
+        { type: "button", class: "walker" + (mine ? " me" : ""), "aria-label": p.name },
+        avatar(p),
+        h("span", { class: "walker-name" }, mine ? t("you") : p.name.split(" ")[0])
+      );
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showPerson(p);
+      });
+      const w = { el, x: 0, y: 0, timer: null };
+      el.style.transition = "none";
+      hall.append(el);
+      place(w, Math.random() * b.w, 70 + Math.random() * (b.h - 130));
+      requestAnimationFrame(() => (el.style.transition = ""));
+      walkers.set(p.id, w);
+      if (!mine) w.timer = setTimeout(() => wander(w), 600 + Math.random() * 3000);
+    }
+    count.textContent = t("inHall", { n: people.length });
+  };
+
+  // Tap the floor to walk your own avatar there.
+  hall.addEventListener("click", (e) => {
+    if (e.target.closest(".person-sheet")) return;
+    sheet?.remove();
+    sheet = null;
+    const me = walkers.get(state.user.id);
+    if (!me) return;
+    const r = hall.getBoundingClientRect();
+    me.el.classList.add("bob");
+    place(me, e.clientX - r.left - 19, e.clientY - r.top - 19);
+    clearTimeout(me.stop);
+    me.stop = setTimeout(() => me.el.classList.remove("bob"), 4000);
+  });
+
+  const refresh = () =>
+    api("GET", "/api/plenary")
+      .then((d) => alive && sync(d.people))
+      .catch(() => {});
+  refresh();
+  const timer = setInterval(() => document.visibilityState === "visible" && refresh(), 8000);
+  return () => {
+    alive = false;
+    clearInterval(timer);
+    for (const w of walkers.values()) clearTimeout(w.timer);
+  };
+}
+
 // ------------------------------------------------------------------ live stream
 
 // Vercel functions can't keep a connection open, so the app asks the
@@ -1063,6 +1348,7 @@ async function poll() {
         const viewing = here() === "/messages/" + encodeURIComponent(m.conv) || here() === "/messages/" + m.conv;
         if (!viewing && m.from !== state.user?.id) refreshList = true;
       }
+      for (const peer of d.matches || []) toast(t("matchText", { name: peer.name }));
       if (refreshList) refreshConversations().then(() => window.dispatchEvent(new Event("conversations-updated"))).catch(() => {});
       if (d.agenda) {
         await loadAgenda(true);
@@ -1111,6 +1397,58 @@ function getThemePref() {
   }
 }
 
+const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", "🦁", "🐯", "🐬", "🦉", "🌞", "🌊", "🌴", "🍉", "☕", "🎧", "🎨", "⚽", "🚀", "🌍", "🌷", "🧿"];
+
+// Avatar emoji, short intro and visibility for the Meet tab.
+function meetProfile(u) {
+  const save = async (patch) => {
+    try {
+      const { user } = await api("PATCH", "/api/me", patch);
+      state.user = user;
+      const big = document.querySelector(".profile-head .avatar");
+      if (big) big.replaceWith(avatar(user, "avatar-lg"));
+      toast(t("saved"));
+    } catch (err) {
+      toast(errText(err));
+    }
+  };
+  const grid = h(
+    "div",
+    { class: "emoji-grid", role: "radiogroup", "aria-label": t("avatar") },
+    ["", ...EMOJIS].map((e) => {
+      const b = h("button", { type: "button", role: "radio", "aria-checked": String((u.emoji || "") === e), class: (u.emoji || "") === e ? "on" : "", "aria-label": e || t("initialsOption") }, e || initials(u.name));
+      b.addEventListener("click", () => {
+        for (const x of grid.children) {
+          x.classList.toggle("on", x === b);
+          x.setAttribute("aria-checked", String(x === b));
+        }
+        save({ emoji: e });
+      });
+      return b;
+    })
+  );
+  const bio = h("textarea", { rows: 3, maxlength: 160, placeholder: t("bioPlaceholder"), "aria-label": t("bio") }, u.bio || "");
+  const bioSave = h("button", { type: "button", class: "btn btn-filled", hidden: true, onclick: () => { save({ bio: bio.value }); bioSave.hidden = true; } }, t("save"));
+  bio.addEventListener("input", () => (bioSave.hidden = bio.value.trim() === (state.user.bio || "")));
+  const sw = h("input", { type: "checkbox", class: "switch", role: "switch", "aria-label": t("showInMeet") });
+  sw.checked = u.meet !== false;
+  sw.addEventListener("change", () => save({ meet: sw.checked }));
+  return h(
+    "div",
+    {},
+    h("h2", { class: "group-header" }, t("meetProfile")),
+    h(
+      "div",
+      { class: "group" },
+      h("div", { class: "field field-stack" }, h("span", { class: "field-label" }, t("avatar")), grid),
+      h("label", { class: "field field-stack" }, h("span", { class: "field-label" }, t("bio")), bio),
+      h("label", { class: "field switch-row" }, h("span", { class: "field-label" }, t("showInMeet")), sw)
+    ),
+    bioSave,
+    h("p", { class: "group-footer" }, t("meetProfileHint"))
+  );
+}
+
 function viewProfile(screen) {
   const u = state.user;
   const nameIn = h("input", { type: "text", value: u.name, maxlength: 60, autocomplete: "name", "aria-label": t("name") });
@@ -1138,7 +1476,7 @@ function viewProfile(screen) {
     h(
       "div",
       { class: "profile-head" },
-      avatar(u.name, "avatar-lg"),
+      avatar(u, "avatar-lg"),
       h("div", {}, h("p", { class: "profile-name" }, u.name), h("p", { class: "profile-sub" }, u.email), u.role === "admin" ? h("span", { class: "status status-admin" }, t("organizer")) : null)
     ),
     h(
@@ -1165,6 +1503,7 @@ function viewProfile(screen) {
       ),
       saveBtn
     ),
+    meetProfile(u),
     h("h2", { class: "group-header" }, t("language")),
     h(
       "div",
