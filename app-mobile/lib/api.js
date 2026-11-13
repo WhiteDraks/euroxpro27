@@ -92,7 +92,9 @@ async function readJson(req) {
 }
 // Small set of avatar emojis people can pick in their profile.
 const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", "🦁", "🐯", "🐬", "🦉", "🌞", "🌊", "🌴", "🍉", "☕", "🎧", "🎨", "⚽", "🚀", "🌍", "🌷", "🧿"];
-const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "" });
+// Delegate positions, as the 2024 app grouped people and agendas.
+const POSITIONS = ["MCPc", "MCPe", "MCVP", "LCP", "LCVP", "Other"];
+const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "", position: u.position || "", title: u.role === "admin" ? u.title || "" : "" });
 const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false });
 async function getUser(id) {
     return parse(await cmd("GET", "du:" + id));
@@ -221,6 +223,7 @@ route("POST", "auth/register", async ({ req }) => {
         email,
         name,
         entity: clean(b.entity, 60),
+        position: POSITIONS.includes(b.position) ? b.position : "",
         lang: isLang(b.lang) ? b.lang : "en",
         passHash: hash,
         salt,
@@ -277,6 +280,10 @@ route("PATCH", "me", async ({ req, user }) => {
     }
     if (b.meet !== undefined)
         u.meet = Boolean(b.meet);
+    if (b.position !== undefined)
+        u.position = POSITIONS.includes(b.position) ? b.position : "";
+    if (b.title !== undefined && u.role === "admin")
+        u.title = clean(b.title, 40);
     await saveUser(u);
     return json({ user: me(u) });
 });
@@ -303,6 +310,8 @@ route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
     }
     if (b.location !== undefined)
         s.location = clean(b.location, 120);
+    if (Array.isArray(b.audience))
+        s.audience = POSITIONS.filter((p) => b.audience.includes(p));
     if (b.note !== undefined) {
         s.note = clean(b.note, 280);
         s.noteLang = user.lang;
@@ -398,7 +407,7 @@ route("GET", "sync", async ({ url, user }) => {
     const [rawLast] = await pipe(["GET", "devat"], ["ZADD", "dpres", Date.now(), u.id]);
     const lastAt = Number(rawLast) || 0;
     if (!since || lastAt <= since)
-        return json({ now: Math.max(lastAt, since || Date.now()), messages: [], agenda: false, matches: [] });
+        return json({ now: Math.max(lastAt, since || Date.now()), messages: [], agenda: false, matches: [], announce: false, request: false });
     const events = (await cmd("LRANGE", "dev", 0, 99))
         .map((r) => parse(r))
         .filter((e) => !!e && e.at > since)
@@ -408,7 +417,10 @@ route("GET", "sync", async ({ url, user }) => {
     const agendaChange = events.some((e) => e.type === "agenda" && e.sessionId);
     const matches = events.filter((e) => e.type === "match" && e.users?.includes(u.id)).map((e) => e.users.find((x) => x !== u.id));
     const matchUsers = (await Promise.all(matches.map(getUser))).filter(Boolean).map(publicUser);
-    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers });
+    const announce = events.some((e) => e.type === "announce");
+    // Organizers hear about new requests; the sender hears about replies.
+    const request = events.some((e) => e.type === "request" && (e.to === u.id || (e.to === "admins" && u.role === "admin")));
+    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request });
 });
 // ------------------------------------------------------------ meet (swipe to get to know people)
 async function usersByIds(ids) {
@@ -472,6 +484,119 @@ route("GET", "plenary", async ({ user }) => {
         ids.push(user.id);
     const people = (await usersByIds(ids.slice(-150))).map(publicUser);
     return json({ people });
+});
+// ------------------------------------------------------------ directory and congress team
+async function allUsers() {
+    const ids = await cmd("SMEMBERS", "dusers");
+    return usersByIds(ids);
+}
+route("GET", "people/([\\w-]+)", async ({ user, m }) => {
+    const p = await getUser(m[1]);
+    if (!p)
+        throw new HttpError(404, "not_found");
+    const [out] = await withBio(user, [p]);
+    return json({ person: out });
+});
+route("GET", "team", async ({ user }) => {
+    const team = (await allUsers())
+        .filter((x) => x.role === "admin")
+        .map(publicUser)
+        .sort((a, b) => (a.title || "~").localeCompare(b.title || "~") || a.name.localeCompare(b.name, user.lang));
+    return json({ team });
+});
+// ------------------------------------------------------------ announcements (organizers post, everyone reads, translated)
+const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+async function loadAnnouncements() {
+    return (await cmd("LRANGE", "dann", 0, 99)).map((r) => parse(r)).filter(Boolean);
+}
+async function translatedFields(reader, items, keys) {
+    const flat = [];
+    for (const it of items)
+        for (const k of keys)
+            flat.push({ it, k, text: it[k] || "", from: it.lang || "en" });
+    const hits = await peekMany(flat.map((f) => ({ text: f.text, from: f.from })), reader.lang);
+    await Promise.all(flat.map(async (f, i) => {
+        if (!f.text || f.from === reader.lang)
+            return;
+        const tr = hits[i] != null ? { text: hits[i], translated: true } : await translate(f.text, f.from, reader.lang);
+        if (tr.translated) {
+            f.it[f.k + "Original"] = f.text;
+            f.it[f.k] = tr.text;
+        }
+    }));
+    return items;
+}
+route("GET", "announcements", async ({ user }) => {
+    const list = await loadAnnouncements();
+    return json({ announcements: await translatedFields(user, list, ["title", "body"]) });
+});
+route("POST", "announcements", async ({ req, user }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const b = await readJson(req);
+    const title = clean(b.title, 120);
+    if (!title)
+        throw new HttpError(400, "title_required");
+    const deadline = DATETIME_RE.test(String(b.deadline || "")) ? String(b.deadline) : "";
+    const a = { id: newId(), title, body: clean(b.body, 1000), deadline, lang: user.lang, by: user.name, at: Date.now() };
+    await pipe(["LPUSH", "dann", JSON.stringify(a)], ["LTRIM", "dann", 0, 99]);
+    await pushEvent({ at: a.at, type: "announce" });
+    return json({ announcement: a }, 201);
+});
+route("POST", "announcements/([\\w-]+)/delete", async ({ user, m }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const list = await loadAnnouncements();
+    const keep = list.filter((a) => a.id !== m[1]);
+    await pipe(["DEL", "dann"], ...(keep.length ? [["RPUSH", "dann", ...keep.map((a) => JSON.stringify(a))]] : []));
+    await pushEvent({ at: Date.now(), type: "announce" });
+    return json({ ok: true });
+});
+// ------------------------------------------------------------ requests and complaints (delegate -> organizers)
+const REQ_KINDS = ["request", "complaint", "lost"];
+route("GET", "requests", async ({ user }) => {
+    const ids = await cmd("LRANGE", "dqids", 0, 499);
+    const all = ids.length ? (await cmd("MGET", ...ids.map((x) => "dq:" + x))).map((r) => parse(r)).filter(Boolean) : [];
+    const mine = user.role === "admin" ? all : all.filter((q) => q.uid === user.id);
+    // Each reader sees text in their language: the request for organizers, the reply for the sender.
+    await translatedFields(user, mine.filter((q) => q.uid !== user.id), ["text"]);
+    const replies = mine.filter((q) => q.reply).map((q) => ({ q, reply: q.reply, lang: q.replyLang || q.lang }));
+    await translatedFields(user, replies, ["reply"]);
+    for (const r of replies)
+        if (r.replyOriginal)
+            Object.assign(r.q, { reply: r.reply, replyOriginal: r.replyOriginal });
+    return json({ requests: mine });
+});
+route("POST", "requests", async ({ req, user }) => {
+    if (await limited("req:" + user.id, 10, 3600))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req);
+    const text = clean(b.text, 1000);
+    if (text.length < 3)
+        throw new HttpError(400, "text_required");
+    const q = { id: newId(), uid: user.id, name: user.name, entity: user.entity || "", kind: REQ_KINDS.includes(b.kind) ? b.kind : "request", text, lang: user.lang, at: Date.now(), status: "open", reply: "" };
+    await pipe(["SET", "dq:" + q.id, JSON.stringify(q)], ["LPUSH", "dqids", q.id], ["LTRIM", "dqids", 0, 499]);
+    await pushEvent({ at: q.at, type: "request", to: "admins" });
+    return json({ request: q }, 201);
+});
+route("POST", "requests/([\\w-]+)", async ({ req, user, m }) => {
+    if (user.role !== "admin")
+        throw new HttpError(403, "forbidden");
+    const q = parse(await cmd("GET", "dq:" + m[1]));
+    if (!q)
+        throw new HttpError(404, "not_found");
+    const b = await readJson(req);
+    if (["open", "done"].includes(b.status))
+        q.status = b.status;
+    if (b.reply !== undefined) {
+        q.reply = clean(b.reply, 1000);
+        q.replyLang = user.lang;
+        q.replyBy = user.name;
+    }
+    q.updatedAt = Date.now();
+    await cmd("SET", "dq:" + q.id, JSON.stringify(q));
+    await pushEvent({ at: q.updatedAt, type: "request", to: q.uid });
+    return json({ request: q });
 });
 // ------------------------------------------------------------ dispatcher
 function sameOrigin(req) {

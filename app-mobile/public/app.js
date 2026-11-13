@@ -13,6 +13,7 @@ const state = {
   conversations: null,
   unread: 0,
   installPrompt: null,
+  announcements: null,
 };
 let cleanup = null; // teardown of the current view (timers, map, listeners)
 
@@ -62,6 +63,9 @@ const ICON = {
   meet: '<svg viewBox="0 0 24 24"><rect x="5.5" y="3.5" width="13" height="17" rx="2.5"/><path d="M12 15.2s-3.2-2-3.2-4.1a1.8 1.8 0 0 1 3.2-1.1 1.8 1.8 0 0 1 3.2 1.1c0 2.1-3.2 4.1-3.2 4.1z"/></svg>',
   heart: '<svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.1A4.2 4.2 0 0 1 12 7.4a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>',
   xmark: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  megaphone: '<svg viewBox="0 0 24 24"><path d="M4 10v4h3l7 4.5v-13L7 10z"/><path d="M17.5 9a4 4 0 0 1 0 6"/></svg>',
+  inbox: '<svg viewBox="0 0 24 24"><path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z"/><path d="M3.5 13.5H9a3 3 0 0 0 6 0h5.5"/></svg>',
+  team: '<svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>',
   share: '<svg viewBox="0 0 24 24"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg>',
 };
 const icon = (name, cls = "") => h("span", { class: "icon " + cls, "aria-hidden": "true", html: ICON[name] });
@@ -204,6 +208,10 @@ const ROUTES = [
   { path: "/messages/new", view: viewPeople, tab: "messages" },
   { path: "/messages/:id", view: viewChat, tab: "messages", hideTabs: true },
   { path: "/profile", view: viewProfile, tab: "profile" },
+  { path: "/people", view: viewDirectory, tab: "profile" },
+  { path: "/team", view: viewTeam, tab: "profile" },
+  { path: "/info", view: viewInfo, tab: "profile" },
+  { path: "/requests", view: viewRequests, tab: "profile" },
 ];
 
 function match(pathname) {
@@ -450,6 +458,7 @@ function viewRegister(screen) {
       field({ label: t("email"), name: "email", type: "email", autocomplete: "email", placeholder: "name@example.com" }),
       field({ label: t("password"), name: "password", type: "password", autocomplete: "new-password", hint: t("passwordHint") }),
       field({ label: t("entity"), name: "entity", autocomplete: "organization", required: false, maxlength: 60, placeholder: t("entityHint") }),
+      { row: h("label", { class: "field" }, h("span", { class: "field-label" }, t("position")), positionSelect("", "position")) },
       langField,
     ],
     footer: h("p", { class: "auth-switch" }, t("haveAccount") + " ", h("a", { href: "/login", "data-link": true }, t("login"))),
@@ -568,6 +577,7 @@ function sessionRow(day, s, now) {
       h("span", { class: "session-type type-" + s.type }, live ? t("now") : t("type_" + s.type)),
       h("span", { class: "session-title" }, s.title),
       h("span", { class: "session-loc" }, s.location),
+      s.audience?.length ? h("span", { class: "session-aud" }, s.audience.map(posLabel).join(" · ")) : null,
       statusBadge(s),
       s.note ? h("span", { class: "session-note" }, s.note) : null
     ),
@@ -583,6 +593,10 @@ function viewAgenda(screen) {
   screen.append(body);
   let selected = sessionStorage.getItem("agendaDay");
   let timer;
+  const pos = state.user.position;
+  let mine = pos && sessionStorage.getItem("agendaMine") === "1";
+  const banner = h("div");
+  latestAnnouncement().then((a) => a && banner.replaceChildren(announcementBanner(a))).catch(() => {});
 
   const draw = (agenda) => {
     const today = dayKeyNow();
@@ -591,6 +605,7 @@ function viewAgenda(screen) {
     }
     const day = agenda.days.find((d) => d.date === selected);
     const now = nowMs();
+    const shown = day.sessions.filter((s) => !mine || forPosition(s, pos));
     const days = h(
       "div",
       { class: "day-picker", role: "tablist" },
@@ -614,15 +629,23 @@ function viewAgenda(screen) {
       )
     );
     body.replaceChildren(
+      banner,
       liveCard(agenda),
       days,
+      pos
+        ? h("div", { class: "pad-x" }, segmented([["all", t("all")], ["mine", `${t("myProgram")} · ${posLabel(pos)}`]], mine ? "mine" : "all", (v) => {
+            mine = v === "mine";
+            sessionStorage.setItem("agendaMine", mine ? "1" : "0");
+            draw(agenda);
+          }, t("myProgram")))
+        : null,
       h(
         "div",
         { class: "section-head" },
         h("h2", {}, day.label),
-        h("span", {}, `${fmtDay(day.date, { weekday: "long", day: "numeric", month: "long" })} · ${t("sessions", { n: day.sessions.length })}`)
+        h("span", {}, `${fmtDay(day.date, { weekday: "long", day: "numeric", month: "long" })} · ${t("sessions", { n: shown.length })}`)
       ),
-      h("div", { class: "group sessions" }, day.sessions.map((s) => sessionRow(day, s, now))),
+      h("div", { class: "group sessions" }, shown.map((s) => sessionRow(day, s, now))),
       h("p", { class: "fineprint" }, (agenda.draft ? t("draft") + " " : "") + t("localTime"))
     );
   };
@@ -657,6 +680,7 @@ function viewSession(screen, { id }) {
       [ "clock", t("time"), `${fmtDay(day.date, { weekday: "long", day: "numeric", month: "long" })}, ${s.start} – ${s.end}` ],
       [ "pin", t("location"), s.location ],
       s.dressCode ? [ "shirt", t("dressCode"), s.dressCode ] : null,
+      [ "people", t("forPositions"), s.audience?.length ? s.audience.map(posLabel).join(", ") : t("everyone") ],
     ].filter(Boolean);
     screen.replaceChildren(
       navBar({ title: t("tabAgenda"), back: "/agenda" }),
@@ -696,6 +720,16 @@ function adminEditor(s) {
   const end = h("input", { type: "time", value: s.end, "aria-label": t("end") });
   const loc = h("input", { type: "text", value: s.locationOriginal || s.location, maxlength: 120, "aria-label": t("location") });
   const note = h("textarea", { rows: 2, maxlength: 280, "aria-label": t("note") }, s.noteOriginal || s.note || "");
+  const audience = new Set(s.audience || []);
+  const chips = h("div", { class: "chips" }, POSITIONS.map((p) => {
+    const b = h("button", { type: "button", class: "chip" + (audience.has(p) ? " on" : ""), "aria-pressed": String(audience.has(p)) }, posLabel(p));
+    b.addEventListener("click", () => {
+      audience.has(p) ? audience.delete(p) : audience.add(p);
+      b.classList.toggle("on", audience.has(p));
+      b.setAttribute("aria-pressed", String(audience.has(p)));
+    });
+    return b;
+  }));
   const btn = h("button", { type: "submit", class: "btn btn-filled" }, t("save"));
   return h(
     "form",
@@ -705,7 +739,7 @@ function adminEditor(s) {
         e.preventDefault();
         btn.disabled = true;
         try {
-          await api("PATCH", "/api/agenda/sessions/" + s.id, { status, start: start.value, end: end.value, location: loc.value, note: note.value });
+          await api("PATCH", "/api/agenda/sessions/" + s.id, { status, start: start.value, end: end.value, location: loc.value, note: note.value, audience: [...audience] });
           toast(t("saved"));
           await loadAgenda(true);
           window.dispatchEvent(new Event("agenda-updated"));
@@ -725,7 +759,8 @@ function adminEditor(s) {
       h("label", { class: "field" }, h("span", { class: "field-label" }, t("start")), start),
       h("label", { class: "field" }, h("span", { class: "field-label" }, t("end")), end),
       h("label", { class: "field" }, h("span", { class: "field-label" }, t("location")), loc),
-      h("label", { class: "field field-stack" }, h("span", { class: "field-label" }, t("note")), note)
+      h("label", { class: "field field-stack" }, h("span", { class: "field-label" }, t("note")), note),
+      h("div", { class: "field field-stack" }, h("span", { class: "field-label" }, t("forPositions")), chips, h("span", { class: "row-label" }, t("audienceHint")))
     ),
     btn
   );
@@ -1349,6 +1384,15 @@ async function poll() {
         if (!viewing && m.from !== state.user?.id) refreshList = true;
       }
       for (const peer of d.matches || []) toast(t("matchText", { name: peer.name }));
+      if (d.announce) {
+        state.announcements = null;
+        window.dispatchEvent(new Event("announcements-updated"));
+        if (here() !== "/info") toast(t("newAnnouncementToast"));
+      }
+      if (d.request) {
+        window.dispatchEvent(new Event("requests-updated"));
+        if (here() !== "/requests") toast(t("requestToast"));
+      }
       if (refreshList) refreshConversations().then(() => window.dispatchEvent(new Event("conversations-updated"))).catch(() => {});
       if (d.agenda) {
         await loadAgenda(true);
@@ -1453,10 +1497,16 @@ function viewProfile(screen) {
   const u = state.user;
   const nameIn = h("input", { type: "text", value: u.name, maxlength: 60, autocomplete: "name", "aria-label": t("name") });
   const entityIn = h("input", { type: "text", value: u.entity, maxlength: 60, placeholder: t("entityHint"), "aria-label": t("entity") });
+  const posIn = positionSelect(u.position || "");
+  const titleIn = u.role === "admin" ? h("input", { type: "text", value: u.title || "", maxlength: 40, placeholder: t("teamTitleHint"), "aria-label": t("teamTitle") }) : null;
   const saveBtn = h("button", { type: "submit", class: "btn btn-filled", hidden: true }, t("save"));
-  const dirty = () => (saveBtn.hidden = nameIn.value.trim() === u.name && entityIn.value.trim() === u.entity);
-  nameIn.addEventListener("input", dirty);
-  entityIn.addEventListener("input", dirty);
+  const dirty = () =>
+    (saveBtn.hidden =
+      nameIn.value.trim() === u.name && entityIn.value.trim() === u.entity && posIn.value === (u.position || "") && (!titleIn || titleIn.value.trim() === (u.title || "")));
+  for (const el of [nameIn, entityIn, posIn, titleIn]) el?.addEventListener("input", dirty);
+  posIn.addEventListener("change", dirty);
+  const link = (href, ic, title, sub) =>
+    h("a", { href, "data-link": true, class: "row" }, icon(ic, "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, title), h("span", { class: "row-label" }, sub)), icon("chevron", "row-chevron"));
 
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   const ios = /iPhone|iPad/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -1479,13 +1529,22 @@ function viewProfile(screen) {
       avatar(u, "avatar-lg"),
       h("div", {}, h("p", { class: "profile-name" }, u.name), h("p", { class: "profile-sub" }, u.email), u.role === "admin" ? h("span", { class: "status status-admin" }, t("organizer")) : null)
     ),
+    h("h2", { class: "group-header" }, t("congress")),
+    h(
+      "div",
+      { class: "group" },
+      link("/info", "megaphone", t("announcements"), t("announcementsHint")),
+      link("/people", "people", t("directory"), t("directoryHint")),
+      link("/team", "team", t("team"), t("teamHint")),
+      link("/requests", "inbox", t("requests"), t("requestsHint"))
+    ),
     h(
       "form",
       {
         onsubmit: async (e) => {
           e.preventDefault();
           try {
-            const { user } = await api("PATCH", "/api/me", { name: nameIn.value, entity: entityIn.value });
+            const { user } = await api("PATCH", "/api/me", { name: nameIn.value, entity: entityIn.value, position: posIn.value, ...(titleIn ? { title: titleIn.value } : {}) });
             state.user = user;
             toast(t("saved"));
             render();
@@ -1499,7 +1558,9 @@ function viewProfile(screen) {
         "div",
         { class: "group" },
         h("label", { class: "field" }, h("span", { class: "field-label" }, t("name")), nameIn),
-        h("label", { class: "field" }, h("span", { class: "field-label" }, t("entity")), entityIn)
+        h("label", { class: "field" }, h("span", { class: "field-label" }, t("entity")), entityIn),
+        h("label", { class: "field" }, h("span", { class: "field-label" }, t("position")), posIn),
+        titleIn ? h("label", { class: "field" }, h("span", { class: "field-label" }, t("teamTitle")), titleIn) : null
       ),
       saveBtn
     ),
@@ -1553,7 +1614,7 @@ function viewProfile(screen) {
           onclick: async () => {
             await api("POST", "/api/auth/logout").catch(() => {});
             stopStream();
-            Object.assign(state, { user: null, agenda: null, conversations: null, unread: 0 });
+            Object.assign(state, { user: null, agenda: null, conversations: null, unread: 0, announcements: null });
             go("/welcome", { replace: true });
           },
         },
@@ -1562,6 +1623,265 @@ function viewProfile(screen) {
     ),
     h("p", { class: "fineprint center" }, "EUROXPRO'27 · AIESEC in Türkiye")
   );
+}
+
+// ------------------------------------------------------------------ congress modules
+// Modelled on the 2024 delegate app: delegates by position, the CC team,
+// announcements with deadlines, and requests/complaints to the organizers.
+
+const POSITIONS = ["MCPc", "MCPe", "MCVP", "LCP", "LCVP", "Other"];
+const posLabel = (p) => (p === "Other" ? t("pos_Other") : p);
+const forPosition = (s, pos) => !s.audience?.length || s.audience.includes(pos);
+
+function positionSelect(value, name) {
+  const sel = h("select", { name, "aria-label": t("position") }, h("option", { value: "" }, t("positionNone")), POSITIONS.map((p) => h("option", { value: p }, posLabel(p))));
+  sel.value = value;
+  return sel;
+}
+
+// Bottom sheet with someone's card and a message button.
+async function openPerson(id) {
+  if (id === state.user.id) return;
+  const box = h("div", { class: "sheet", role: "dialog", "aria-modal": "true" }, h("div", { class: "loading" }));
+  const back = h("div", { class: "sheet-backdrop", onclick: (e) => e.target === back && close() }, box);
+  const close = () => {
+    back.classList.remove("show");
+    setTimeout(() => back.remove(), 250);
+    document.removeEventListener("keydown", onKey);
+  };
+  const onKey = (e) => e.key === "Escape" && close();
+  document.addEventListener("keydown", onKey);
+  document.body.append(back);
+  requestAnimationFrame(() => back.classList.add("show"));
+  try {
+    const { person: p } = await api("GET", "/api/people/" + encodeURIComponent(id));
+    box.replaceChildren(
+      h("div", { class: "sheet-grab", "aria-hidden": "true" }),
+      avatar(p, "avatar-xl"),
+      h("h2", { class: "sheet-name" }, p.name),
+      h("p", { class: "sheet-sub" }, [p.title, p.position && posLabel(p.position), p.entity].filter(Boolean).join(" · ")),
+      p.bio ? h("p", { class: "sheet-bio" }, p.bio) : null,
+      p.bioTranslated ? h("p", { class: "fineprint center" }, t("translatedFrom")) : null,
+      h("button", { type: "button", class: "btn btn-filled", onclick: async () => {
+        const { id: conv } = await api("POST", "/api/conversations/dm", { userId: p.id });
+        close();
+        go("/messages/" + encodeURIComponent(conv));
+      } }, icon("messages"), t("sendMessage"))
+    );
+  } catch (e) {
+    toast(errText(e));
+    close();
+  }
+}
+
+function viewDirectory(screen) {
+  const search = h("input", { type: "search", class: "search", placeholder: t("searchPeople"), "aria-label": t("searchPeople"), autocomplete: "off" });
+  let filter = sessionStorage.getItem("dirPos") || "";
+  const chips = h("div", { class: "chips chips-scroll", role: "radiogroup", "aria-label": t("position") });
+  const list = h("div", { class: "group" }, h("div", { class: "loading" }));
+  screen.append(navBar({ title: t("directory"), back: "/profile" }), h("div", { class: "pad" }, search), chips, list);
+  let people = [];
+  const drawChips = () =>
+    chips.replaceChildren(
+      ...[["", t("all")], ...POSITIONS.map((p) => [p, posLabel(p)])].map(([v, label]) => {
+        const n = v ? people.filter((p) => p.position === v).length : people.length;
+        return h("button", { type: "button", role: "radio", "aria-checked": String(filter === v), class: "chip" + (filter === v ? " on" : ""), onclick: () => {
+          filter = v;
+          sessionStorage.setItem("dirPos", v);
+          drawChips();
+          draw();
+        } }, label, h("span", { class: "chip-n" }, n));
+      })
+    );
+  const draw = () => {
+    const q = search.value.trim().toLocaleLowerCase(locale());
+    const items = people.filter((p) => (!filter || p.position === filter) && (!q || `${p.name} ${p.entity}`.toLocaleLowerCase(locale()).includes(q)));
+    if (!items.length) return list.replaceChildren(h("p", { class: "empty" }, t("noPeople")));
+    list.replaceChildren(
+      ...items.map((p) =>
+        h("button", { type: "button", class: "row", onclick: () => openPerson(p.id) },
+          avatar(p),
+          h("span", { class: "row-text" }, h("span", { class: "row-value" }, p.name), h("span", { class: "row-label" }, [p.position && posLabel(p.position), p.entity].filter(Boolean).join(" · "))),
+          icon("chevron", "row-chevron"))
+      )
+    );
+  };
+  search.addEventListener("input", draw);
+  api("GET", "/api/people").then((d) => {
+    people = d.people;
+    drawChips();
+    draw();
+  }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
+}
+
+function viewTeam(screen) {
+  const grid = h("div", { class: "team-grid" }, h("div", { class: "loading" }));
+  screen.append(navBar({ title: t("team"), back: "/profile" }), grid);
+  api("GET", "/api/team").then(({ team }) => {
+    if (!team.length) return grid.replaceChildren(h("p", { class: "empty" }, t("teamEmpty")));
+    grid.replaceChildren(
+      ...team.map((p) =>
+        h("button", { type: "button", class: "team-card", onclick: () => openPerson(p.id) },
+          avatar(p, "avatar-xl"),
+          h("span", { class: "team-name" }, p.name),
+          h("span", { class: "team-title" }, p.title || t("organizer")))
+      )
+    );
+  }).catch((e) => grid.replaceChildren(h("p", { class: "empty" }, errText(e))));
+}
+
+async function loadAnnouncements() {
+  if (!state.announcements) state.announcements = (await api("GET", "/api/announcements")).announcements;
+  return state.announcements;
+}
+async function latestAnnouncement() {
+  const list = await loadAnnouncements();
+  const now = Date.now();
+  // Prefer the nearest open deadline, otherwise the newest post.
+  const open = list.filter((a) => a.deadline && deadlineMs(a.deadline) > now).sort((a, b) => deadlineMs(a.deadline) - deadlineMs(b.deadline));
+  return open[0] || list[0] || null;
+}
+// Deadlines are entered in Türkiye time.
+const deadlineMs = (v) => Date.parse(v + ":00+03:00");
+function deadlineText(a) {
+  if (!a.deadline) return "";
+  const ms = deadlineMs(a.deadline);
+  const when = new Intl.DateTimeFormat(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" }).format(ms);
+  const left = ms - Date.now();
+  return `${t("deadline")}: ${when} · ${left > 0 ? t("timeLeft", { t: fmtDuration(left) }) : t("deadlinePassed")}`;
+}
+function announcementBanner(a) {
+  const closed = a.deadline && deadlineMs(a.deadline) <= Date.now();
+  return h("a", { href: "/info", "data-link": true, class: "ann-banner" + (closed ? " closed" : "") },
+    icon("megaphone", "ann-icon"),
+    h("span", { class: "row-text" }, h("span", { class: "ann-title" }, a.title), h("span", { class: "ann-sub" }, deadlineText(a) || a.body)),
+    icon("chevron", "row-chevron"));
+}
+
+function viewInfo(screen) {
+  const list = h("div", { class: "ann-list" }, h("div", { class: "loading" }));
+  const admin = state.user.role === "admin";
+  screen.append(navBar({ title: t("announcements"), back: "/profile" }));
+  if (admin) {
+    const title = h("input", { type: "text", maxlength: 120, required: true, "aria-label": t("annTitle") });
+    const body = h("textarea", { rows: 3, maxlength: 1000, "aria-label": t("annBody") });
+    const deadline = h("input", { type: "datetime-local", "aria-label": t("deadline") });
+    const btn = h("button", { type: "submit", class: "btn btn-filled" }, t("post"));
+    screen.append(h("form", { class: "admin", onsubmit: async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      try {
+        await api("POST", "/api/announcements", { title: title.value, body: body.value, deadline: deadline.value });
+        e.target.reset();
+        state.announcements = null;
+        draw();
+        toast(t("saved"));
+      } catch (err) {
+        toast(errText(err));
+      } finally {
+        btn.disabled = false;
+      }
+    } },
+      h("h2", { class: "group-header" }, `${t("organizer")} · ${t("newAnnouncement")}`),
+      h("div", { class: "group" },
+        h("label", { class: "field" }, h("span", { class: "field-label" }, t("annTitle")), title),
+        h("label", { class: "field field-stack" }, h("span", { class: "field-label" }, t("annBody")), body),
+        h("label", { class: "field" }, h("span", { class: "field-label" }, t("deadline")), deadline)),
+      btn));
+  }
+  screen.append(list);
+  const draw = () =>
+    loadAnnouncements().then((items) => {
+      if (!items.length) return list.replaceChildren(h("p", { class: "empty" }, t("noAnnouncements")));
+      list.replaceChildren(
+        ...items.map((a) => {
+          const closed = a.deadline && deadlineMs(a.deadline) <= Date.now();
+          return h("article", { class: "ann" + (a.deadline ? " has-deadline" : "") + (closed ? " closed" : "") },
+            a.deadline ? h("p", { class: "ann-deadline" }, icon("clock"), deadlineText(a)) : null,
+            h("h2", { class: "ann-title" }, a.title),
+            a.body ? h("p", { class: "ann-body" }, a.body) : null,
+            h("p", { class: "ann-meta" }, `${a.by} · ${fmtTime(a.at)}${a.titleOriginal || a.bodyOriginal ? " · " + t("translatedFrom") : ""}`),
+            admin ? h("button", { type: "button", class: "link-btn destructive", onclick: async () => {
+              await api("POST", `/api/announcements/${a.id}/delete`).catch((e) => toast(errText(e)));
+              state.announcements = null;
+              draw();
+            } }, t("delete")) : null);
+        })
+      );
+    }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
+  draw();
+  const onUpdate = () => draw();
+  window.addEventListener("announcements-updated", onUpdate);
+  return () => window.removeEventListener("announcements-updated", onUpdate);
+}
+
+function viewRequests(screen) {
+  const admin = state.user.role === "admin";
+  let kind = "request";
+  const text = h("textarea", { rows: 4, maxlength: 1000, required: true, placeholder: t("requestPlaceholder"), "aria-label": t("newRequest") });
+  const btn = h("button", { type: "submit", class: "btn btn-filled" }, t("send"));
+  const list = h("div", { class: "req-list" }, h("div", { class: "loading" }));
+  screen.append(
+    navBar({ title: t("requests"), back: "/profile" }),
+    h("form", { onsubmit: async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      try {
+        await api("POST", "/api/requests", { kind, text: text.value });
+        text.value = "";
+        toast(t("sent"));
+        draw();
+      } catch (err) {
+        toast(errText(err));
+      } finally {
+        btn.disabled = false;
+      }
+    } },
+      h("h2", { class: "group-header" }, t("newRequest")),
+      h("div", { class: "group" },
+        h("div", { class: "field field-stack" }, segmented(["request", "complaint", "lost"].map((k) => [k, t("kind_" + k)]), kind, (v) => (kind = v), t("newRequest"))),
+        h("label", { class: "field field-stack" }, text)),
+      h("p", { class: "group-footer" }, t("requestHint")),
+      btn),
+    h("h2", { class: "group-header" }, admin ? t("allRequests") : t("myRequests")),
+    list
+  );
+  const card = (q) => {
+    const reply = admin ? h("textarea", { rows: 2, maxlength: 1000, placeholder: t("replyPlaceholder"), "aria-label": t("reply") }, q.replyOriginal || q.reply || "") : null;
+    const update = async (patch) => {
+      try {
+        await api("POST", "/api/requests/" + q.id, patch);
+        toast(t("saved"));
+        draw();
+      } catch (err) {
+        toast(errText(err));
+      }
+    };
+    return h("article", { class: "req" + (q.status === "done" ? " done" : "") },
+      h("div", { class: "req-head" },
+        h("span", { class: "req-kind kind-" + q.kind }, t("kind_" + q.kind)),
+        h("span", { class: "status " + (q.status === "done" ? "status-done" : "status-open") }, t("req_" + q.status)),
+        h("span", { class: "req-time" }, fmtTime(q.at))),
+      admin ? h("p", { class: "req-from" }, [q.name, q.entity].filter(Boolean).join(" · ")) : null,
+      h("p", { class: "req-text" }, q.text),
+      q.textOriginal ? h("p", { class: "fineprint" }, t("translatedFrom")) : null,
+      !admin && q.reply ? h("div", { class: "req-reply" }, h("span", { class: "row-label" }, `${t("reply")} · ${q.replyBy || t("organizer")}`), h("p", {}, q.reply)) : null,
+      admin
+        ? h("div", { class: "req-admin" }, reply,
+            h("div", { class: "req-actions" },
+              h("button", { type: "button", class: "btn btn-tinted", onclick: () => update({ reply: reply.value }) }, t("reply")),
+              h("button", { type: "button", class: "btn btn-plain", onclick: () => update({ status: q.status === "done" ? "open" : "done" }) }, q.status === "done" ? t("reopen") : t("markDone"))))
+        : null);
+  };
+  const draw = () =>
+    api("GET", "/api/requests").then(({ requests }) => {
+      if (!requests.length) return list.replaceChildren(h("p", { class: "empty" }, t("noRequests")));
+      list.replaceChildren(...requests.map(card));
+    }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
+  draw();
+  const onUpdate = () => draw();
+  window.addEventListener("requests-updated", onUpdate);
+  return () => window.removeEventListener("requests-updated", onUpdate);
 }
 
 // ------------------------------------------------------------------ boot
