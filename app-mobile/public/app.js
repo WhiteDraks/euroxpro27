@@ -2041,7 +2041,7 @@ function viewQuestAdmin(screen) {
 const pct = (a, g) => (g ? Math.round((a / g) * 100) : 0);
 const PRODUCTS = ["GV", "GTa", "GTe"];
 const METRICS = ["apd", "re", "co"];
-const metricVal = (x, m, prod) => (prod === "all" ? PRODUCTS.reduce((a, k) => a + (x.p?.[k]?.[m] || 0), 0) : x.p?.[prod]?.[m] || 0);
+const metricVal = (x, m, prod) => (x.t ? x.t[m] || 0 : prod === "all" ? PRODUCTS.reduce((a, k) => a + (x.p?.[k]?.[m] || 0), 0) : x.p?.[prod]?.[m] || 0);
 const shortLc = (name) => name.replace(/^AIESEC in /i, "");
 function groupByMc(lcs) {
   const m = new Map();
@@ -2052,16 +2052,24 @@ function groupByMc(lcs) {
     g.week += x.week || 0;
     g.n++;
     for (const k of PRODUCTS) for (const mm of METRICS) g.p[k][mm] += x.p?.[k]?.[mm] || 0;
+    if (x.t) {
+      g.t = g.t || { apd: 0, re: 0, co: 0 };
+      g.r = g.r || {};
+      g.region = x.region;
+      for (const mm of METRICS) if (x.r?.[mm]) (g.t[mm] += x.t[mm], (g.r[mm] = Math.min(g.r[mm] || 1e9, x.r[mm])));
+    }
     m.set(x.mc, g);
   }
   return [...m.values()];
 }
 // Rank with ties sharing a place (1, 2, 2, 4).
-function ranked(items, val) {
-  const sorted = items.slice().sort((a, b) => val(b) - val(a) || a.name.localeCompare(b.name));
+function ranked(items, val, metric) {
+  const site = metric && items.some((x) => x.r);
+  if (site) items = items.filter((x) => x.r?.[metric]);
+  const sorted = items.slice().sort((a, b) => val(b) - val(a) || (site ? a.r[metric] - b.r[metric] : a.name.localeCompare(b.name)));
   let place = 0;
   return sorted.map((x, i) => {
-    if (i === 0 || val(x) !== val(sorted[i - 1])) place = i + 1;
+    if (site || i === 0 || val(x) !== val(sorted[i - 1])) place = i + 1;
     return { x, v: val(x), place };
   });
 }
@@ -2069,16 +2077,18 @@ function ranked(items, val) {
 function viewApprovals(screen) {
   const admin = state.user.role === "admin";
   const pref = (k, d) => sessionStorage.getItem("appr." + k) || d;
-  let mode = pref("mode", "lc"), mc = pref("mc", "all"), metric = pref("metric", "apd"), prod = pref("prod", "all");
-  const remember = () => Object.entries({ mode, mc, metric, prod }).forEach(([k, v]) => sessionStorage.setItem("appr." + k, v));
+  let mode = pref("mode", "lc"), mc = pref("mc", "all"), metric = pref("metric", "apd"), prod = pref("prod", "all"), region = pref("region", "all");
+  const remember = () => Object.entries({ mode, mc, metric, prod, region }).forEach(([k, v]) => sessionStorage.setItem("appr." + k, v));
   let data = null;
   const total = h("section", { class: "appr-total" });
   const prodChips = h("div", { class: "chips chips-scroll prod-chips" });
   const mcChips = h("div", { class: "chips chips-scroll" });
   const podium = h("div", { class: "podium-wrap" });
   const list = h("ol", { class: "league" }, h("div", { class: "loading" }));
+  const source = h("p", { class: "fineprint appr-source" });
+  const editLink = admin ? h("a", { href: "/approvals/edit", "data-link": true, class: "nav-action", hidden: true }, t("edit")) : null;
   screen.append(
-    navBar({ title: t("approvals"), back: "/home", action: admin ? h("a", { href: "/approvals/edit", "data-link": true, class: "nav-action" }, t("edit")) : null }),
+    navBar({ title: t("approvals"), back: "/home", action: editLink }),
     total,
     h("div", { class: "pad-x" }, segmented(METRICS.map((m) => [m, t("m_" + m)]), metric, (v) => {
       metric = v;
@@ -2093,7 +2103,8 @@ function viewApprovals(screen) {
       h("a", { href: "/approvals/live", "data-link": true, class: "btn btn-small appr-live-btn" }, icon("tv"), t("apprLive"))),
     mcChips,
     podium,
-    list
+    list,
+    source
   );
   const totalNum = h("span", { class: "appr-big" }, "0");
   const chipRow = (el, values, cur, label, set) =>
@@ -2104,32 +2115,44 @@ function viewApprovals(screen) {
   const draw = () => {
     if (!data) return;
     remember();
-    const all = data.lcs;
+    const global = data.source === "global";
+    if (global) prod = "all";
+    if (editLink) editLink.hidden = global;
+    const all = global ? data.lcs.filter((x) => region === "all" || x.region === region) : data.lcs;
+    const inTable = (m) => (global ? all.filter((x) => x.r?.[m]) : all);
     const val = (x) => metricVal(x, metric, prod);
-    const T = all.reduce((a, x) => a + val(x), 0);
+    const T = inTable(metric).reduce((a, x) => a + val(x), 0);
     const G = all.reduce((a, x) => a + x.goal, 0);
     const apdT = all.reduce((a, x) => a + metricVal(x, "apd", prod), 0);
-    const showGoal = metric === "apd" && prod === "all";
+    const showGoal = metric === "apd" && prod === "all" && G > 0;
     const bar = h("span", { class: "appr-bar" }, h("span", {}));
-    bar.firstChild.style.setProperty("--w", (showGoal ? Math.min(100, pct(T, G)) : metric === "apd" ? 100 : Math.min(100, pct(T, apdT))) + "%");
+    bar.firstChild.style.setProperty("--w", (showGoal ? Math.min(100, pct(T, G)) : metric === "apd" || global ? 100 : Math.min(100, pct(T, apdT))) + "%");
     total.replaceChildren(
-      h("span", { class: "kicker" }, `${t("apprEurope")} · `, h("span", { lang: "en" }, `${t("m_" + metric)}${prod === "all" ? "" : " · " + prod}`)),
+      h("span", { class: "kicker" }, `${t(global ? "apprGlobal" : "apprEurope")}${global && region !== "all" ? " · " + t("reg_" + region) : ""} · `, h("span", { lang: "en" }, `${t("m_" + metric)}${prod === "all" ? "" : " · " + prod}`)),
       h("span", { class: "appr-line" }, totalNum, showGoal ? h("span", { class: "appr-goal" }, ` / ${fmtNum(G)}`) : ""),
       bar,
       h("span", { class: "appr-meta" }, [
-        showGoal ? t("apprToGoal", { p: pct(T, G) }) : metric !== "apd" ? t("apprConv", { p: pct(T, apdT) }) : null,
-        t("apprLcs", { n: all.length }),
-        t("apprMcs", { n: new Set(all.map((x) => x.mc)).size }),
+        showGoal ? t("apprToGoal", { p: pct(T, G) }) : metric !== "apd" && !global ? t("apprConv", { p: pct(T, apdT) }) : null,
+        t("apprLcs", { n: inTable(metric).length }),
+        t(global ? "apprCountries" : "apprMcs", { n: new Set(inTable(metric).map((x) => x.mc)).size }),
       ].filter(Boolean).join(" · ")),
-      data.demo ? h("span", { class: "appr-demo" }, t("apprDemo")) : ""
+      data.demo && !global ? h("span", { class: "appr-demo" }, t("apprDemo")) : ""
     );
+    source.replaceChildren(global ? t("apprSource") : "");
+    source.hidden = !global;
     countUp(totalNum, T);
-    chipRow(prodChips, ["all", ...PRODUCTS], prod, (v) => (v === "all" ? t("allProducts") : v), (v) => (prod = v));
-    const mcs = [...new Set(all.map((x) => x.mc))].sort();
-    mcChips.hidden = mode !== "lc";
-    chipRow(mcChips, ["all", ...mcs], mc, (v) => (v === "all" ? t("all") : v), (v) => (mc = v));
-    const items = mode === "mc" ? groupByMc(all) : all.filter((x) => mc === "all" || x.mc === mc);
-    const rows = ranked(items, val);
+    prodChips.hidden = global;
+    if (!global) chipRow(prodChips, ["all", ...PRODUCTS], prod, (v) => (v === "all" ? t("allProducts") : v), (v) => (prod = v));
+    if (global) {
+      mcChips.hidden = false;
+      chipRow(mcChips, ["all", "E", "M", "A", "R"], region, (v) => (v === "all" ? t("all") : t("reg_" + v)), (v) => (region = v));
+    } else {
+      const mcs = [...new Set(all.map((x) => x.mc))].sort();
+      mcChips.hidden = mode !== "lc";
+      chipRow(mcChips, ["all", ...mcs], mc, (v) => (v === "all" ? t("all") : v), (v) => (mc = v));
+    }
+    const items = mode === "mc" ? groupByMc(all) : all.filter((x) => global || mc === "all" || x.mc === mc);
+    const rows = ranked(items, val, global ? metric : undefined);
     const top = Math.max(1, rows[0]?.v || 0);
     const sub = (x) => (mode === "mc" ? t("apprLcs", { n: x.n }) : x.mc);
     // Podium: 2nd, 1st, 3rd.
@@ -2159,7 +2182,7 @@ function viewApprovals(screen) {
           h("span", { class: "league-track" }, fill),
           h("span", { class: "league-nums" },
             showGoal ? `${fmtNum(x.approved)} / ${fmtNum(x.goal)}` : h("strong", { class: "league-val" }, fmtNum(r.v)),
-            showGoal ? h("span", { class: "league-pct" }, `${p}%`) : h("span", {}, METRICS.filter((m) => m !== metric).map((m) => `${t("m_" + m + "_s")} ${fmtNum(metricVal(x, m, prod))}`).join(" · ")),
+            showGoal ? h("span", { class: "league-pct" }, `${p}%`) : h("span", {}, METRICS.filter((m) => m !== metric && (!global || x.r?.[m])).map((m) => `${t("m_" + m + "_s")} ${fmtNum(metricVal(x, m, prod))}`).join(" · ")),
             showGoal && x.week ? h("span", { class: "league-week " + (x.week > 0 ? "up" : "down") }, `${x.week > 0 ? "▲" : "▼"} ${Math.abs(x.week)}`) : null)));
     }));
   };
@@ -2218,13 +2241,16 @@ function viewApprovalsLive(screen) {
       draw();
     } }, t("m_" + m))));
     const val = (x) => metricVal(x, metric, "all");
-    const items = ranked(mode === "mc" ? groupByMc(d.lcs) : d.lcs, val).slice(0, 12);
-    const max = Math.max(1, ...items.map((r) => Math.max(r.v, metric === "apd" ? r.x.goal : 0)));
-    const T = d.lcs.reduce((a, x) => a + val(x), 0), G = d.lcs.reduce((a, x) => a + x.goal, 0), A = d.lcs.reduce((a, x) => a + x.approved, 0);
-    label.replaceChildren(`${t("apprEurope")} · `, h("span", { lang: "en" }, t("m_" + metric)));
+    const global = d.source === "global";
+    const all = ranked(mode === "mc" ? groupByMc(d.lcs) : d.lcs, val, global ? metric : undefined);
+    const items = all.slice(0, 12);
+    const T = all.reduce((a, r) => a + r.v, 0), G = d.lcs.reduce((a, x) => a + x.goal, 0), A = d.lcs.reduce((a, x) => a + x.approved, 0);
+    const withGoal = metric === "apd" && G > 0;
+    const max = Math.max(1, ...items.map((r) => Math.max(r.v, withGoal ? r.x.goal : 0)));
+    label.replaceChildren(`${t(global ? "apprGlobal" : "apprEurope")} · `, h("span", { lang: "en" }, t("m_" + metric)));
     countUp(big, T, 1400);
-    goal.textContent = metric === "apd" ? ` / ${fmtNum(G)}` : "";
-    pctEl.textContent = metric === "apd" ? t("apprToGoal", { p: pct(T, G) }) : t("apprConv", { p: pct(T, A) });
+    goal.textContent = withGoal ? ` / ${fmtNum(G)}` : "";
+    pctEl.textContent = withGoal ? t("apprToGoal", { p: pct(T, G) }) : global ? [t("apprLcs", { n: all.length }), t("apprCountries", { n: new Set(all.map((r) => r.x.mc)).size })].join(" · ") : t("apprConv", { p: pct(T, A) });
     // FLIP: remember where rows were, re-order, then animate from there.
     const before = new Map([...rows].map(([id, r]) => [id, r.el.getBoundingClientRect().top]));
     const seen = new Set();
@@ -2247,7 +2273,7 @@ function viewApprovalsLive(screen) {
       r.el.querySelector(".race-rank").textContent = String(it.place);
       r.el.classList.toggle("lead", it.place === 1);
       r.fill.style.setProperty("--w", (it.v / max) * 100 + "%");
-      r.goalMark.hidden = metric !== "apd";
+      r.goalMark.hidden = !withGoal;
       r.goalMark.style.setProperty("--g", (x.goal / max) * 100 + "%");
       countUp(r.num, it.v, 1200);
       bars.append(r.el);
@@ -2354,7 +2380,7 @@ function viewApprovalsEdit(screen) {
           h("span", { class: "appr-grid-h" }, t("apprGoal")), numIn(() => r.goal, (v) => (r.goal = v), t("apprGoal"))));
     }));
   };
-  api("GET", "/api/approvals").then((d) => {
+  api("GET", "/api/approvals/own").then((d) => {
     rows = d.lcs.map((x) => JSON.parse(JSON.stringify(x)));
     draw();
   });
@@ -2974,6 +3000,21 @@ function viewHome(screen) {
     questT.sub.textContent = t("questStations", { n: done, total: d.stations.length });
   }).catch(() => {});
   api("GET", "/api/approvals").then((d) => {
+    if (d.source === "global") {
+      const rows = ranked(d.lcs, (x) => x.t.apd, "apd");
+      const max = Math.max(1, rows[0]?.v || 0);
+      const T = rows.reduce((a, r) => a + r.v, 0);
+      apprT.extra.replaceChildren(
+        h("span", { class: "mini-race" }, rows.slice(0, 4).map((r) => {
+          const b = h("span", { class: "mini-bar" }, h("span", {}), h("em", {}, `${r.place}. ${r.x.name}`));
+          b.firstChild.style.setProperty("--w", (r.v / max) * 100 + "%");
+          return b;
+        })),
+        h("span", { class: "tile-num" }, fmtNum(T))
+      );
+      apprT.sub.textContent = t("apprTileGlobal", { a: fmtNum(T), n: rows.length });
+      return;
+    }
     const top = d.lcs.slice().sort((a, b) => b.approved / (b.goal || 1) - a.approved / (a.goal || 1)).slice(0, 4);
     const A = d.lcs.reduce((a, x) => a + x.approved, 0), G = d.lcs.reduce((a, x) => a + x.goal, 0);
     apprT.extra.replaceChildren(
