@@ -11,38 +11,8 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
 ];
 
-// The delegate app (/app, files in public/app) is a single-page app: every
-// /app/... address that is not a file loads its index.html. It may ask for
-// the visitor's location (map) and only loads code from this site.
-const delegateAppHeaders = [
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self), payment=(), usb=()" },
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "img-src 'self' data: https://*.basemaps.cartocdn.com",
-      "style-src 'self'",
-      "script-src 'self'",
-      "connect-src 'self'",
-      "manifest-src 'self'",
-      "worker-src 'self'",
-      "frame-ancestors 'none'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join("; "),
-  },
-];
-
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  async rewrites() {
-    // Default (after-files) rewrites: real files in public/app are served first.
-    return [
-      { source: "/app", destination: "/app/index.html" },
-      { source: "/app/:path*", destination: "/app/index.html" },
-    ];
-  },
   images: {
     // Serve the smallest format each browser supports (AVIF, then WebP).
     formats: ["image/avif", "image/webp"],
@@ -77,17 +47,6 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
           { key: "Content-Type", value: "application/javascript; charset=utf-8" },
         ],
-      },
-      { source: "/app", headers: delegateAppHeaders },
-      { source: "/app/:path*", headers: delegateAppHeaders },
-      {
-        // The app shell and its worker must be revalidated on every load.
-        source: "/app/:file(index.html|sw.js|app.js|app.css|i18n.js|places.js|theme-init.js|manifest.webmanifest)",
-        headers: [{ key: "Cache-Control", value: "no-cache" }],
-      },
-      {
-        source: "/api/app/:path*",
-        headers: [{ key: "Cache-Control", value: "private, no-store" }],
       },
       {
         source: "/admin",

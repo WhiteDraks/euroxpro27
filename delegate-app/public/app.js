@@ -3,10 +3,10 @@ import { t, setLang, getLang, detectLang, LANGS, locale } from "./i18n.js";
 import { PLACES, CENTER } from "./places.js";
 
 const root = document.getElementById("app");
-// The app lives under /app on the congress website.
-const BASE = "/app";
-const withBase = (path) => (path.startsWith(BASE + "/") || path === BASE ? path : BASE + path);
-const here = () => location.pathname.replace(/^\/app(?=\/|$)/, "") || "/";
+// Set to e.g. "/app" if the app is ever served from a sub-folder.
+const BASE = "";
+const withBase = (path) => (!BASE || path.startsWith(BASE + "/") || path === BASE ? path : BASE + path);
+const here = () => (BASE && location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) : location.pathname) || "/";
 const state = {
   user: null,
   agenda: null,
@@ -411,7 +411,7 @@ function viewLogin(screen) {
     ],
     footer: h("p", { class: "auth-switch" }, t("noAccount") + " ", h("a", { href: "/register", "data-link": true }, t("signup"))),
     onSubmit: async (data) => {
-      const { user } = await api("POST", "/api/app/auth/login", data);
+      const { user } = await api("POST", "/api/auth/login", data);
       await afterAuth(user);
     },
   });
@@ -439,7 +439,7 @@ function viewRegister(screen) {
     ],
     footer: h("p", { class: "auth-switch" }, t("haveAccount") + " ", h("a", { href: "/login", "data-link": true }, t("login"))),
     onSubmit: async (data) => {
-      const { user } = await api("POST", "/api/app/auth/register", { ...data, lang });
+      const { user } = await api("POST", "/api/auth/register", { ...data, lang });
       await afterAuth(user);
     },
   });
@@ -450,7 +450,7 @@ function viewRegister(screen) {
 
 async function loadAgenda(force) {
   if (state.agenda && !force) return state.agenda;
-  const { agenda } = await api("GET", "/api/app/agenda");
+  const { agenda } = await api("GET", "/api/agenda");
   state.agenda = agenda;
   try {
     localStorage.setItem("agenda:" + getLang(), JSON.stringify(agenda));
@@ -688,7 +688,7 @@ function adminEditor(s) {
         e.preventDefault();
         btn.disabled = true;
         try {
-          await api("PATCH", "/api/app/agenda/sessions/" + s.id, { status, start: start.value, end: end.value, location: loc.value, note: note.value });
+          await api("PATCH", "/api/agenda/sessions/" + s.id, { status, start: start.value, end: end.value, location: loc.value, note: note.value });
           toast(t("saved"));
           await loadAgenda(true);
           window.dispatchEvent(new Event("agenda-updated"));
@@ -844,7 +844,7 @@ function viewMap(screen) {
 // ------------------------------------------------------------------ messages
 
 async function refreshConversations() {
-  const { conversations } = await api("GET", "/api/app/conversations");
+  const { conversations } = await api("GET", "/api/conversations");
   state.conversations = conversations;
   state.unread = conversations.reduce((n, c) => n + c.unread, 0);
   updateBadge();
@@ -909,7 +909,7 @@ function viewPeople(screen) {
             type: "button",
             class: "row",
             onclick: async () => {
-              const { id } = await api("POST", "/api/app/conversations/dm", { userId: p.id });
+              const { id } = await api("POST", "/api/conversations/dm", { userId: p.id });
               go("/messages/" + encodeURIComponent(id), { replace: true });
             },
           },
@@ -921,7 +921,7 @@ function viewPeople(screen) {
     );
   };
   search.addEventListener("input", draw);
-  api("GET", "/api/app/people").then((d) => {
+  api("GET", "/api/people").then((d) => {
     people = d.people;
     draw();
   }).catch((e) => toast(errText(e)));
@@ -981,9 +981,9 @@ function viewChat(screen, { id }) {
     messages.push(m);
   };
   const toBottom = () => (scroller.scrollTop = scroller.scrollHeight);
-  const markRead = () => api("POST", `/api/app/conversations/${encodeURIComponent(id)}/read`).then(refreshConversations).catch(() => {});
+  const markRead = () => api("POST", `/api/conversations/${encodeURIComponent(id)}/read`).then(refreshConversations).catch(() => {});
 
-  api("GET", `/api/app/conversations/${encodeURIComponent(id)}/messages`)
+  api("GET", `/api/conversations/${encodeURIComponent(id)}/messages`)
     .then((d) => {
       const title = isGeneral ? t("general") : d.peer?.name || "";
       header.querySelector(".nav-title").replaceChildren(
@@ -1016,7 +1016,7 @@ function viewChat(screen, { id }) {
     if (!text) return;
     sendBtn.disabled = true;
     try {
-      const { message } = await api("POST", `/api/app/conversations/${encodeURIComponent(id)}/messages`, { text });
+      const { message } = await api("POST", `/api/conversations/${encodeURIComponent(id)}/messages`, { text });
       scroller.querySelector(".chat-empty")?.remove();
       append(message, true);
       input.value = "";
@@ -1055,7 +1055,7 @@ async function poll() {
   if (!state.user) return;
   if (document.visibilityState === "visible" && navigator.onLine) {
     try {
-      const d = await api("GET", "/api/app/sync?since=" + syncSince);
+      const d = await api("GET", "/api/sync?since=" + syncSince);
       syncSince = d.now;
       let refreshList = false;
       for (const m of d.messages) {
@@ -1147,7 +1147,7 @@ function viewProfile(screen) {
         onsubmit: async (e) => {
           e.preventDefault();
           try {
-            const { user } = await api("PATCH", "/api/app/me", { name: nameIn.value, entity: entityIn.value });
+            const { user } = await api("PATCH", "/api/me", { name: nameIn.value, entity: entityIn.value });
             state.user = user;
             toast(t("saved"));
             render();
@@ -1174,7 +1174,7 @@ function viewProfile(screen) {
         { class: "field field-stack" },
         segmented(LANGS.map((l) => [l.code, l.label]), u.lang, async (lang) => {
           try {
-            const { user } = await api("PATCH", "/api/app/me", { lang });
+            const { user } = await api("PATCH", "/api/me", { lang });
             state.user = user;
             setLang(lang);
             state.agenda = null;
@@ -1212,7 +1212,7 @@ function viewProfile(screen) {
           type: "button",
           class: "row row-action row-destructive",
           onclick: async () => {
-            await api("POST", "/api/app/auth/logout").catch(() => {});
+            await api("POST", "/api/auth/logout").catch(() => {});
             stopStream();
             Object.assign(state, { user: null, agenda: null, conversations: null, unread: 0 });
             go("/welcome", { replace: true });
@@ -1244,7 +1244,7 @@ async function boot() {
   applyTheme(getThemePref());
   setLang(detectLang());
   try {
-    const { user } = await api("GET", "/api/app/me");
+    const { user } = await api("GET", "/api/me");
     state.user = user;
     setLang(user.lang);
     startStream();
@@ -1273,7 +1273,7 @@ async function boot() {
 }
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/app/sw.js", { scope: "/app/" }).catch(() => {}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
 }
 
 boot();

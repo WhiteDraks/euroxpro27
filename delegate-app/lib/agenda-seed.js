@@ -1,4 +1,6 @@
-{
+// First agenda (from the website draft programme). Loaded into storage once;
+// after that organizers edit it in the app.
+export default {
   "published": true,
   "draft": true,
   "timezone": "Europe/Istanbul",
@@ -248,4 +250,4 @@
       ]
     }
   ]
-}
+};

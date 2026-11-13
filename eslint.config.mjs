@@ -12,8 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Delegate app: plain browser JS and a vendored Leaflet build.
-    "public/app/**",
+    // Delegate app: its own Vercel project (see delegate-app/README.md).
+    "delegate-app/**",
   ]),
 ]);
 
