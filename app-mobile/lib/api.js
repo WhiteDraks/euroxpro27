@@ -76,9 +76,9 @@ async function limited(key, max, windowSec) {
         await cmd("EXPIRE", "drl:" + key, windowSec);
     return n > max;
 }
-async function readJson(req) {
+async function readJson(req, max = 32 * 1024) {
     const text = await req.text();
-    if (text.length > 32 * 1024)
+    if (text.length > max)
         throw new HttpError(413, "too_large");
     if (!text)
         return {};
@@ -94,7 +94,7 @@ async function readJson(req) {
 const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", "🦁", "🐯", "🐬", "🦉", "🌞", "🌊", "🌴", "🍉", "☕", "🎧", "🎨", "⚽", "🚀", "🌍", "🌷", "🧿"];
 // Delegate positions, as the 2024 app grouped people and agendas.
 const POSITIONS = ["MCPc", "MCPe", "MCVP", "LCP", "LCVP", "Other"];
-const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "", position: u.position || "", title: u.role === "admin" ? u.title || "" : "" });
+const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "", photo: u.photoV ? `/api/photo/${u.id}?v=${u.photoV}` : "", position: u.position || "", title: u.role === "admin" ? u.title || "" : "" });
 const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false });
 async function getUser(id) {
     return parse(await cmd("GET", "du:" + id));
@@ -261,7 +261,22 @@ route("POST", "auth/logout", async ({ req }) => {
 route("GET", "me", ({ user }) => json({ user: me(user) }));
 route("PATCH", "me", async ({ req, user }) => {
     const u = user;
-    const b = await readJson(req);
+    const b = await readJson(req, 400 * 1024);
+    if (b.photo !== undefined) {
+        // The app sends a small square JPEG (resized on the phone) as a data URL.
+        if (b.photo === "") {
+            await cmd("DEL", "dph:" + u.id);
+            u.photoV = 0;
+        }
+        else {
+            const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(b.photo));
+            const buf = m ? Buffer.from(m[1], "base64") : null;
+            if (!buf || buf.length > 250 * 1024 || buf[0] !== 0xff || buf[1] !== 0xd8)
+                throw new HttpError(400, "bad_photo");
+            await cmd("SET", "dph:" + u.id, m[1]);
+            u.photoV = Date.now();
+        }
+    }
     if (b.name !== undefined) {
         const name = clean(b.name, 60);
         if (name.length < 2)
@@ -499,6 +514,13 @@ route("GET", "people/([\\w-]+)", async ({ user, m }) => {
         throw new HttpError(404, "not_found");
     const [out] = await withBio(user, [p]);
     return json({ person: out });
+});
+route("GET", "photo/([\\w-]+)", async ({ m }) => {
+    const b64 = await cmd("GET", "dph:" + m[1]);
+    if (!b64)
+        throw new HttpError(404, "not_found");
+    // The URL carries a version, so the image can be cached for good.
+    return new Response(Buffer.from(b64, "base64"), { headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=31536000, immutable", "x-content-type-options": "nosniff" } });
 });
 route("GET", "team", async ({ user }) => {
     const team = (await allUsers())
