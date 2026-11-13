@@ -13,7 +13,7 @@ A separate web app for delegates that can be added to the home screen. It lives 
 ## Free setup on Vercel (one time)
 
 1. Go to [vercel.com/new](https://vercel.com/new) and import the `WhiteDraks/euroxpro27` repo again.
-2. In **Root Directory**, choose `delegate-app`. Leave Framework Preset as **Other**. Deploy.
+2. In **Root Directory**, choose `app-mobile`. Leave Framework Preset as **Other**. Deploy.
 3. In the new project, open **Storage → Upstash for Redis → Create** (free plan) and connect it to this project.
 4. Under **Settings → Environment Variables**:
    - `ADMIN_EMAILS`: comma-separated organizer email addresses. Accounts registered with these addresses can edit the agenda.
@@ -39,7 +39,7 @@ Live updates come from the app calling `/api/sync` every 4 seconds while it is o
 ## Local testing
 
 ```bash
-cd delegate-app
+cd app-mobile
 node dev-server.js   # http://localhost:3000, data is kept in memory
 ```
 
