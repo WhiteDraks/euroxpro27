@@ -2323,3 +2323,8 @@ ol.group { list-style: none; margin: 0; padding: 0; }
 .appr-card .icon-btn { width: 36px; height: 36px; margin: 0; border: 0; background: none; color: var(--label-2); }
 .appr-grid { display: grid; grid-template-columns: 44px repeat(3, 1fr); gap: 6px; margin-top: 8px; align-items: center; }
 .appr-grid-h { font-size: 12px; font-weight: 700; color: var(--label-2); text-align: center; }
+
+/* The league shows places and bars only: no figures. */
+.appr-line, .appr-meta, .podium-val, .league-nums, .lb-line, .lb-pct, .race-num { display: none; }
+.race-row { grid-template-columns: clamp(26px, 3vw, 46px) minmax(110px, 22%) 1fr; }
+.podium-sub { margin-bottom: 6px; }
