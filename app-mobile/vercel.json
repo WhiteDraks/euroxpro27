@@ -52,7 +52,7 @@
       ]
     },
     {
-      "source": "/(index.html|sw.js|app.js|app.css|i18n.js|places.js|theme-init.js|manifest.webmanifest)?",
+      "source": "/(index.html|sw.js|app.js|app.css|i18n.js|places.js|countries.js|world-shapes.js|theme-init.js|manifest.webmanifest)?",
       "headers": [
         {
           "key": "Cache-Control",
