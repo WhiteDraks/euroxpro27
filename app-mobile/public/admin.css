@@ -1,0 +1,164 @@
+/* EUROXPRO'27 app: organizer panel and the waiting-for-approval screen.
+   Uses the bordeaux, black and cream tokens from app.css. */
+
+/* ---------- home tile ---------- */
+.tile.admin-tile { --tile-bg: linear-gradient(135deg, #2a0d14 0%, #120708 60%, #000 100%); --tile-fg: var(--cream-hi); min-height: 0; }
+.tile.admin-tile .tile-ic { color: var(--cream-deep); }
+.admin-pending-pill {
+  align-self: flex-start;
+  margin: 4px 0 2px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bordeaux);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 0 0 0 rgba(160, 32, 60, 0.6);
+  animation: adm-pulse 2s ease-out infinite;
+}
+@keyframes adm-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(160, 32, 60, 0.55); }
+  70% { box-shadow: 0 0 0 10px rgba(160, 32, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(160, 32, 60, 0); }
+}
+
+/* ---------- panel ---------- */
+.adm-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+@media (min-width: 560px) {
+  .adm-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.adm-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 84px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--label);
+  text-decoration: none;
+}
+a.adm-stat:active { background: var(--card-press); }
+.adm-stat strong { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.adm-stat span { font-size: 13px; color: var(--label-2); line-height: 1.25; }
+.adm-stat.hot { background: var(--bordeaux); color: #fff; }
+.adm-stat.hot span { color: rgba(255, 255, 255, 0.85); }
+
+.adm-pending-list { display: flex; flex-direction: column; gap: 10px; }
+.adm-all { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 22px; font-weight: 600; border: 0; cursor: pointer; }
+.adm-all .icon { width: 18px; height: 18px; margin-right: 6px; }
+.adm-pending {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.adm-who { display: flex; align-items: center; gap: 12px; color: var(--label); min-width: 0; }
+.adm-actions { display: flex; gap: 8px; }
+.adm-actions .btn { flex: 1; min-height: 44px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; }
+.adm-actions .btn .icon { width: 18px; height: 18px; margin-right: 6px; }
+.adm-approve { background: var(--bordeaux) !important; color: #fff !important; }
+.adm-empty { margin-top: 0; }
+.adm-switch { cursor: pointer; }
+.adm-switch .row-label { margin-top: 2px; }
+.adm-tool { min-height: 60px; }
+.adm-tool .row-icon { align-self: center; margin-top: 0; }
+.admin-screen .group + .group { margin-top: 14px; }
+
+/* ---------- people ---------- */
+.adm-search { margin-top: 10px; }
+.adm-user { min-height: 64px; }
+.adm-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.adm-badges .status { margin-top: 4px; }
+.adm-head { margin-top: 8px; }
+.adm-pw {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bordeaux) 10%, var(--card));
+}
+.adm-pw-line { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.adm-pw code {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--card);
+  font: 600 20px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.06em;
+  user-select: all;
+}
+.adm-pw p { margin: 0; }
+.adm-form .field textarea { flex: 1; min-height: 44px; padding: 10px 0; border: 0; background: none; resize: vertical; outline: none; }
+.adm-danger { margin-top: 28px; }
+.adm-delete { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.btn.armed, .adm-delete.armed { background: var(--danger) !important; color: #fff !important; }
+.adm-msg { align-items: flex-start; }
+.adm-msg .row-value { font-size: 16px; white-space: pre-wrap; }
+.adm-msg .btn { margin-top: 2px; }
+
+/* ---------- waiting for approval ---------- */
+.wait-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 24px);
+  background:
+    radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--bordeaux) 22%, transparent), transparent 70%),
+    var(--bg);
+}
+.wait-top { align-self: flex-end; margin-bottom: 16px; }
+.wait-card {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 20px 18px;
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.5);
+}
+.wait-card .wordmark { font-size: 22px; }
+.wait-icon {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 22px 0 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bordeaux) 14%, transparent);
+  color: var(--tint);
+}
+.wait-icon .icon, .wait-icon svg { width: 38px; height: 38px; }
+.wait-icon.pulse { animation: adm-pulse 2.2s ease-out infinite; }
+.wait-icon.off { background: var(--fill); color: var(--label-2); }
+.wait-title { margin: 12px 0 8px; font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; }
+.wait-text { margin: 0; color: var(--label-2); font-size: 16px; }
+.wait-me {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--fill);
+  text-align: left;
+}
+.wait-card .btn-filled { margin-top: 20px; }
+.wait-logout { margin-top: 6px; color: var(--tint); font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-pending-pill, .wait-icon.pulse { animation: none; }
+}
+.wait-card .wordmark .yr { color: var(--tint); }

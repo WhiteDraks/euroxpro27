@@ -2,6 +2,7 @@
 import { t, setLang, getLang, detectLang, LANGS, locale } from "./i18n.js";
 import { PLACES, CENTER } from "./places.js";
 import { COUNTRIES, countryOf, flag } from "./countries.js";
+import { makeAdmin, at as adminText, SHIELD_ICON } from "./admin.js";
 
 const root = document.getElementById("app");
 // Set to e.g. "/app" if the app is ever served from a sub-folder.
@@ -78,6 +79,7 @@ const ICON = {
   bag: '<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12.5H6z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>',
   compass: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
   sparkle: '<svg viewBox="0 0 24 24"><path d="M12 3.5c.6 4.2 2.3 5.9 6.5 6.5-4.2.6-5.9 2.3-6.5 6.5-.6-4.2-2.3-5.9-6.5-6.5 4.2-.6 5.9-2.3 6.5-6.5zM18.5 15.5c.3 1.8 1 2.5 2.8 2.8-1.8.3-2.5 1-2.8 2.8-.3-1.8-1-2.5-2.8-2.8 1.8-.3 2.5-1 2.8-2.8z"/></svg>',
+  shield: SHIELD_ICON,
   bell: '<svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
 };
 const icon = (name, cls = "") => h("span", { class: "icon " + cls, "aria-hidden": "true", html: ICON[name] });
@@ -154,7 +156,7 @@ async function api(method, path, body) {
 const errText = (e) => {
   const k = "err_" + (e.code || "generic");
   const s = t(k);
-  return s === k ? t("err_generic") : s;
+  return s === k ? adminText(k) || t("err_generic") : s;
 };
 
 // ------------------------------------------------------------------ time
@@ -254,7 +256,13 @@ const ROUTES = [
   { path: "/connections", view: viewConnections, tab: "home" },
   { path: "/world", view: viewConnections, tab: "home" }, // older link, same page
   { path: "/recap", view: viewRecap, tab: "home" },
+  { path: "/admin", view: (s) => ADMIN.panel(s), tab: "home" },
+  { path: "/admin/users", view: (s) => ADMIN.users(s), tab: "home" },
+  { path: "/admin/users/:id", view: (s, p) => ADMIN.user(s, p), tab: "home" },
+  { path: "/admin/chat", view: (s) => ADMIN.chat(s), tab: "home" },
 ];
+// Signed in but not let in (yet): waiting for approval, suspended or rejected.
+const approved = (u) => !u || !u.status || u.status === "active";
 
 function match(pathname) {
   for (const r of ROUTES) {
@@ -328,6 +336,13 @@ function render() {
   if (!route.guest && !state.user) {
     if (route.path === "/q/:code") sessionStorage.setItem("questCode", params.code);
     return go("/welcome", { replace: true });
+  }
+  if (!route.guest && !approved(state.user)) {
+    const wait = h("main", { class: "screen no-tabs" });
+    root.replaceChildren(wait);
+    root.dataset.view = "/waiting";
+    cleanup = ADMIN.waiting(wait) || null;
+    return;
   }
 
   const screen = h("main", { class: "screen" + (route.hideTabs ? " no-tabs" : "") });
@@ -507,8 +522,10 @@ async function afterAuth(user) {
     localStorage.setItem("user", JSON.stringify(user));
   } catch {}
   setLang(user.lang);
-  startStream();
-  pushResync();
+  if (approved(user)) {
+    startStream();
+    pushResync();
+  }
   go("/home", { replace: true });
 }
 
@@ -1182,8 +1199,19 @@ function viewChat(screen, { id }) {
     if (nearBottom || m.from === state.user.id) toBottom();
     markRead();
   };
+  // An organizer removed a message from the general chat.
+  const onRemoved = (e) => {
+    if (e.detail.conv !== id) return;
+    scroller.querySelector(`.msg[data-id="${CSS.escape(e.detail.id)}"]`)?.remove();
+    const i = messages.findIndex((x) => x.id === e.detail.id);
+    if (i >= 0) messages.splice(i, 1);
+  };
   window.addEventListener("chat-message", onMsg);
-  return () => window.removeEventListener("chat-message", onMsg);
+  window.addEventListener("chat-removed", onRemoved);
+  return () => {
+    window.removeEventListener("chat-message", onMsg);
+    window.removeEventListener("chat-removed", onRemoved);
+  };
 }
 
 // ------------------------------------------------------------------ meet (swipe)
@@ -1521,6 +1549,9 @@ async function poll() {
         window.dispatchEvent(new Event("announcements-updated"));
         if (here() !== "/info") toast(t("newAnnouncementToast"));
       }
+      for (const r of d.removed || []) window.dispatchEvent(new CustomEvent("chat-removed", { detail: r }));
+      if (d.users) window.dispatchEvent(new Event("admin-updated"));
+      if (d.signup && !here().startsWith("/admin")) toast(adminText("newSignupToast"));
       if (d.approvals) window.dispatchEvent(new Event("approvals-updated"));
       if (d.quest) window.dispatchEvent(new Event("quest-updated"));
       if (d.request) {
@@ -1537,6 +1568,12 @@ async function poll() {
       if (e.status === 401) {
         state.user = null;
         return go("/welcome", { replace: true });
+      }
+      // Suspended while using the app: show the status screen.
+      if (e.code === "not_approved") {
+        const me = await api("GET", "/api/me").catch(() => null);
+        if (me?.user) state.user = me.user;
+        return render();
       }
     }
   }
@@ -3434,6 +3471,15 @@ function viewHome(screen) {
   const storeT = tile("/store", "bag", t("store"));
   const recapT = tile("/recap", "sparkle", t("recapTitle"), "wide recap-tile");
   const gcT = tile("/connections", "globe", t("gcTitle"), "wide gc-tile");
+  const adminT = u.role === "admin" ? tile("/admin", "shield", adminText("adminTitle"), "wide dark admin-tile") : null;
+  if (adminT) {
+    adminT.sub.textContent = adminText("adminTile");
+    const drawPending = (n) => adminT.extra.replaceChildren(n ? h("span", { class: "admin-pending-pill" }, `${n} · ${adminText("cPending")}`) : "");
+    const loadPending = () => api("GET", "/api/admin/overview").then((d) => drawPending(d.counts.pending)).catch(() => {});
+    loadPending();
+    window.addEventListener("admin-updated", loadPending);
+    cleanups.push(() => window.removeEventListener("admin-updated", loadPending));
+  }
   gcT.sub.textContent = t("gcTile");
   questT.sub.textContent = t("questTile");
   storeT.sub.textContent = t("storeTile");
@@ -3504,7 +3550,7 @@ function viewHome(screen) {
   screen.append(
     hero,
     nudge,
-    h("div", { class: "bento" + (homeSeen ? " seen" : ""), onpointermove: spot, onpointerdown: spot, onpointerout: unspot }, [...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
+    h("div", { class: "bento" + (homeSeen ? " seen" : ""), onpointermove: spot, onpointerdown: spot, onpointerout: unspot }, [...(adminT ? [adminT] : []), ...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
       x.el.style.setProperty("--i", i);
       return x.el;
     }))
@@ -3860,6 +3906,21 @@ function offlineBanner() {
 window.addEventListener("online", offlineBanner);
 window.addEventListener("offline", offlineBanner);
 
+// Organizer panel and the waiting screen live in admin.js.
+const ADMIN = makeAdmin({
+  h, api, toast, errText, navBar, icon, avatar, go, state, render, positionSelect, posLabel, haptic, langSwitch, wordmark,
+  onApproved: (user) => afterAuth(user).then(() => refreshConversations().catch(() => {})),
+  onLogout: async () => {
+    await api("POST", "/api/auth/logout").catch(() => {});
+    stopStream();
+    state.user = null;
+    try {
+      localStorage.removeItem("user");
+    } catch {}
+    go("/welcome", { replace: true });
+  },
+});
+
 async function boot() {
   applyTheme(getThemePref());
   setLang(detectLang());
@@ -3867,9 +3928,11 @@ async function boot() {
     const { user } = await api("GET", "/api/me");
     state.user = user;
     setLang(user.lang);
-    startStream();
-    pushResync();
-    refreshConversations().catch(() => {});
+    if (approved(user)) {
+      startStream();
+      pushResync();
+      refreshConversations().catch(() => {});
+    }
   } catch (e) {
     // Offline but signed in before: keep the last known profile so the
     // saved agenda and map still open.

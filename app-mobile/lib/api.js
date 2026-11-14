@@ -97,7 +97,23 @@ const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", 
 // Delegate positions, as the 2024 app grouped people and agendas.
 const POSITIONS = ["MCPc", "MCPe", "MCVP", "LCP", "LCVP", "Other"];
 const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "", photo: u.photoV ? `/api/photo/${u.id}?v=${u.photoV}` : "", position: u.position || "", title: u.role === "admin" ? u.title || "" : "" });
-const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false });
+const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false, status: statusOf(u) });
+// Account status. Accounts made before sign-up approval existed have no
+// status and count as active. Organizers are always active.
+const STATUSES = ["pending", "active", "suspended", "rejected"];
+const statusOf = (u) => (u.role === "admin" ? "active" : STATUSES.includes(u.status) ? u.status : "active");
+const isActive = (u) => statusOf(u) === "active";
+// Who other delegates can see in lists, Meet, the hall and the map.
+const listed = (u) => !!u && isActive(u) && !(u.demo && !demoOn());
+const isOwner = (u) => adminEmails().includes(String(u.email || "").toLowerCase());
+const SETTINGS_DEFAULT = { approval: true, signups: true };
+async function loadSettings() {
+    return { ...SETTINGS_DEFAULT, ...(parse(await cmd("GET", "dset")) || {}) };
+}
+function needAdmin(u) {
+    if (u.role !== "admin")
+        throw new HttpError(403, "forbidden");
+}
 async function getUser(id) {
     return parse(await cmd("GET", "du:" + id));
 }
@@ -214,6 +230,10 @@ route("POST", "auth/register", async ({ req }) => {
         throw new HttpError(400, "email_invalid");
     if (password.length < 8 || password.length > 200)
         throw new HttpError(400, "password_short");
+    const owner = adminEmails().includes(email);
+    const settings = await loadSettings();
+    if (!settings.signups && !owner)
+        throw new HttpError(403, "signups_closed");
     const id = newId();
     // SET NX on the e-mail key makes two parallel sign-ups with one address impossible.
     const claimed = await cmd("SET", "de:" + email, id, "NX");
@@ -229,12 +249,23 @@ route("POST", "auth/register", async ({ req }) => {
         lang: isLang(b.lang) ? b.lang : "en",
         passHash: hash,
         salt,
-        role: adminEmails().includes(email) ? "admin" : "delegate",
+        role: owner ? "admin" : "delegate",
+        status: owner || !settings.approval ? "active" : "pending",
         createdAt: Date.now(),
     };
     const generalCount = (await cmd("LLEN", "dm:" + GENERAL));
     await pipe(["SET", "du:" + id, JSON.stringify(user)], ["SADD", "dusers", id], ["HSET", "dr:" + id, GENERAL, generalCount] // no backlog of "unread" history
     );
+    await pushEvent({ at: Date.now(), type: "signup", pending: user.status === "pending" });
+    if (user.status === "pending") {
+        // Tell the organizers someone is waiting for them.
+        const subject = pushSubject(req);
+        background(async () => {
+            const admins = (await allUsers()).filter((x) => x.role === "admin").map((x) => x.id);
+            if (admins.length)
+                await notify("messages", subject, (p) => ({ title: pt(p, "signup"), body: pt(p, "signupBody", { n: user.name + (user.entity ? ` · ${user.entity}` : "") }), url: "/admin", tag: "signup" }), admins);
+        });
+    }
     return startSession(user, 201);
 }, true);
 route("POST", "auth/login", async ({ req }) => {
@@ -260,7 +291,7 @@ route("POST", "auth/logout", async ({ req }) => {
         await cmd("DEL", "ds:" + sha256(token));
     return json({ ok: true }, 200, { "set-cookie": sessionCookie("", 0) });
 }, true);
-route("GET", "me", ({ user }) => json({ user: me(user) }));
+route("GET", "me", ({ user }) => json({ user: me(user) }), "any");
 route("PATCH", "me", async ({ req, user }) => {
     const u = user;
     const b = await readJson(req, 400 * 1024);
@@ -303,7 +334,7 @@ route("PATCH", "me", async ({ req, user }) => {
         u.title = clean(b.title, 40);
     await saveUser(u);
     return json({ user: me(u) });
-});
+}, "any");
 route("GET", "agenda", async ({ user }) => json({ agenda: await agendaFor(user.lang) }));
 route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
     if (user.role !== "admin")
@@ -368,7 +399,7 @@ route("GET", "people", async ({ user }) => {
     const raw = (await cmd("MGET", ...ids.map((x) => "du:" + x)));
     const people = raw
         .map((r) => parse(r))
-        .filter((u) => !!u && !(u.demo && !demoOn()))
+        .filter(listed)
         .map(publicUser)
         .sort((a, b) => a.name.localeCompare(b.name, user.lang));
     return json({ people });
@@ -399,7 +430,7 @@ route("GET", "conversations", async ({ user }) => {
 route("POST", "conversations/dm", async ({ req, user }) => {
     const b = await readJson(req);
     const peer = typeof b.userId === "string" ? await getUser(b.userId) : null;
-    if (!peer || peer.id === user.id)
+    if (!peer || peer.id === user.id || (!listed(peer) && user.role !== "admin"))
         throw new HttpError(404, "not_found");
     return json({ id: dmId(user.id, peer.id), peer: publicUser(peer) });
 });
@@ -473,7 +504,10 @@ route("GET", "sync", async ({ req, url, user }) => {
     const quest = events.some((e) => e.type === "quest");
     // Organizers hear about new requests; the sender hears about replies.
     const request = events.some((e) => e.type === "request" && (e.to === u.id || (e.to === "admins" && u.role === "admin")));
-    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest });
+    const signup = u.role === "admin" && events.some((e) => e.type === "signup" && e.pending);
+    const users = u.role === "admin" && events.some((e) => e.type === "signup" || e.type === "users");
+    const removed = events.filter((e) => e.type === "msgdel" && canSee(u, e.conv)).map((e) => ({ conv: e.conv, id: e.id }));
+    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest, signup, users, removed });
 });
 // ------------------------------------------------------------ meet (swipe to get to know people)
 async function usersByIds(ids) {
@@ -503,7 +537,7 @@ route("GET", "meet/deck", async ({ user }) => {
         const j = Math.floor(Math.random() * (i + 1));
         [ids[i], ids[j]] = [ids[j], ids[i]];
     }
-    const users = (await usersByIds(ids.slice(0, 40))).filter((x) => x.meet !== false && !(x.demo && !demoOn())).slice(0, 15);
+    const users = (await usersByIds(ids.slice(0, 40))).filter((x) => x.meet !== false && listed(x)).slice(0, 15);
     return json({ deck: await withBio(u, users) });
 });
 route("GET", "meet/matches", async ({ user }) => {
@@ -515,7 +549,7 @@ route("POST", "meet/swipe", async ({ req, user }) => {
     const u = user;
     const b = await readJson(req);
     const target = typeof b.userId === "string" ? await getUser(b.userId) : null;
-    if (!target || target.id === u.id)
+    if (!target || target.id === u.id || !listed(target))
         throw new HttpError(404, "not_found");
     if (await limited("swipe:" + u.id, 120, 60))
         throw new HttpError(429, "rate_limited");
@@ -542,7 +576,7 @@ route("GET", "plenary", async ({ user }) => {
     for (const d of DEMO)
         if (demoOn() && !ids.includes(d.id))
             ids.unshift(d.id);
-    const people = (await usersByIds(ids.slice(-150))).map(publicUser);
+    const people = (await usersByIds(ids.slice(-150))).filter(listed).map(publicUser);
     return json({ people });
 });
 // ------------------------------------------------------------ directory and congress team
@@ -552,7 +586,7 @@ async function allUsers() {
 }
 route("GET", "people/([\\w-]+)", async ({ user, m }) => {
     const p = await getUser(m[1]);
-    if (!p)
+    if (!p || (!listed(p) && user.role !== "admin" && p.id !== user.id))
         throw new HttpError(404, "not_found");
     const [out] = await withBio(user, [p]);
     return json({ person: out });
@@ -705,7 +739,7 @@ async function questBoard() {
     const byId = new Map(users.map((u) => [u.id, u]));
     return ids
         .map((id, i) => ({ u: byId.get(id), q: parse(states[i]) }))
-        .filter((x) => x.u && x.q?.points)
+        .filter((x) => listed(x.u) && x.q?.points)
         .sort((a, b) => b.q.points - a.q.points || a.q.lastAt - b.q.lastAt)
         .map((x) => ({ ...publicUser(x.u), points: x.q.points, stations: x.q.done.length }));
 }
@@ -944,7 +978,7 @@ route("POST", "store/products/([\\w-]+)", async ({ req, user, m }) => {
 // delegates from different countries who matched in Meet or started a chat.
 route("GET", "world", async () => {
     const ids = await cmd("SMEMBERS", "dusers");
-    const users = (await usersByIds(ids)).filter((u) => !(u.demo && !demoOn()));
+    const users = (await usersByIds(ids)).filter(listed);
     const home = new Map(users.map((u) => [u.id, countryOf(u.entity)?.code || ""]));
     const links = users.length ? await pipe(...users.flatMap((u) => [["SMEMBERS", "dmatch:" + u.id], ["SMEMBERS", "dconvs:" + u.id]])) : [];
     const pairs = new Set();
@@ -996,9 +1030,9 @@ route("GET", "recap", async ({ user }) => {
 const NOTIFY_KINDS = ["sessions", "changes", "announce", "messages"];
 const notifyPrefs = (u) => Object.fromEntries(NOTIFY_KINDS.map((k) => [k, u.notify?.[k] !== false]));
 const PUSH_TEXT = {
-    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek." },
-    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here." },
-    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości." },
+    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", signup: "Yeni kayıt onay bekliyor", signupBody: "{n} uygulamaya katılmak istiyor.", approved: "Hesabın onaylandı", approvedBody: "EUROXPRO'27'ye hoş geldin! Uygulamayı açabilirsin.", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek." },
+    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", signup: "New sign-up waiting", signupBody: "{n} wants to join the app.", approved: "Your account is approved", approvedBody: "Welcome to EUROXPRO'27! You can open the app now.", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here." },
+    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", signup: "Nowa rejestracja czeka", signupBody: "{n} chce dołączyć do aplikacji.", approved: "Twoje konto zostało zatwierdzone", approvedBody: "Witamy na EUROXPRO'27! Możesz już otworzyć aplikację.", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości." },
 };
 const pt = (u, k, vars = {}) => (PUSH_TEXT[u.lang] || PUSH_TEXT.en)[k].replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? "");
 const short = (s, n = 140) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
@@ -1009,7 +1043,7 @@ async function notify(kind, subject, build, only = null) {
     const ids = only ? only : await pushers();
     if (!ids.length)
         return 0;
-    const users = (await cmd("MGET", ...ids.map((x) => "du:" + x))).map((r) => parse(r)).filter((u) => u && notifyPrefs(u)[kind]);
+    const users = (await cmd("MGET", ...ids.map((x) => "du:" + x))).map((r) => parse(r)).filter((u) => u && isActive(u) && notifyPrefs(u)[kind]);
     let sent = 0;
     for (let i = 0; i < users.length; i += 25) {
         const batch = users.slice(i, i + 25);
@@ -1089,6 +1123,205 @@ route("GET", "push/cron", async ({ req, url }) => {
     const sim = !process.env.VERCEL && url.searchParams.get("now") ? Date.parse(url.searchParams.get("now") + ":00+03:00") : NaN;
     return json({ sent: await runReminders(pushSubject(req), Number.isNaN(sim) ? Date.now() : sim) });
 }, true);
+// ------------------------------------------------------------ organizer panel (/admin in the app)
+// Sign-up approval, people management, app settings and chat moderation.
+// Every route checks the organizer role here, not only in the app.
+const adminView = (u, seen = 0) => ({ ...me(u), createdAt: u.createdAt || 0, lastSeen: seen, owner: isOwner(u), demo: !!u.demo, approvedBy: u.approvedBy || "", approvedAt: u.approvedAt || 0 });
+async function adminUsers() {
+    const ids = await cmd("SMEMBERS", "dusers");
+    if (!ids.length)
+        return [];
+    const [users, seen] = await Promise.all([usersByIds(ids), pipe(...ids.map((x) => ["ZSCORE", "dpres", x]))]);
+    const at = new Map(ids.map((x, i) => [x, Number(seen[i]) || 0]));
+    return users.filter((u) => !(u.demo && !demoOn())).map((u) => adminView(u, at.get(u.id)));
+}
+route("GET", "admin/overview", async ({ user }) => {
+    needAdmin(user);
+    const now = Date.now();
+    const [users, settings, extra] = await Promise.all([
+        adminUsers(),
+        loadSettings(),
+        pipe(["LLEN", "dm:" + GENERAL], ["SCARD", "dqplayers"], ["LRANGE", "dqids", 0, 499], ["LRANGE", "dresids", 0, 999]),
+    ]);
+    const [qs, rs] = await Promise.all([
+        extra[2].length ? cmd("MGET", ...extra[2].map((x) => "dq:" + x)) : [],
+        extra[3].length ? cmd("MGET", ...extra[3].map((x) => "dres:" + x)) : [],
+    ]);
+    const by = (st) => users.filter((u) => u.status === st).length;
+    return json({
+        settings,
+        counts: {
+            users: users.length,
+            pending: by("pending"),
+            active: by("active"),
+            suspended: by("suspended"),
+            rejected: by("rejected"),
+            admins: users.filter((u) => u.role === "admin").length,
+            online: users.filter((u) => now - u.lastSeen < ONLINE_MS).length,
+            today: users.filter((u) => now - u.createdAt < 86400000).length,
+            messages: Number(extra[0]) || 0,
+            questPlayers: Number(extra[1]) || 0,
+            requestsOpen: qs.map((r) => parse(r)).filter((q) => q?.status === "open").length,
+            reservations: rs.map((r) => parse(r)).filter((r) => r?.status === "reserved").length,
+        },
+        pending: users.filter((u) => u.status === "pending").sort((a, b) => a.createdAt - b.createdAt),
+    });
+});
+route("GET", "admin/users", async ({ user }) => {
+    needAdmin(user);
+    const users = await adminUsers();
+    users.sort((a, b) => b.createdAt - a.createdAt);
+    return json({ users });
+});
+route("GET", "admin/users/([\\w-]+)", async ({ user, m }) => {
+    needAdmin(user);
+    const u = await getUser(m[1]);
+    if (!u)
+        throw new HttpError(404, "not_found");
+    const [seen, quest, matches, convs] = await Promise.all([cmd("ZSCORE", "dpres", u.id), questOf(u.id), cmd("SCARD", "dmatch:" + u.id), cmd("SCARD", "dconvs:" + u.id)]);
+    return json({ user: { ...adminView(u, Number(seen) || 0), bio: u.bio || "", points: quest.points, stations: quest.done.length, matches: Number(matches) || 0, chats: Number(convs) || 0 } });
+});
+// Change status, role or profile fields of someone else.
+route("POST", "admin/users/([\\w-]+)", async ({ req, user, m }) => {
+    needAdmin(user);
+    const u = await getUser(m[1]);
+    if (!u)
+        throw new HttpError(404, "not_found");
+    const b = await readJson(req);
+    const self = u.id === user.id;
+    const before = statusOf(u);
+    if (b.role !== undefined && b.role !== u.role) {
+        if (!["admin", "delegate"].includes(b.role) || u.demo)
+            throw new HttpError(400, "bad_role");
+        if (self)
+            throw new HttpError(403, "self");
+        if (isOwner(u))
+            throw new HttpError(403, "owner");
+        u.role = b.role;
+        if (u.role === "admin")
+            u.status = "active";
+        else
+            delete u.title;
+    }
+    if (b.status !== undefined && b.status !== before) {
+        if (!STATUSES.includes(b.status))
+            throw new HttpError(400, "bad_status");
+        if (self)
+            throw new HttpError(403, "self");
+        if (u.role === "admin")
+            throw new HttpError(403, "is_admin");
+        u.status = b.status;
+        if (b.status === "active") {
+            u.approvedBy = user.name;
+            u.approvedAt = Date.now();
+        }
+    }
+    if (b.name !== undefined) {
+        const name = clean(b.name, 60);
+        if (name.length < 2)
+            throw new HttpError(400, "name_required");
+        u.name = name;
+    }
+    if (b.entity !== undefined)
+        u.entity = clean(b.entity, 60);
+    if (b.position !== undefined)
+        u.position = POSITIONS.includes(b.position) ? b.position : "";
+    if (b.title !== undefined && u.role === "admin")
+        u.title = clean(b.title, 40);
+    if (b.bio !== undefined) {
+        u.bio = clean(b.bio, 160);
+        u.bioLang = u.bioLang || u.lang;
+    }
+    if (b.meet !== undefined)
+        u.meet = Boolean(b.meet);
+    if (b.photo === "") {
+        await cmd("DEL", "dph:" + u.id);
+        u.photoV = 0;
+    }
+    await saveUser(u);
+    await pushEvent({ at: Date.now(), type: "users" });
+    if (before !== "active" && statusOf(u) === "active" && !u.demo) {
+        const subject = pushSubject(req);
+        background(() => notify("messages", subject, (p) => ({ title: pt(p, "approved"), body: pt(p, "approvedBody"), url: "/home", tag: "approved" }), [u.id]));
+    }
+    return json({ user: adminView(u) });
+});
+// Approve everyone who is waiting.
+route("POST", "admin/approve-all", async ({ req, user }) => {
+    needAdmin(user);
+    const waiting = (await allUsers()).filter((u) => statusOf(u) === "pending");
+    const now = Date.now();
+    for (const u of waiting)
+        Object.assign(u, { status: "active", approvedBy: user.name, approvedAt: now });
+    if (waiting.length) {
+        await pipe(...waiting.map((u) => ["SET", "du:" + u.id, JSON.stringify(u)]));
+        await pushEvent({ at: now, type: "users" });
+        const subject = pushSubject(req);
+        background(() => notify("messages", subject, (p) => ({ title: pt(p, "approved"), body: pt(p, "approvedBody"), url: "/home", tag: "approved" }), waiting.map((u) => u.id)));
+    }
+    return json({ approved: waiting.length });
+});
+// A new password for someone who forgot theirs; the organizer passes it on.
+route("POST", "admin/users/([\\w-]+)/password", async ({ user, m }) => {
+    needAdmin(user);
+    const u = await getUser(m[1]);
+    if (!u || u.demo)
+        throw new HttpError(404, "not_found");
+    if (isOwner(u) && u.id !== user.id)
+        throw new HttpError(403, "owner");
+    const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
+    const password = Array.from(randomBytes(10), (x) => alphabet[x % alphabet.length]).join("");
+    const { hash, salt } = hashPassword(password);
+    u.passHash = hash;
+    u.salt = salt;
+    await saveUser(u);
+    return json({ password });
+});
+// Remove an account for good: profile, photo, e-mail, Meet and Quest data.
+// Messages already sent stay in the chats they were sent to.
+route("POST", "admin/users/([\\w-]+)/delete", async ({ user, m }) => {
+    needAdmin(user);
+    const u = await getUser(m[1]);
+    if (!u)
+        throw new HttpError(404, "not_found");
+    if (u.id === user.id)
+        throw new HttpError(403, "self");
+    if (isOwner(u))
+        throw new HttpError(403, "owner");
+    await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id], ["SREM", "dusers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
+    await pushEvent({ at: Date.now(), type: "users" });
+    return json({ ok: true });
+});
+route("GET", "admin/settings", async ({ user }) => {
+    needAdmin(user);
+    return json({ settings: await loadSettings() });
+});
+route("POST", "admin/settings", async ({ req, user }) => {
+    needAdmin(user);
+    const b = await readJson(req);
+    const s = await loadSettings();
+    for (const k of Object.keys(SETTINGS_DEFAULT))
+        if (typeof b[k] === "boolean")
+            s[k] = b[k];
+    await cmd("SET", "dset", JSON.stringify(s));
+    return json({ settings: s });
+});
+// General chat moderation: the latest messages, and removing one.
+route("GET", "admin/chat", async ({ user }) => {
+    needAdmin(user);
+    const raw = await cmd("LRANGE", "dm:" + GENERAL, -100, -1);
+    return json({ messages: raw.map((r) => parse(r)).filter(Boolean).reverse() });
+});
+route("POST", "admin/chat/([\\w-]+)/delete", async ({ user, m }) => {
+    needAdmin(user);
+    const raw = await cmd("LRANGE", "dm:" + GENERAL, 0, -1);
+    const hit = raw.find((r) => parse(r)?.id === m[1]);
+    if (!hit)
+        throw new HttpError(404, "not_found");
+    await cmd("LREM", "dm:" + GENERAL, 1, hit);
+    await pushEvent({ at: Date.now(), type: "msgdel", conv: GENERAL, id: m[1] });
+    return json({ ok: true });
+});
 // ------------------------------------------------------------ demo delegates
 // A couple of sample people so the directory, Meet and the plenary hall are
 // not empty while testing. They can't sign in, always like you back in Meet
@@ -1136,13 +1369,16 @@ export async function handle(req, segments) {
             const m = path.match(r.re);
             if (!m)
                 continue;
-            if (!isConfigured && !r.open)
+            if (!isConfigured && r.open !== true)
                 return json({ error: "storage_missing" }, 503);
-            if (!r.open)
+            if (r.open !== true)
                 await ensureDemo();
-            const user = r.open ? null : await currentUser(req);
-            if (!r.open && !user)
+            const user = r.open === true ? null : await currentUser(req);
+            if (r.open !== true && !user)
                 return json({ error: "unauthorized" }, 401);
+            // Waiting, suspended and rejected accounts can only see who they are.
+            if (user && r.open !== "any" && !isActive(user))
+                return json({ error: "not_approved", status: statusOf(user) }, 403);
             return await r.h({ req, url: new URL(req.url), user, m });
         }
         return json({ error: "not_found" }, 404);
