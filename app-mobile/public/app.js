@@ -2771,7 +2771,7 @@ function viewConnections(screen) {
       const p = s("path", { d: r[1], class: c ? "gc-c gc-on" : "gc-c" });
       if (c) {
         p.setAttribute("fill-opacity", (0.5 + 0.5 * Math.sqrt(c.people.length / max)).toFixed(2));
-        p.style.setProperty("--d", `${(order++ % 24) * 45 + 300}ms`);
+        p.style.setProperty("--d", `${(order++ % 16) * 30 + 100}ms`);
         p.dataset.code = r[0];
         const title = s("title");
         title.textContent = `${c.name}: ${c.people.length}`;
@@ -2791,7 +2791,7 @@ function viewConnections(screen) {
       const bend = Math.min(60, len * 0.22);
       const cx = (x + hx) / 2 + (dy / len) * bend, cy = (y + hy) / 2 - (dx / len) * bend;
       const a = s("path", { d: `M${x.toFixed(1)} ${y.toFixed(1)}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`, pathLength: "1", class: "gc-arc" });
-      a.style.setProperty("--d", `${900 + (i % 30) * 55}ms`);
+      a.style.setProperty("--d", `${400 + (i % 20) * 35}ms`);
       arcs.append(a);
     });
 
@@ -2857,7 +2857,7 @@ function viewConnections(screen) {
     else {
       const [x0, y0, w0, h0] = target, z = 1.25;
       const from = [x0 - (w0 * (z - 1)) / 2, y0 - (h0 * (z - 1)) / 2, w0 * z, h0 * z];
-      const t0 = performance.now(), ms = 1600;
+      const t0 = performance.now(), ms = 1200;
       const step = (now) => {
         const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
         setBox(from.map((v, i) => v + (target[i] - v) * e));
@@ -3637,6 +3637,21 @@ async function boot() {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  // The worker serves saved files first, so the first open after a release
+  // still runs the old code. When the new worker takes over, reload once
+  // (or wait until the app is in the background if someone is typing).
+  const hadWorker = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadWorker || reloading) return;
+    const reload = () => {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    };
+    if (!document.activeElement?.matches?.("input, textarea, select, [contenteditable]")) reload();
+    else document.addEventListener("visibilitychange", () => document.hidden && reload(), { once: true });
+  });
 }
 
 boot();

@@ -2385,8 +2385,9 @@ ol.group { list-style: none; margin: 0; padding: 0; }
   fill: var(--gc-hi);
   transition: fill 0.2s, fill-opacity 0.6s;
 }
-.gc-map:not(.in) .gc-on { fill-opacity: 0; }
-.gc-map.in .gc-on { animation: gc-light 0.9s ease-out both; animation-delay: var(--d, 0ms); }
+/* Everything is visible by default; the animations only run "from" a dimmer
+   state, so a browser that skips them still shows the full map. */
+.gc-map.in .gc-on { animation: gc-light 0.7s ease-out backwards; animation-delay: var(--d, 0ms); }
 @keyframes gc-light { from { fill: var(--gc-land); fill-opacity: 1; } }
 .gc-on.gc-sel { fill: #ffd5dc; fill-opacity: 1; stroke: #fff; stroke-width: 1.2px; }
 .gc-arc {
@@ -2394,14 +2395,14 @@ ol.group { list-style: none; margin: 0; padding: 0; }
   stroke: rgba(255, 255, 255, 0.3);
   stroke-linecap: round;
   stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+  stroke-dashoffset: 0;
   pointer-events: none;
 }
-.gc-map.in .gc-arc { animation: gc-draw 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; animation-delay: var(--d, 0ms); }
-@keyframes gc-draw { to { stroke-dashoffset: 0; } }
-.gc-dot { fill: #fff; opacity: 0; pointer-events: none; }
-.gc-map.in .gc-dot { animation: gc-fade 0.6s ease-out 1.1s forwards; }
-@keyframes gc-fade { to { opacity: 0.9; } }
+.gc-map.in .gc-arc { animation: gc-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards; animation-delay: var(--d, 0ms); }
+@keyframes gc-draw { from { stroke-dashoffset: 1; } }
+.gc-dot { fill: #fff; opacity: 0.9; pointer-events: none; }
+.gc-map.in .gc-dot { animation: gc-fade 0.5s ease-out 0.6s backwards; }
+@keyframes gc-fade { from { opacity: 0; } }
 .gc-hit { fill: transparent; cursor: pointer; }
 .gc-home { pointer-events: none; }
 .gc-home-dot { fill: #fff; }
@@ -2467,7 +2468,4 @@ ol.group { list-style: none; margin: 0; padding: 0; }
 .gc-flags { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 2px; font-size: 22px; line-height: 1.1; }
 @media (prefers-reduced-motion: reduce) {
   .gc-map .gc-on, .gc-map .gc-arc, .gc-map .gc-dot, .gc-home-ring, .gc-card { animation: none !important; }
-  .gc-map .gc-arc { stroke-dashoffset: 0; }
-  .gc-map .gc-dot { opacity: 0.9; }
-  .gc-map:not(.in) .gc-on { fill-opacity: inherit; }
 }
