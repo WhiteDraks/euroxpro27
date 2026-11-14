@@ -6,6 +6,7 @@
 // ============================================================
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import seed from "./agenda-seed.js";
+import { countryOf } from "../public/countries.js";
 import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
 import { LANGS, isLang, peekMany, providerName, translate } from "./translate.js";
 import { hasSubscription, publicKey, pushers, removeSubscription, saveSubscription, sendToUser, validSubscription } from "./push.js";
@@ -939,10 +940,23 @@ route("POST", "store/products/([\\w-]+)", async ({ req, user, m }) => {
     return json({ product: p });
 });
 // ------------------------------------------------------------ where delegates come from (for the world map)
+// `delegates` feeds the Global Connections map. `connections` counts pairs of
+// delegates from different countries who matched in Meet or started a chat.
 route("GET", "world", async () => {
     const ids = await cmd("SMEMBERS", "dusers");
-    const users = await usersByIds(ids);
-    return json({ entities: users.map((u) => u.entity || "").filter(Boolean) });
+    const users = (await usersByIds(ids)).filter((u) => !(u.demo && !demoOn()));
+    const home = new Map(users.map((u) => [u.id, countryOf(u.entity)?.code || ""]));
+    const links = users.length ? await pipe(...users.flatMap((u) => [["SMEMBERS", "dmatch:" + u.id], ["SMEMBERS", "dconvs:" + u.id]])) : [];
+    const pairs = new Set();
+    users.forEach((u, i) => {
+        const peers = [...(links[2 * i] || []), ...(links[2 * i + 1] || []).map((c) => String(c).slice(3).split(":").find((x) => x !== u.id))];
+        for (const p of peers) {
+            const a = home.get(u.id), b = home.get(p);
+            if (a && b && a !== b)
+                pairs.add([u.id, p].sort().join(":"));
+        }
+    });
+    return json({ entities: users.map((u) => u.entity || "").filter(Boolean), delegates: users.map(publicUser), connections: pairs.size });
 });
 // ------------------------------------------------------------ personal congress recap (shareable story)
 route("GET", "recap", async ({ user }) => {

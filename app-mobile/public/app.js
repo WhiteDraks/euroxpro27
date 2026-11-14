@@ -1,6 +1,7 @@
 // EUROXPRO'27 delegate app. Plain JavaScript modules, no framework.
 import { t, setLang, getLang, detectLang, LANGS, locale } from "./i18n.js";
 import { PLACES, CENTER } from "./places.js";
+import { COUNTRIES, countryOf, flag } from "./countries.js";
 
 const root = document.getElementById("app");
 // Set to e.g. "/app" if the app is ever served from a sub-folder.
@@ -52,6 +53,7 @@ const ICON = {
     '<svg viewBox="0 0 24 24"><path d="M19.5 13v5.5a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2H11"/><path d="m17.5 3.5 3 3L12 15l-4 1 1-4z"/></svg>',
   send: '<svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>',
   locate: '<svg viewBox="0 0 24 24"><path d="M20.5 3.5 3.5 10.6l7.1 2.8 2.8 7.1z"/></svg>',
+  hand: '<svg viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0v3.5c0 3.6-2.4 6.5-6 6.5-2.3 0-3.7-1-5-2.8L4.6 14a1.5 1.5 0 0 1 2.4-1.8L9 14.5"/></svg>',
   globe:
     '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.3 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.3-3.5-8.5S9.6 5.9 12 3.5z"/></svg>',
   pin: '<svg viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>',
@@ -249,7 +251,8 @@ const ROUTES = [
   { path: "/store", view: viewStore, tab: "home" },
   { path: "/store/mine", view: viewStoreMine, tab: "home" },
   { path: "/store/admin", view: viewStoreAdmin, tab: "home" },
-  { path: "/world", view: viewWorld, tab: "home" },
+  { path: "/connections", view: viewConnections, tab: "home" },
+  { path: "/world", view: viewConnections, tab: "home" }, // older link, same page
   { path: "/recap", view: viewRecap, tab: "home" },
 ];
 
@@ -2569,97 +2572,333 @@ function viewStoreAdmin(screen) {
   load();
 }
 
-// ------------------------------------------------------------------ world map of delegates
-// Entity names are free text ("AIESEC in Poland", "AIESEC in Warsaw"); match
-// them to a country by its name in any of our languages or a big city.
-const COUNTRIES = [
-  ["TR", "Türkiye", 39.0, 35.2, "turkey|türkiye|turkiye|istanbul|ankara|izmir|antalya|bursa|eskisehir|eskişehir|adana|konya|trabzon|kayseri"],
-  ["PL", "Poland", 52.1, 19.4, "poland|polska|polonya|warsaw|warszawa|krakow|kraków|wroclaw|wrocław|gdansk|gdańsk|poznan|poznań|lodz|łódź|katowice|lublin"],
-  ["DE", "Germany", 51.2, 10.4, "germany|deutschland|almanya|niemcy|berlin|munich|münchen|hamburg|cologne|köln|frankfurt|stuttgart"],
-  ["IT", "Italy", 42.8, 12.6, "italy|italia|italya|włochy|rome|roma|milan|milano|turin|torino|naples|bologna"],
-  ["ES", "Spain", 40.3, -3.7, "spain|españa|ispanya|hiszpania|madrid|barcelona|seville|sevilla|valencia"],
-  ["FR", "France", 46.6, 2.4, "france|fransa|francja|paris|lyon|marseille|toulouse|lille"],
-  ["PT", "Portugal", 39.6, -8.0, "portugal|portekiz|portugalia|lisbon|lisboa|porto"],
-  ["GB", "United Kingdom", 53.0, -1.8, "united kingdom|uk|britain|ingiltere|birleşik krallık|wielka brytania|london|manchester|edinburgh|glasgow"],
-  ["IE", "Ireland", 53.3, -7.9, "ireland|irlanda|irlandia|dublin"],
-  ["NL", "Netherlands", 52.2, 5.5, "netherlands|holland|hollanda|holandia|amsterdam|rotterdam|utrecht"],
-  ["BE", "Belgium", 50.6, 4.6, "belgium|belçika|belgia|brussels|antwerp|ghent|leuven"],
-  ["AT", "Austria", 47.6, 14.1, "austria|avusturya|österreich|vienna|wien|graz|linz|innsbruck|salzburg"],
-  ["CH", "Switzerland", 46.8, 8.2, "switzerland|isviçre|szwajcaria|zurich|zürich|geneva|bern|lausanne"],
-  ["CZ", "Czechia", 49.8, 15.5, "czech|çekya|czechy|prague|praha|brno"],
-  ["SK", "Slovakia", 48.7, 19.7, "slovakia|slovakya|słowacja|bratislava|kosice"],
-  ["HU", "Hungary", 47.2, 19.4, "hungary|macaristan|węgry|budapest|szeged|debrecen"],
-  ["RO", "Romania", 45.9, 24.9, "romania|romanya|rumunia|bucharest|bucuresti|cluj|iasi|iași|timisoara|timișoara"],
-  ["BG", "Bulgaria", 42.7, 25.3, "bulgaria|bulgaristan|bułgaria|sofia|varna|plovdiv"],
-  ["GR", "Greece", 39.3, 22.0, "greece|yunanistan|grecja|athens|thessaloniki"],
-  ["CY", "Cyprus", 35.1, 33.3, "cyprus|kıbrıs|cypr|nicosia"],
-  ["HR", "Croatia", 45.1, 15.5, "croatia|hırvatistan|chorwacja|zagreb|split"],
-  ["SI", "Slovenia", 46.1, 14.8, "slovenia|slovenya|słowenia|ljubljana|maribor"],
-  ["RS", "Serbia", 44.0, 20.9, "serbia|sırbistan|belgrade|beograd|novi sad"],
-  ["BA", "Bosnia and Herzegovina", 44.2, 17.8, "bosnia|bosna|sarajevo"],
-  ["MK", "North Macedonia", 41.6, 21.7, "macedonia|makedonya|skopje"],
-  ["AL", "Albania", 41.2, 20.0, "albania|arnavutluk|tirana"],
-  ["ME", "Montenegro", 42.7, 19.3, "montenegro|karadağ|podgorica"],
-  ["XK", "Kosovo", 42.6, 20.9, "kosovo|pristina|prishtina"],
-  ["DK", "Denmark", 56.0, 9.5, "denmark|danimarka|dania|copenhagen|aarhus"],
-  ["SE", "Sweden", 62.0, 15.0, "sweden|isveç|szwecja|stockholm|gothenburg|lund|uppsala"],
-  ["NO", "Norway", 61.0, 9.0, "norway|norveç|norwegia|oslo|bergen|trondheim"],
-  ["FI", "Finland", 62.5, 26.0, "finland|finlandiya|finlandia|helsinki|tampere|turku"],
-  ["IS", "Iceland", 64.9, -18.6, "iceland|izlanda|islandia|reykjavik"],
-  ["EE", "Estonia", 58.7, 25.5, "estonia|estonya|tallinn|tartu"],
-  ["LV", "Latvia", 56.9, 24.6, "latvia|letonya|łotwa|riga"],
-  ["LT", "Lithuania", 55.3, 23.9, "lithuania|litvanya|litwa|vilnius|kaunas"],
-  ["UA", "Ukraine", 49.0, 31.4, "ukraine|ukrayna|ukraina|kyiv|kiev|lviv|kharkiv|odesa"],
-  ["MD", "Moldova", 47.2, 28.5, "moldova|mołdawia|chisinau"],
-  ["GE", "Georgia", 42.3, 43.4, "georgia|gürcistan|gruzja|tbilisi"],
-  ["AM", "Armenia", 40.2, 44.9, "armenia|ermenistan|yerevan"],
-  ["AZ", "Azerbaijan", 40.3, 47.7, "azerbaijan|azerbaycan|baku"],
-  ["MT", "Malta", 35.9, 14.4, "malta|valletta"],
-  ["LU", "Luxembourg", 49.8, 6.1, "luxembourg|lüksemburg"],
-];
-const COUNTRY_RE = COUNTRIES.map(([code, name, lat, lng, words]) => ({ code, name, lat, lng, re: new RegExp(`(^|[^\\p{L}])(${words})([^\\p{L}]|$)`, "iu") }));
-const countryOf = (entity) => COUNTRY_RE.find((c) => c.re.test(entity || "")) || null;
-const flag = (code) => (code === "XK" ? "🇽🇰" : String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)));
+// ------------------------------------------------------------------ global connections map
+// The map is our own SVG (public/world-shapes.js, loaded on first visit), so
+// there are no tiles, keys or extra libraries. Countries with delegates light
+// up; tapping one opens its delegates. Until enough real delegates have
+// joined, the page shows clearly labelled sample data so it can be previewed.
+const GC_SAMPLE_BELOW = 25; // real delegates with a known country needed to leave preview mode
+const ANTALYA = [30.7, 36.9];
+// Preview only: delegate counts per country. Not real figures or people.
+const GC_SAMPLE = { TR: 64, PL: 38, DE: 31, IT: 29, ES: 26, PT: 18, FR: 17, GR: 16, RO: 15, NL: 14, BE: 12, CZ: 12, HU: 11, AT: 10, GB: 10, UA: 9, BG: 9, SE: 9, DK: 8, FI: 8, HR: 8, RS: 8, NO: 7, CH: 7, SK: 7, LT: 6, SI: 6, GE: 6, EE: 5, LV: 5, IE: 5, AZ: 5, AM: 4, MK: 4, AL: 4, BA: 4, ME: 3, MT: 3, CY: 3, MD: 3, XK: 3, EG: 3, LU: 2, IS: 2, BR: 2, IN: 2, CA: 2 };
+const GC_SAMPLE_CONNECTIONS = 1184;
 
-function viewWorld(screen) {
-  const mapEl = h("div", { class: "world-map", role: "img", "aria-label": t("worldTitle") });
-  const list = h("div", { class: "group" });
-  const head = h("p", { class: "world-sum" });
-  screen.append(navBar({ title: t("worldTitle"), back: "/people" }), h("div", { class: "world-wrap" }, mapEl), head, list);
-  const L = window.L;
-  let map = null;
-  if (L) {
-    map = L.map(mapEl, { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView([48, 18], 3);
-    L.tileLayer(esriTiles("World_Dark_Gray_Base"), { maxZoom: 8, attribution: ESRI_ATTR }).addTo(map);
+function gcSampleData() {
+  const names = regionNames();
+  const delegates = [];
+  let i = 0;
+  for (const [code, n] of Object.entries(GC_SAMPLE))
+    for (let k = 0; k < n; k++) delegates.push({ id: `sample-${code}-${k}`, sample: true, name: t("gcSampleName", { n: ++i }), entity: `AIESEC in ${names.of(code)}`, code });
+  return { delegates, connections: GC_SAMPLE_CONNECTIONS, sample: true };
+}
+
+// Real data once enough delegates have joined, the labelled sample before that.
+function gcPick(real, force) {
+  const known = (real.delegates || []).filter((d) => countryOf(d.entity)).length;
+  if (force === "real") return real;
+  return force === "sample" || known < GC_SAMPLE_BELOW ? gcSampleData() : real;
+}
+
+function regionNames() {
+  try {
+    return new Intl.DisplayNames([locale(), "en"], { type: "region" });
+  } catch {
+    return { of: (c) => c };
   }
-  api("GET", "/api/world").then(({ entities }) => {
-    const counts = new Map();
-    for (const e of entities) {
-      const c = countryOf(e);
-      if (c) counts.set(c, (counts.get(c) || 0) + 1);
+}
+
+const SVGNS = "http://www.w3.org/2000/svg";
+function s(tag, attrs = {}) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) if (v != null) el.setAttribute(k, v);
+  return el;
+}
+
+// Group delegates by country, biggest first.
+function gcCountries(delegates) {
+  const by = new Map();
+  for (const d of delegates) {
+    const code = d.code || countryOf(d.entity)?.code;
+    if (!code) continue;
+    if (!by.has(code)) by.set(code, []);
+    by.get(code).push(d);
+  }
+  const names = regionNames();
+  return [...by].map(([code, people]) => ({ code, name: names.of(code) || code, people })).sort((a, b) => b.people.length - a.people.length || a.name.localeCompare(b.name, locale()));
+}
+
+// A bottom sheet that can scroll; returns its box and a close function.
+function gcSheet(cls = "") {
+  const box = h("div", { class: "sheet " + cls, role: "dialog", "aria-modal": "true" });
+  const back = h("div", { class: "sheet-backdrop", onclick: (e) => e.target === back && close() }, box);
+  const onKey = (e) => e.key === "Escape" && close();
+  const close = () => {
+    back.classList.remove("show");
+    setTimeout(() => back.remove(), 250);
+    document.removeEventListener("keydown", onKey);
+    box.dispatchEvent(new Event("close"));
+  };
+  document.addEventListener("keydown", onKey);
+  document.body.append(back);
+  requestAnimationFrame(() => back.classList.add("show"));
+  return { box, close };
+}
+
+function gcOpenSample(p) {
+  const { box, close } = gcSheet();
+  box.append(
+    h("div", { class: "sheet-grab", "aria-hidden": "true" }),
+    avatar(p, "avatar-xl"),
+    h("h2", { class: "sheet-name" }, p.name),
+    h("p", { class: "sheet-sub" }, p.entity),
+    h("p", { class: "fineprint center" }, t("gcSampleProfile")),
+    h("button", { type: "button", class: "btn", onclick: close }, t("close"))
+  );
+}
+
+function gcOpenCountry(c, onClose) {
+  const { box, close } = gcSheet("gc-sheet");
+  box.addEventListener("close", () => onClose?.());
+  const me = state.user?.id;
+  box.append(
+    h("div", { class: "sheet-grab", "aria-hidden": "true" }),
+    h("div", { class: "gc-sheet-flag", "aria-hidden": "true" }, flag(c.code)),
+    h("h2", { class: "sheet-name" }, c.name),
+    h("p", { class: "sheet-sub" }, t("gcDelegatesN", { n: c.people.length })),
+    h(
+      "div",
+      { class: "gc-people group" },
+      c.people.map((p) =>
+        h(
+          "button",
+          { type: "button", class: "row", onclick: () => {
+            close();
+            if (p.sample) gcOpenSample(p);
+            else if (p.id === me) go("/profile");
+            else openPerson(p.id);
+          } },
+          avatar(p),
+          h("span", { class: "row-text" }, h("span", { class: "row-value" }, p.name, p.id === me ? h("span", { class: "gc-you" }, " · " + t("gcYou")) : null), h("span", { class: "row-label" }, [p.position && posLabel(p.position), p.entity].filter(Boolean).join(" · "))),
+          icon("chevron", "row-chevron")
+        )
+      )
+    )
+  );
+}
+
+function viewConnections(screen) {
+  screen.classList.add("gc-screen");
+  const svg = s("svg", { class: "gc-svg", role: "img", "aria-label": t("gcTitle") });
+  const mapBox = h("div", { class: "gc-map" }, svg);
+  const statEl = (label) => {
+    const n = h("strong", { class: "gc-stat-n" }, "0");
+    return { n, el: h("div", { class: "gc-stat" }, n, h("span", { class: "gc-stat-l" }, label)) };
+  };
+  const sCountries = statEl(t("gcCountries"));
+  const sDelegates = statEl(t("gcDelegates"));
+  const sLinks = statEl(t("gcConnections"));
+  const hint = h("p", { class: "gc-hint" }, icon("hand", "gc-hint-ic"), t("gcTap"));
+  const note = h("p", { class: "gc-note", hidden: true }, t("gcSample"));
+  const grid = h("div", { class: "gc-grid" }, h("div", { class: "loading" }));
+  screen.append(
+    navBar({ title: t("gcTitle"), back: "/home" }),
+    h("section", { class: "gc-panel" }, mapBox, h("div", { class: "gc-stats" }, sCountries.el, sDelegates.el, sLinks.el)),
+    hint,
+    h("h2", { class: "gc-h2" }, t("gcByCountry")),
+    grid,
+    note
+  );
+
+  let alive = true;
+  let raf = 0;
+  let onResize = null;
+  const params = new URLSearchParams(location.search);
+  const force = params.get("data"); // ?data=sample or ?data=real, for checking both modes
+
+  Promise.all([import("./world-shapes.js"), api("GET", "/api/world").catch(() => ({ delegates: [], connections: 0 }))])
+    .then(([geo, real]) => {
+      if (!alive) return;
+      const data = gcPick(real, force);
+      note.hidden = !data.sample;
+      const countries = gcCountries(data.delegates || []);
+      const total = countries.reduce((n, c) => n + c.people.length, 0);
+      countUp(sCountries.n, countries.length, 1100);
+      countUp(sDelegates.n, total, 1300);
+      countUp(sLinks.n, data.connections || 0, 1500);
+      drawMap(geo, countries);
+      drawGrid(countries);
+    })
+    .catch((e) => grid.replaceChildren(h("p", { class: "empty" }, errText(e))));
+
+  let select = () => {};
+
+  function drawGrid(countries) {
+    if (!countries.length) return grid.replaceChildren(h("p", { class: "empty" }, t("noPeople")));
+    grid.replaceChildren(
+      ...countries.map((c, i) => {
+        const b = h(
+          "button",
+          { type: "button", class: "gc-card", onclick: () => select(c.code) },
+          h("span", { class: "gc-card-flag", "aria-hidden": "true" }, flag(c.code)),
+          h("span", { class: "gc-card-text" }, h("span", { class: "gc-card-name" }, c.name), h("span", { class: "gc-card-n" }, t("gcDelegatesN", { n: c.people.length })))
+        );
+        b.style.setProperty("--i", Math.min(i, 16));
+        return b;
+      })
+    );
+  }
+
+  function drawMap(geo, countries) {
+    const byCode = new Map(countries.map((c) => [c.code, c]));
+    const max = Math.max(1, ...countries.map((c) => c.people.length));
+    const total = countries.reduce((n, c) => n + c.people.length, 0);
+    const shapes = new Map(geo.SHAPES.map((r) => [r[0], r]));
+    const known = new Map(COUNTRIES.map((c) => [c[0], c]));
+    const pointOf = (code) => {
+      const k = known.get(code);
+      if (k) return geo.project(k[3], k[2]);
+      const r = shapes.get(code);
+      return r ? [r[2], r[3]] : null;
+    };
+    const home = geo.project(...ANTALYA);
+
+    // Land: every country, neutral; represented ones get the highlight.
+    const land = s("g", { class: "gc-land", transform: "scale(.1)" });
+    const paths = new Map();
+    let order = 0;
+    for (const r of geo.SHAPES) {
+      const c = byCode.get(r[0]);
+      const p = s("path", { d: r[1], class: c ? "gc-c gc-on" : "gc-c" });
+      if (c) {
+        p.setAttribute("fill-opacity", (0.5 + 0.5 * Math.sqrt(c.people.length / max)).toFixed(2));
+        p.style.setProperty("--d", `${(order++ % 24) * 45 + 300}ms`);
+        p.dataset.code = r[0];
+        const title = s("title");
+        title.textContent = `${c.name}: ${c.people.length}`;
+        p.append(title);
+        paths.set(r[0], p);
+      } else p.dataset.code = r[0];
+      land.append(p);
     }
-    const rows = [...counts].sort((a, b) => b[1] - a[1]);
-    const max = Math.max(1, ...rows.map((r) => r[1]));
-    head.textContent = t("worldSum", { n: entities.length, c: rows.length });
-    if (map) {
-      for (const [c, n] of rows) {
-        const size = 18 + Math.sqrt(n / max) * 46;
-        L.marker([c.lat, c.lng], {
-          icon: L.divIcon({ className: "heat-dot", html: `<span class="heat-core"></span><span class="heat-label">${n}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }),
-          title: `${c.name}: ${n}`,
-        }).addTo(map);
-      }
-      if (rows.length) map.fitBounds(L.latLngBounds([[36.9, 30.7], ...rows.map(([c]) => [c.lat, c.lng])]), { padding: [40, 40], maxZoom: 5 });
-      // Antalya, where everyone is heading.
-      L.marker([36.9, 30.7], { icon: L.divIcon({ className: "heat-home", html: "<span></span>", iconSize: [14, 14], iconAnchor: [7, 7] }), title: "Antalya" }).addTo(map);
+
+    // Lines from every represented country to Antalya.
+    const pts = countries.map((c) => [c, pointOf(c.code)]).filter(([, p]) => p);
+    const arcs = s("g", { class: "gc-arcs" });
+    pts.forEach(([c, [x, y]], i) => {
+      if (c.code === "TR") return;
+      const [hx, hy] = home;
+      const dx = hx - x, dy = hy - y, len = Math.hypot(dx, dy);
+      const bend = Math.min(60, len * 0.22);
+      const cx = (x + hx) / 2 + (dy / len) * bend, cy = (y + hy) / 2 - (dx / len) * bend;
+      const a = s("path", { d: `M${x.toFixed(1)} ${y.toFixed(1)}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`, pathLength: "1", class: "gc-arc" });
+      a.style.setProperty("--d", `${900 + (i % 30) * 55}ms`);
+      arcs.append(a);
+    });
+
+    // Dots for each country, plus a wider invisible tap target for small ones.
+    const dots = s("g", { class: "gc-dots" });
+    const hits = s("g", { class: "gc-hits" });
+    for (const [c, [x, y]] of pts) {
+      dots.append(s("circle", { cx: x.toFixed(1), cy: y.toFixed(1), class: "gc-dot" }));
+      const hit = s("circle", { cx: x.toFixed(1), cy: y.toFixed(1), class: "gc-hit", "data-code": c.code, "data-area": shapes.get(c.code)?.[4] ?? 0 });
+      hits.append(hit);
     }
-    list.replaceChildren(...rows.map(([c, n]) => {
-      const bar = h("span", { class: "world-bar" });
-      bar.style.setProperty("--w", (n / max) * 100 + "%");
-      return h("div", { class: "row" }, h("span", { class: "world-flag" }, flag(c.code)), h("span", { class: "row-text" }, h("span", { class: "row-value" }, c.name), bar), h("strong", {}, String(n)));
-    }));
-  }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
-  return () => map?.remove();
+    const homeG = s("g", { class: "gc-home", transform: `translate(${home[0].toFixed(1)} ${home[1].toFixed(1)})` });
+    homeG.append(s("circle", { class: "gc-home-ring", r: 1 }), s("circle", { class: "gc-home-dot", r: 1 }));
+    const homeLabel = s("text", { class: "gc-home-label" });
+    homeLabel.textContent = t("gcHome");
+    homeG.append(homeLabel);
+
+    svg.replaceChildren(land, arcs, dots, homeG, hits);
+
+    // Frame the represented countries (and Antalya), matching the box's shape.
+    // Far-off outliers (a few guests from other continents) should not shrink
+    // Europe to a dot: frame the nearest countries holding ~92% of delegates.
+    const core = [];
+    let held = 0;
+    for (const item of [...pts].sort((a, b) => Math.hypot(a[1][0] - home[0], a[1][1] - home[1]) - Math.hypot(b[1][0] - home[0], b[1][1] - home[1]))) {
+      if (held >= total * 0.92 && core.length >= 3) break;
+      core.push(item);
+      held += item[0].people.length;
+    }
+    const xs = [home[0], ...core.map(([, p]) => p[0])], ys = [home[1], ...core.map(([, p]) => p[1])];
+    let minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const padX = Math.max(40, (maxX - minX) * 0.12), padY = Math.max(30, (maxY - minY) * 0.14);
+    minX -= padX; maxX += padX; minY -= padY; maxY += padY;
+    let target;
+    const fit = () => {
+      const bw = mapBox.clientWidth || 360, bh = mapBox.clientHeight || 360, aspect = bw / bh;
+      let w = maxX - minX, hgt = maxY - minY;
+      if (w / hgt > aspect) hgt = w / aspect;
+      else w = hgt * aspect;
+      w = Math.min(w, geo.MAP_W);
+      hgt = w / aspect;
+      const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+      target = [cx - w / 2, cy - hgt / 2, w, hgt];
+      const u = w / bw; // map units per screen pixel
+      svg.style.setProperty("--u", u);
+      dots.querySelectorAll("circle").forEach((d) => d.setAttribute("r", (2.6 * u).toFixed(2)));
+      hits.querySelectorAll("circle").forEach((d) => {
+        // Only countries smaller than a fingertip get a round target.
+        const small = Number(d.dataset.area) / (u * u) < 900;
+        d.setAttribute("r", small ? (16 * u).toFixed(2) : 0);
+      });
+      homeG.querySelector(".gc-home-dot").setAttribute("r", (4.5 * u).toFixed(2));
+      homeG.querySelector(".gc-home-ring").setAttribute("r", (4.5 * u).toFixed(2));
+      homeLabel.setAttribute("x", (8 * u).toFixed(2));
+      homeLabel.setAttribute("y", (4 * u).toFixed(2));
+      homeLabel.setAttribute("font-size", (12 * u).toFixed(2));
+      arcs.setAttribute("stroke-width", (1.1 * u).toFixed(2));
+    };
+    fit();
+    const setBox = (b) => svg.setAttribute("viewBox", b.map((v) => v.toFixed(1)).join(" "));
+    // Open slightly wider and ease in.
+    if (reduceMotion()) setBox(target);
+    else {
+      const [x0, y0, w0, h0] = target, z = 1.25;
+      const from = [x0 - (w0 * (z - 1)) / 2, y0 - (h0 * (z - 1)) / 2, w0 * z, h0 * z];
+      const t0 = performance.now(), ms = 1600;
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+        setBox(from.map((v, i) => v + (target[i] - v) * e));
+        if (k < 1 && alive) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }
+    requestAnimationFrame(() => mapBox.classList.add("in"));
+    onResize = () => {
+      cancelAnimationFrame(raf);
+      fit();
+      setBox(target);
+    };
+    window.addEventListener("resize", onResize);
+
+    let selected = null;
+    select = (code) => {
+      const c = byCode.get(code);
+      if (!c) return;
+      selected?.classList.remove("gc-sel");
+      selected = paths.get(code) || null;
+      selected?.classList.add("gc-sel");
+      gcOpenCountry(c, () => {
+        selected?.classList.remove("gc-sel");
+        selected = null;
+      });
+    };
+    svg.addEventListener("click", (e) => {
+      const el = e.target.closest("[data-code]");
+      if (!el) return;
+      const code = el.dataset.code;
+      if (byCode.has(code)) select(code);
+      else toast(t("gcNone", { c: regionNames().of(code) || code }));
+    });
+  }
+
+  return () => {
+    alive = false;
+    cancelAnimationFrame(raf);
+    if (onResize) window.removeEventListener("resize", onResize);
+  };
 }
 
 // ------------------------------------------------------------------ congress recap (a story to share)
@@ -2957,6 +3196,8 @@ function viewHome(screen) {
   const apprT = tile("/approvals", "trophy", t("approvals"), "wide dark");
   const storeT = tile("/store", "bag", t("store"));
   const recapT = tile("/recap", "sparkle", t("recapTitle"), "wide recap-tile");
+  const gcT = tile("/connections", "globe", t("gcTitle"), "wide gc-tile");
+  gcT.sub.textContent = t("gcTile");
   questT.sub.textContent = t("questTile");
   storeT.sub.textContent = t("storeTile");
   recapT.sub.textContent = t("recapTile");
@@ -3007,7 +3248,7 @@ function viewHome(screen) {
   screen.append(
     hero,
     nudge,
-    h("div", { class: "bento" }, [...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
+    h("div", { class: "bento" }, [...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
       x.el.style.setProperty("--i", i);
       return x.el;
     }))
@@ -3029,6 +3270,8 @@ function viewHome(screen) {
   api("GET", "/api/people").then(({ people }) => {
     const faces = people.slice(0, 4).map((p) => avatar(p, "face"));
     peopleT.extra.replaceChildren(h("span", { class: "faces" }, faces), h("span", { class: "tile-num" }, String(people.length + 1)));
+    const cs = gcCountries(gcPick({ delegates: [...people, state.user] }).delegates);
+    gcT.extra.replaceChildren(h("span", { class: "gc-flags", "aria-hidden": "true" }, cs.slice(0, 9).map((c) => h("span", {}, flag(c.code)))), h("span", { class: "tile-num" }, t("gcCountriesN", { n: cs.length })));
   }).catch(() => {});
 
   // Matches so far for the Meet tile.
@@ -3139,7 +3382,7 @@ function viewDirectory(screen) {
   let filter = sessionStorage.getItem("dirPos") || "";
   const chips = h("div", { class: "chips chips-scroll", role: "radiogroup", "aria-label": t("position") });
   const list = h("div", { class: "group" }, h("div", { class: "loading" }));
-  screen.append(navBar({ title: t("directory"), back: "/home", action: h("a", { href: "/world", "data-link": true, class: "nav-action" }, icon("globe"), t("worldShort")) }), h("div", { class: "pad" }, search), chips, list);
+  screen.append(navBar({ title: t("directory"), back: "/home", action: h("a", { href: "/connections", "data-link": true, class: "nav-action" }, icon("globe"), t("worldShort")) }), h("div", { class: "pad" }, search), chips, list);
   let people = [];
   const drawChips = () =>
     chips.replaceChildren(
