@@ -250,6 +250,41 @@ a {
 .tab.active .icon svg {
   stroke-width: 2.1;
 }
+/* soft pill behind the active icon; it springs in when you switch tabs */
+.tab-icon::before {
+  content: "";
+  position: absolute;
+  inset: -3px -14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tint) 13%, transparent);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.25s, transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.tab.active .tab-icon::before { opacity: 1; transform: none; }
+.tab.pop .tab-icon::before { animation: tab-pill 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; }
+.tab.pop .tab-icon .icon { animation: tab-bounce 0.4s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes tab-pill { from { opacity: 0; transform: scale(0.5); } }
+@keyframes tab-bounce { 40% { transform: scale(0.86); } }
+.tab:active .tab-icon .icon { transform: scale(0.88); transition: transform 0.1s; }
+.tabbar { view-transition-name: tabbar; }
+
+/* ---------- screen transitions (View Transitions API) ---------- */
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.34s; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+html[data-nav="push"]::view-transition-old(root) { animation-name: vt-out-left; }
+html[data-nav="push"]::view-transition-new(root) { animation-name: vt-in-right; }
+html[data-nav="pop"]::view-transition-old(root) { animation-name: vt-out-right; }
+html[data-nav="pop"]::view-transition-new(root) { animation-name: vt-in-left; }
+html[data-nav="tab"]::view-transition-old(root) { animation: vt-fade-out 0.18s ease both; }
+html[data-nav="tab"]::view-transition-new(root) { animation: vt-fade-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+::view-transition-group(tabbar) { animation: none; }
+@keyframes vt-in-right { from { transform: translateX(36%); opacity: 0; } }
+@keyframes vt-out-left { to { transform: translateX(-14%); opacity: 0; } }
+@keyframes vt-in-left { from { transform: translateX(-14%); opacity: 0; } }
+@keyframes vt-out-right { to { transform: translateX(36%); opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; transform: translateY(6px) scale(0.995); } }
+@keyframes vt-fade-out { to { opacity: 0; } }
 .badge {
   position: absolute;
   top: -3px;
@@ -1937,7 +1972,10 @@ a {
   height: 100%;
   object-fit: cover;
   animation: hero-in 1.2s ease-out both;
+  translate: 0 var(--py, 0px);
+  will-change: translate;
 }
+.hero-body { opacity: var(--fade, 1); }
 @keyframes hero-in { from { transform: scale(1.08); opacity: 0; } to { transform: none; opacity: 1; } }
 .hero-shade {
   position: absolute;
@@ -1964,7 +2002,10 @@ a {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.16);
+  overflow: hidden;
 }
+.cd-num.tick { animation: cd-roll 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes cd-roll { from { transform: translateY(55%); opacity: 0; filter: blur(3px); } }
 .cd-num { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1; }
 .cd-unit { margin-top: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.75; }
 .hero .live-card { margin: 0; background: rgba(0, 0, 0, 0.45); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
@@ -1990,16 +2031,36 @@ a {
   color: var(--tile-fg);
   text-decoration: none;
   overflow: hidden;
-  animation: tile-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  /* backwards, not both: once in, the tile is back to its own transform so press and tilt work */
+  animation: tile-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   animation-delay: calc(var(--i, 0) * 50ms + 150ms);
-  transition: transform 0.15s;
+  transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
+  --spot: rgba(255, 255, 255, 0.22);
 }
-.tile:active { transform: scale(0.97); }
+.bento.seen .tile { animation: none; }
+.tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 0%), var(--spot), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.tile:active { transform: perspective(800px) scale(0.97); transition-duration: 0.12s; }
+.tile:active::after { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .tile:hover { box-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.45); }
+  .tile:hover::after { opacity: 1; }
+}
 @keyframes tile-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .tile.wide { grid-column: 1 / -1; min-height: 0; }
 .tile.accent { --tile-bg: linear-gradient(135deg, #a3304a 0%, #7d1a30 55%, #4a0f1d 100%); --tile-fg: #fff; }
 .tile.dark { --tile-bg: linear-gradient(180deg, #24100f, #0a0505); --tile-fg: #fff; }
 .tile.accent-soft { --tile-bg: color-mix(in srgb, var(--bordeaux) 14%, var(--card)); }
+.tile:not(.accent):not(.dark):not(.sunset-tile):not(.recap-tile):not(.gc-tile) { --spot: color-mix(in srgb, var(--tint) 12%, transparent); }
 .tile-head { display: flex; align-items: center; justify-content: space-between; }
 .tile-ic { width: 26px; height: 26px; color: var(--tint); }
 .tile.accent .tile-ic, .tile.dark .tile-ic { color: #fff; }

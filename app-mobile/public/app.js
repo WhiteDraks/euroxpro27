@@ -266,20 +266,57 @@ function match(pathname) {
   return null;
 }
 
-function go(path, { replace = false } = {}) {
+// Screen changes slide like a native app: deeper pages push in from the
+// right, Back slides them out, tab switches cross-fade. Browsers without
+// View Transitions (or with reduced motion) just swap the screen at once.
+function navKind(path, hint) {
+  if (hint) return hint;
+  const from = match(here())?.route;
+  const to = match(path.split("?")[0])?.route;
+  if (!from || !to) return "fade";
+  const tabRoot = (r) => ["/home", "/agenda", "/meet", "/messages", "/profile"].includes(r.path);
+  if (tabRoot(to) && from.tab !== to.tab) return "tab";
+  if (from.tab && from.tab === to.tab && tabRoot(to)) return "pop";
+  return "push";
+}
+function transition(kind, update) {
+  if (!document.startViewTransition || reduceMotion() || document.hidden) return update();
+  document.documentElement.dataset.nav = kind;
+  try {
+    const vt = document.startViewTransition(update);
+    vt.finished.finally(() => delete document.documentElement.dataset.nav);
+  } catch {
+    update();
+  }
+}
+
+function go(path, { replace = false, kind } = {}) {
   const full = withBase(path);
   if (full === location.pathname) return render();
-  history[replace ? "replaceState" : "pushState"]({}, "", full);
-  render();
+  const k = replace ? null : navKind(path, kind);
+  const swap = () => {
+    history[replace ? "replaceState" : "pushState"]({}, "", full);
+    render();
+  };
+  if (k) transition(k, swap);
+  else swap();
 }
 
 document.addEventListener("click", (e) => {
   const a = e.target.closest("a[data-link]");
   if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return;
   e.preventDefault();
-  go(a.getAttribute("href"));
+  if (a.classList.contains("tab") && !a.classList.contains("active")) haptic();
+  go(a.getAttribute("href"), { kind: a.classList.contains("nav-back") ? "pop" : undefined });
 });
-window.addEventListener("popstate", () => render());
+window.addEventListener("popstate", () => transition("pop", render));
+
+// A light tap on phones that support it (Android); silent elsewhere.
+function haptic(ms = 8) {
+  try {
+    navigator.vibrate?.(ms);
+  } catch {}
+}
 
 function render() {
   if (cleanup) cleanup();
@@ -303,7 +340,10 @@ function render() {
   window.scrollTo(0, 0);
 }
 
+let lastTab = null;
 function tabBar(active) {
+  const changed = lastTab !== null && lastTab !== active;
+  lastTab = active;
   const tabs = [
     ["home", "/home", "tabHome"],
     ["agenda", "/agenda", "tabAgenda"],
@@ -317,7 +357,7 @@ function tabBar(active) {
     tabs.map(([name, href, label]) =>
       h(
         "a",
-        { href, "data-link": true, class: "tab" + (name === active ? " active" : ""), "aria-current": name === active ? "page" : null },
+        { href, "data-link": true, class: "tab" + (name === active ? " active" + (changed ? " pop" : "") : ""), "aria-current": name === active ? "page" : null },
         h("span", { class: "tab-icon" }, icon(name), name === "messages" ? h("span", { class: "badge", id: "unread-badge", hidden: !state.unread }, state.unread > 99 ? "99+" : state.unread) : null),
         h("span", { class: "tab-label" }, t(label))
       )
@@ -3139,6 +3179,7 @@ function countdownParts(ms) {
   return [Math.floor(s / 86400), Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60];
 }
 
+let homeSeen = false; // tiles fly in on the first visit only
 function viewHome(screen) {
   const u = state.user;
   screen.classList.add("home");
@@ -3167,7 +3208,18 @@ function viewHome(screen) {
           h("p", { class: "hero-sub" }, t("dates"))
         );
       }
-      countdownParts(CONGRESS_START - now).forEach((v, i) => (cells[i].textContent = i ? String(v).padStart(2, "0") : v));
+      // Digits that change roll up into place (they are already in place if the animation never runs).
+      countdownParts(CONGRESS_START - now).forEach((v, i) => {
+        const txt = String(i ? String(v).padStart(2, "0") : v);
+        if (cells[i].textContent === txt) return;
+        const first = cells[i].textContent === "0" && !cells[i].dataset.on;
+        cells[i].dataset.on = "1";
+        cells[i].textContent = txt;
+        if (first) return;
+        cells[i].classList.remove("tick");
+        void cells[i].offsetWidth;
+        cells[i].classList.add("tick");
+      });
     } else {
       const agenda = state.agenda || cachedAgenda();
       heroBody.replaceChildren(h("p", { class: "hero-hello" }, t("hello", { name: u.name.split(" ")[0] })), agenda ? liveCard(agenda) : h("p", { class: "hero-sub" }, t("dates")));
@@ -3176,6 +3228,22 @@ function viewHome(screen) {
   drawHero();
   const tick = setInterval(drawHero, 1000);
   cleanups.push(() => clearInterval(tick));
+
+  // Depth on scroll: the photo drifts slower than the page and the greeting fades a little.
+  if (!reduceMotion()) {
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const y = Math.min(Math.max(window.scrollY, 0), 400);
+        hero.style.setProperty("--py", (y * 0.35).toFixed(1) + "px");
+        hero.style.setProperty("--fade", (1 - y / 520).toFixed(3));
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    cleanups.push(() => window.removeEventListener("scroll", onScroll));
+  }
 
   // Tiles fill in with live numbers as they arrive.
   const tile = (href, ic, label, cls = "") => {
@@ -3245,14 +3313,35 @@ function viewHome(screen) {
     nudge.replaceChildren(card);
   });
 
+  // Light follows the finger (or cursor) across a tile; a small tilt on desktop hover.
+  const spot = (e) => {
+    const el = e.target.closest?.(".tile");
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    el.style.setProperty("--mx", (x * 100).toFixed(1) + "%");
+    el.style.setProperty("--my", (y * 100).toFixed(1) + "%");
+    if (e.pointerType === "mouse" && !reduceMotion()) {
+      el.style.setProperty("--rx", ((0.5 - y) * 5).toFixed(2) + "deg");
+      el.style.setProperty("--ry", ((x - 0.5) * 6).toFixed(2) + "deg");
+    }
+  };
+  const unspot = (e) => {
+    const el = e.target.closest?.(".tile");
+    if (el && !el.contains(e.relatedTarget)) ["--rx", "--ry"].forEach((k) => el.style.removeProperty(k));
+  };
+
   screen.append(
     hero,
     nudge,
-    h("div", { class: "bento" }, [...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
+    h("div", { class: "bento" + (homeSeen ? " seen" : ""), onpointermove: spot, onpointerdown: spot, onpointerout: unspot }, [...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
       x.el.style.setProperty("--i", i);
       return x.el;
     }))
   );
+
+  homeSeen = true;
 
   // Next session for the agenda tile.
   const nextSession = (agenda) => {
