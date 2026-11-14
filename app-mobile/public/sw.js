@@ -1,7 +1,9 @@
 // EUROXPRO'27 app — offline support.
 // The app shell is saved on install so the app opens without internet.
+// Bump VERSION with every release so installed apps pick up the new files
+// (fetched past the browser's HTTP cache).
 // API calls always go to the network; map tiles are kept in a small cache.
-const VERSION = "v15";
+const VERSION = "v16";
 const SHELL = `app-shell-${VERSION}`;
 const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
@@ -24,7 +26,7 @@ const SHELL_FILES = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
