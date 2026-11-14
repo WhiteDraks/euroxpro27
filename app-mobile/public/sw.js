@@ -3,7 +3,7 @@
 // Bump VERSION with every release so installed apps pick up the new files
 // (fetched past the browser's HTTP cache).
 // API calls always go to the network; map tiles are kept in a small cache.
-const VERSION = "v17";
+const VERSION = "v18";
 const SHELL = `app-shell-${VERSION}`;
 const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;

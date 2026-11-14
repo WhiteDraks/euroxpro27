@@ -2534,3 +2534,79 @@ ol.group { list-style: none; margin: 0; padding: 0; }
 @media (prefers-reduced-motion: reduce) {
   .gc-map .gc-on, .gc-map .gc-arc, .gc-map .gc-dot, .gc-home-ring, .gc-card { animation: none !important; }
 }
+
+/* ===================================================== effects (decorative; content never depends on them) */
+.ambient { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; }
+
+/* light sweeps across the wordmark now and then */
+.hero .wordmark span,
+.welcome .wordmark span {
+  --wc: var(--cream-hi);
+  background-image: linear-gradient(105deg, var(--wc) 0 44%, #fff6e2 50%, var(--wc) 56% 100%);
+  background-size: 320% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wm-shine 7s cubic-bezier(0.45, 0, 0.2, 1) 1.6s infinite;
+}
+.hero .wordmark .x, .welcome .wordmark .x { --wc: #c4314f; }
+.hero .wordmark .yr, .welcome .wordmark .yr { --wc: rgba(251, 247, 240, 0.72); }
+@keyframes wm-shine { 0% { background-position: 100% 0; } 22%, 100% { background-position: 0 0; } }
+
+/* a slow sheen over the featured tile */
+.tile.accent::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: 0;
+  width: 40%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(251, 240, 220, 0.16), transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: sheen 6.5s ease-in-out 2.2s infinite;
+}
+@keyframes sheen { 0% { transform: translateX(-160%) skewX(-18deg); } 28%, 100% { transform: translateX(380%) skewX(-18deg); } }
+
+/* scroll reveal: only applied by JS to things below the fold */
+.rv { opacity: 0; transform: translateY(22px) scale(0.985); }
+.rv.rv-in { opacity: 1; transform: none; transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* tap ripple */
+.btn, .swipe-btn { position: relative; overflow: hidden; isolation: isolate; }
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: currentColor;
+  opacity: 0;
+  transform: scale(0);
+  animation: ripple 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: -1;
+}
+.btn-filled .ripple, .btn-small .ripple, .swipe-btn.like .ripple { background: var(--cream-hi); }
+@keyframes ripple { from { opacity: 0.28; transform: scale(0); } to { opacity: 0; transform: scale(1); } }
+
+/* heart burst from the Meet like button */
+.burst { position: fixed; z-index: 1000; width: 0; height: 0; pointer-events: none; }
+.burst-heart {
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  opacity: 0;
+  animation: heart-fly 0.9s cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+.burst-heart svg { width: 100%; height: 100%; fill: currentColor; stroke: none; }
+@keyframes heart-fly {
+  0% { opacity: 1; transform: translate(0, 0) scale(0.2) rotate(0); }
+  60% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(var(--s)) rotate(var(--rot)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1; transform: none; }
+  .hero .wordmark span, .welcome .wordmark span { background-position: 100% 0; }
+}
