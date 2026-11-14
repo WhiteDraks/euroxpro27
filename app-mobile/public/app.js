@@ -945,7 +945,7 @@ function viewMap(screen) {
       (pos) => {
         const ll = [pos.coords.latitude, pos.coords.longitude];
         if (meMarker) meMarker.setLatLng(ll);
-        else meMarker = L.circleMarker(ll, { radius: 8, color: "#fff", weight: 3, fillColor: "#0a84ff", fillOpacity: 1 }).addTo(map);
+        else meMarker = L.circleMarker(ll, { radius: 8, color: "#fff", weight: 3, fillColor: "#7d1a30", fillOpacity: 1 }).addTo(map);
         map.flyTo(ll, 14);
       },
       () => toast(t("err_generic")),
@@ -1560,7 +1560,7 @@ function applyTheme(pref) {
   if (pref === "light" || pref === "dark") document.documentElement.dataset.theme = pref;
   else delete document.documentElement.dataset.theme;
   const meta = document.querySelector('meta[name="theme-color"]:not([media])');
-  if (meta) meta.content = currentTheme() === "dark" ? "#000000" : "#ffffff";
+  if (meta) meta.content = currentTheme() === "dark" ? "#000000" : "#f4ede2";
   window.dispatchEvent(new Event("theme-changed"));
 }
 
@@ -1782,7 +1782,7 @@ function celebrate({ buzz = true } = {}) {
   const dpr = Math.min(2, devicePixelRatio || 1);
   const W = (c.width = innerWidth * dpr), H = (c.height = innerHeight * dpr);
   const ctx = c.getContext("2d");
-  const colors = ["#8B1E3F", "#F06B5B", "#F7B267", "#4DB6A0", "#2E86C1", "#FFFFFF"];
+  const colors = ["#7D1A30", "#A3304A", "#E8D5B5", "#F4EDE2", "#0B0B0C", "#FBF7F0"];
   const parts = Array.from({ length: 140 }, (_, i) => ({
     x: W / 2 + (Math.random() - 0.5) * W * 0.2,
     y: H * 0.42,
@@ -1849,7 +1849,7 @@ function loadScript(src) {
 }
 
 // ------------------------------------------------------------------ sunset theme
-// In the evening (Antalya time) the accent colours turn to sunset tones.
+// In the evening (Antalya time) the palette takes a warmer evening tone.
 function sunsetNow() {
   const d = new Date(nowMs() + TZ_OFFSET);
   const m = d.getUTCHours() * 60 + d.getUTCMinutes();
@@ -2982,17 +2982,17 @@ function viewRecap(screen) {
     c.height = 1920;
     const x = c.getContext("2d");
     const g = x.createLinearGradient(0, 0, 0, 1920);
-    g.addColorStop(0, "#2B0F2E");
-    g.addColorStop(0.45, "#8B1E3F");
-    g.addColorStop(0.75, "#F06B5B");
-    g.addColorStop(1, "#F7B267");
+    g.addColorStop(0, "#0B0B0C");
+    g.addColorStop(0.45, "#4A0F1D");
+    g.addColorStop(0.75, "#7D1A30");
+    g.addColorStop(1, "#A3304A");
     x.fillStyle = g;
     x.fillRect(0, 0, 1080, 1920);
-    x.fillStyle = "rgba(255,214,150,0.9)";
+    x.fillStyle = "rgba(244,233,214,0.9)";
     x.beginPath();
     x.arc(540, 1560, 230, 0, Math.PI * 2);
     x.fill();
-    x.fillStyle = "rgba(31,77,107,0.85)";
+    x.fillStyle = "rgba(11,11,12,0.88)";
     x.fillRect(0, 1600, 1080, 320);
     const font = (w, s) => `${w} ${s}px -apple-system, "SF Pro Display", "Inter", "Segoe UI", sans-serif`;
     x.fillStyle = "#fff";
