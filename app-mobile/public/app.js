@@ -1333,7 +1333,10 @@ function viewMeet(screen) {
   };
 
   nopeBtn.addEventListener("click", () => decide(false));
-  likeBtn.addEventListener("click", () => decide(true));
+  likeBtn.addEventListener("click", () => {
+    if (!busy && deck.length) heartBurst(likeBtn);
+    decide(true);
+  });
   const onKey = (e) => {
     if (e.target.closest("input, textarea")) return;
     if (e.key === "ArrowLeft") decide(false);
@@ -1846,6 +1849,171 @@ function loadScript(src) {
     s.onerror = reject;
     document.head.append(s);
   });
+}
+
+// ------------------------------------------------------------------ effects
+// Decorative motion only: every effect starts from content that is already
+// visible, and none of it runs with reduced motion.
+
+// Soft cream light drifting up through the home photo, like evening dust over
+// the sea. Small canvas, ~30 fps, paused when off screen or in the background.
+function ambientLight(host) {
+  if (reduceMotion()) return () => {};
+  const c = h("canvas", { class: "ambient", "aria-hidden": "true" });
+  host.insertBefore(c, host.querySelector(".hero-top"));
+  const x = c.getContext("2d");
+  if (!x) return () => c.remove();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let w = 0, hgt = 0, raf = 0, visible = true, last = 0;
+  const N = 26;
+  const dots = [];
+  const size = () => {
+    const was = w;
+    w = host.clientWidth;
+    hgt = host.clientHeight;
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(hgt * dpr);
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!was && w) dots.forEach((d) => spawn(d, true));
+  };
+  const spawn = (d, anywhere) => {
+    d.x = Math.random() * w;
+    d.y = anywhere ? Math.random() * hgt : hgt + 10;
+    d.r = 0.8 + Math.random() * 2.4;
+    d.v = 0.12 + Math.random() * 0.35;
+    d.sway = Math.random() * Math.PI * 2;
+    d.a = 0.25 + Math.random() * 0.55;
+    d.tw = 0.6 + Math.random() * 1.6;
+    return d;
+  };
+  size();
+  for (let i = 0; i < N; i++) dots.push(spawn({}, true));
+  const frame = (now) => {
+    raf = requestAnimationFrame(frame);
+    if (now - last < 32) return;
+    last = now;
+    if (!w || !hgt) return;
+    x.clearRect(0, 0, w, hgt);
+    for (const d of dots) {
+      d.y -= d.v;
+      d.sway += 0.012;
+      const px = d.x + Math.sin(d.sway) * 8;
+      if (d.y < -10) spawn(d);
+      const fade = Math.min(1, d.y / (hgt * 0.35)) * (0.55 + 0.45 * Math.sin(now / 1000 * d.tw + d.sway));
+      const g = x.createRadialGradient(px, d.y, 0, px, d.y, d.r * 4);
+      g.addColorStop(0, `rgba(251, 240, 220, ${Math.max(0, Math.min(1, d.a * fade)).toFixed(3)})`);
+      g.addColorStop(1, "rgba(251, 240, 220, 0)");
+      x.fillStyle = g;
+      x.beginPath();
+      x.arc(px, d.y, d.r * 4, 0, Math.PI * 2);
+      x.fill();
+    }
+  };
+  const run = () => {
+    cancelAnimationFrame(raf);
+    raf = 0;
+    if (visible && !document.hidden) raf = requestAnimationFrame(frame);
+  };
+  const io = new IntersectionObserver(([e]) => {
+    visible = e.isIntersecting;
+    run();
+  });
+  io.observe(host);
+  const ro = new ResizeObserver(size);
+  ro.observe(host);
+  document.addEventListener("visibilitychange", run);
+  run();
+  return () => {
+    cancelAnimationFrame(raf);
+    io.disconnect();
+    ro.disconnect();
+    document.removeEventListener("visibilitychange", run);
+  };
+}
+
+// Lists and cards below the fold rise into place as you scroll to them.
+// Only things that start off screen are touched; they become visible the
+// moment they enter the viewport, with or without the transition.
+const REVEAL = ".group, .product, .trail-stop, .league-row, .res-card, .team-card, .appr-card, .place-card, .race-row";
+const revealIO =
+  "IntersectionObserver" in window
+    ? new IntersectionObserver(
+        (entries) => {
+          let k = 0;
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            e.target.style.transitionDelay = Math.min(k++, 5) * 55 + "ms";
+            e.target.classList.add("rv-in");
+            revealIO.unobserve(e.target);
+          }
+        },
+        { rootMargin: "0px 0px -6% 0px" }
+      )
+    : null;
+function revealScan(scope) {
+  if (!revealIO || reduceMotion()) return;
+  const fold = window.innerHeight;
+  for (const el of scope.querySelectorAll(REVEAL)) {
+    if (el.dataset.rv) continue;
+    el.dataset.rv = "1";
+    if (el.closest(".rv:not(.rv-in)")) continue; // a parent already reveals it
+    if (el.getBoundingClientRect().top < fold) continue;
+    el.classList.add("rv");
+    revealIO.observe(el);
+  }
+}
+if (revealIO) {
+  let queued = 0;
+  new MutationObserver(() => {
+    if (queued) return;
+    queued = requestAnimationFrame(() => {
+      queued = 0;
+      revealScan(root);
+    });
+  }).observe(root, { childList: true, subtree: true });
+}
+
+// A soft ripple from where you tap a button.
+document.addEventListener("pointerdown", (e) => {
+  const b = e.target.closest?.(".btn, .swipe-btn");
+  if (!b || b.disabled || reduceMotion()) return;
+  const r = b.getBoundingClientRect();
+  const d = Math.max(r.width, r.height) * 2.2;
+  const dot = h("span", { class: "ripple", "aria-hidden": "true" });
+  dot.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+  b.append(dot);
+  setTimeout(() => dot.remove(), 700);
+});
+
+// Little hearts fly out of the like button.
+function heartBurst(from) {
+  if (reduceMotion() || !from) return;
+  const r = from.getBoundingClientRect();
+  const layer = h("div", { class: "burst", "aria-hidden": "true" });
+  layer.style.left = r.left + r.width / 2 + "px";
+  layer.style.top = r.top + r.height / 2 + "px";
+  for (let i = 0; i < 12; i++) {
+    const a = (Math.PI * 2 * i) / 12 + Math.random() * 0.4;
+    const dist = 50 + Math.random() * 50;
+    const p = h("span", { class: "burst-heart", html: ICON.heart });
+    p.style.setProperty("--dx", Math.cos(a) * dist + "px");
+    p.style.setProperty("--dy", Math.sin(a) * dist - 30 + "px");
+    p.style.setProperty("--s", (0.5 + Math.random() * 0.7).toFixed(2));
+    p.style.setProperty("--rot", (Math.random() * 60 - 30).toFixed(0) + "deg");
+    p.style.color = i % 3 === 0 ? "#e8d5b5" : i % 3 === 1 ? "#a3304a" : "#7d1a30";
+    layer.append(p);
+  }
+  document.body.append(layer);
+  setTimeout(() => layer.remove(), 1000);
+}
+
+// A number that counts up to its value (shows the value straight away if motion is off).
+function numSpan(cls, n, suffix = "") {
+  const el = h("span", { class: cls });
+  const inner = h("span", {}, fmtNum(n));
+  el.append(inner, suffix);
+  countUp(inner, n, 800);
+  return el;
 }
 
 // ------------------------------------------------------------------ sunset theme
@@ -3226,6 +3394,7 @@ function viewHome(screen) {
     }
   };
   drawHero();
+  cleanups.push(ambientLight(hero));
   const tick = setInterval(drawHero, 1000);
   cleanups.push(() => clearInterval(tick));
 
@@ -3358,7 +3527,7 @@ function viewHome(screen) {
   // Faces of a few delegates and how many there are.
   api("GET", "/api/people").then(({ people }) => {
     const faces = people.slice(0, 4).map((p) => avatar(p, "face"));
-    peopleT.extra.replaceChildren(h("span", { class: "faces" }, faces), h("span", { class: "tile-num" }, String(people.length + 1)));
+    peopleT.extra.replaceChildren(h("span", { class: "faces" }, faces), numSpan("tile-num", people.length + 1));
     const cs = gcCountries(gcPick({ delegates: [...people, state.user] }).delegates);
     gcT.extra.replaceChildren(h("span", { class: "gc-flags", "aria-hidden": "true" }, cs.slice(0, 9).map((c) => h("span", {}, flag(c.code)))), h("span", { class: "tile-num" }, t("gcCountriesN", { n: cs.length })));
   }).catch(() => {});
@@ -3366,7 +3535,7 @@ function viewHome(screen) {
   // Matches so far for the Meet tile.
   api("GET", "/api/meet/matches").then(({ matches }) => {
     if (!matches.length) return;
-    meetT.extra.replaceChildren(h("span", { class: "faces" }, matches.slice(0, 4).map((p) => avatar(p, "face"))), h("span", { class: "tile-num" }, String(matches.length)));
+    meetT.extra.replaceChildren(h("span", { class: "faces" }, matches.slice(0, 4).map((p) => avatar(p, "face"))), numSpan("tile-num", matches.length));
     meetT.sub.textContent = t("matchesCount", { n: matches.length });
   }).catch(() => {});
 
@@ -3393,7 +3562,7 @@ function viewHome(screen) {
   // Quest points and the approvals race, live.
   api("GET", "/api/quest").then((d) => {
     const done = d.stations.filter((s) => s.done).length;
-    questT.extra.replaceChildren(h("span", { class: "tile-num" }, `${d.points} ${t("pts")}`));
+    questT.extra.replaceChildren(numSpan("tile-num", d.points, " " + t("pts")));
     questT.sub.textContent = t("questStations", { n: done, total: d.stations.length });
   }).catch(() => {});
   api("GET", "/api/approvals").then((d) => {
