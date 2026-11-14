@@ -162,3 +162,39 @@ a.adm-stat:active { background: var(--card-press); }
   .admin-pending-pill, .wait-icon.pulse { animation: none; }
 }
 .wait-card .wordmark .yr { color: var(--tint); }
+
+/* ---------- quick entry buttons for organizers ---------- */
+.hero-actions { display: flex; align-items: center; gap: 10px; }
+.home-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px 0 11px;
+  border-radius: 22px;
+  background: rgba(20, 10, 12, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.home-admin:active { transform: scale(0.96); }
+.home-admin .icon, .home-admin svg { width: 20px; height: 20px; }
+.admin-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  min-height: 64px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #8a1d36 0%, #5a1022 100%);
+  color: #fff;
+}
+.admin-entry:active { filter: brightness(0.92); }
+.admin-entry > .icon:first-child, .admin-entry > .icon:first-child svg { width: 26px; height: 26px; }
+.admin-entry > .icon:last-child { width: 14px; height: 14px; opacity: 0.8; }
+.admin-entry-title { font-size: 17px; font-weight: 600; }
+.admin-entry-sub { font-size: 13px; opacity: 0.85; }
