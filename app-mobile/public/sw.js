@@ -13,6 +13,8 @@ const SHELL_FILES = [
   "/index.html",
   "/app.css",
   "/app.js",
+  "/admin.js",
+  "/admin.css",
   "/i18n.js",
   "/places.js",
   "/countries.js",

@@ -54,7 +54,22 @@ function memCmd(args) {
             return "OK";
         }
         case "DEL":
-            return mem.data.delete(key) ? 1 : 0;
+            return [key, ...rest].reduce((n, k) => n + (mem.data.delete(k) ? 1 : 0), 0);
+        case "SREM":
+            return v instanceof Set ? rest.reduce((n, x) => n + (v.delete(x) ? 1 : 0), 0) : 0;
+        case "SCARD":
+            return v instanceof Set ? v.size : 0;
+        case "ZREM":
+            return v && v.zset ? rest.reduce((n, x) => n + (v.zset.delete(x) ? 1 : 0), 0) : 0;
+        case "LREM": {
+            if (!Array.isArray(v))
+                return 0;
+            const i = v.indexOf(rest[1]);
+            if (i < 0)
+                return 0;
+            v.splice(i, 1);
+            return 1;
+        }
         case "INCR": {
             const n = Number(typeof v === "string" ? v : 0) + 1;
             mem.data.set(key, String(n));
