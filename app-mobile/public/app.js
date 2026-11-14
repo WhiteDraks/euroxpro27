@@ -1723,6 +1723,9 @@ function viewProfile(screen) {
       avatar(u, "avatar-lg"),
       h("div", {}, h("p", { class: "profile-name" }, u.name), h("p", { class: "profile-sub" }, u.email), u.role === "admin" ? h("span", { class: "status status-admin" }, t("organizer")) : null)
     ),
+    u.role === "admin"
+      ? h("a", { href: "/admin", "data-link": true, class: "admin-entry" }, icon("shield"), h("span", { class: "row-text" }, h("span", { class: "admin-entry-title" }, adminText("adminTitle")), h("span", { class: "admin-entry-sub" }, adminText("adminTile"))), icon("chevron"))
+      : null,
     h(
       "form",
       {
@@ -3397,7 +3400,9 @@ function viewHome(screen) {
     { class: "hero" },
     h("img", { class: "hero-img", src: HERO_IMG, alt: "", decoding: "async", fetchpriority: "high" }),
     h("div", { class: "hero-shade" }),
-    h("div", { class: "hero-top" }, wordmark(), h("a", { href: "/profile", "data-link": true, class: "home-me", "aria-label": t("tabProfile") }, avatar(u))),
+    h("div", { class: "hero-top" }, wordmark(), h("div", { class: "hero-actions" },
+      u.role === "admin" ? h("a", { href: "/admin", "data-link": true, class: "home-admin", "aria-label": adminText("adminTitle") }, icon("shield"), h("span", {}, adminText("adminShort"))) : null,
+      h("a", { href: "/profile", "data-link": true, class: "home-me", "aria-label": t("tabProfile") }, avatar(u)))),
     heroBody
   );
   const units = ["cdDays", "cdHours", "cdMin", "cdSec"];

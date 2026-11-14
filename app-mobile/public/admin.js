@@ -8,6 +8,7 @@ const S = {
   tr: {
     adminTitle: "Yönetim paneli",
     adminTile: "Onaylar, kullanıcılar ve ayarlar",
+    adminShort: "Yönetim",
     pendingTitle: "Onay bekleyenler",
     pendingNone: "Onay bekleyen kayıt yok.",
     approve: "Onayla",
@@ -125,6 +126,7 @@ const S = {
   en: {
     adminTitle: "Organizer panel",
     adminTile: "Approvals, people and settings",
+    adminShort: "Admin",
     pendingTitle: "Waiting for approval",
     pendingNone: "Nobody is waiting for approval.",
     approve: "Approve",
@@ -242,6 +244,7 @@ const S = {
   pl: {
     adminTitle: "Panel organizatora",
     adminTile: "Akceptacje, osoby i ustawienia",
+    adminShort: "Panel",
     pendingTitle: "Czekają na akceptację",
     pendingNone: "Nikt nie czeka na akceptację.",
     approve: "Zatwierdź",
