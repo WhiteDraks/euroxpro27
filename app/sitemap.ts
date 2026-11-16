@@ -9,6 +9,7 @@ const pages: { path: string; priority: number; changeFrequency: "weekly" | "mont
   { path: "/explore-antalya", priority: 0.8, changeFrequency: "monthly" },
   { path: "/faq", priority: 0.7, changeFrequency: "monthly" },
   { path: "/announcements", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/approvals", priority: 0.6, changeFrequency: "weekly" },
   { path: "/team", priority: 0.6, changeFrequency: "monthly" },
   { path: "/merch", priority: 0.5, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly" },
