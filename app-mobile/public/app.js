@@ -1531,11 +1531,11 @@ function viewPlenary(screen) {
 
 // Vercel functions can't keep a connection open, so the app asks the
 // server for news while it is on screen: every 4 s in chat, where speed
-// matters, and every 15 s elsewhere, so a crowd of thousands stays cheap.
+// matters, and every 30 s elsewhere, so a crowd of thousands stays cheap.
 // A little jitter keeps phones from asking in lockstep, and failures back
 // off (up to a minute) instead of hammering a struggling server.
 const POLL_FAST_MS = 4000;
-const POLL_SLOW_MS = 15000;
+const POLL_SLOW_MS = 30000;
 let pollTimer = null;
 let syncSince = 0;
 let pollFails = 0;
