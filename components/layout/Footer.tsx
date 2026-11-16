@@ -12,6 +12,7 @@ const footerLinks = [
       { href: "/congress#schedule", label: isSchedulePublished ? "Schedule" : "Agenda (coming soon)" },
       { href: "/team", label: "Organizing Team" },
       { href: "/announcements", label: "Announcements" },
+      { href: "/approvals", label: "Approvals League" },
       { href: "/contact", label: "Contact OC" },
     ],
   },
