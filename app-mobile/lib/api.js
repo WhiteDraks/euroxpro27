@@ -4,7 +4,8 @@
 // "sync" call the app polls for new messages and agenda changes
 // (Vercel functions can't hold open connections between instances).
 // ============================================================
-import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, scrypt, scryptSync, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 import seed from "./agenda-seed.js";
 import { countryOf } from "../public/countries.js";
 import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
@@ -42,8 +43,14 @@ const sha256 = (s) => createHash("sha256").update(s).digest("hex");
 function hashPassword(password, salt = randomBytes(16).toString("hex")) {
     return { hash: scryptSync(password, salt, 64).toString("hex"), salt };
 }
-function checkPassword(password, u) {
-    const { hash } = hashPassword(password, u.salt);
+// Same hash as hashPassword, but off the main thread, so a burst of sign-ins
+// doesn't stall every other request on the same function instance.
+const scryptAsync = promisify(scrypt);
+async function hashPasswordAsync(password, salt = randomBytes(16).toString("hex")) {
+    return { hash: (await scryptAsync(password, salt, 64)).toString("hex"), salt };
+}
+async function checkPassword(password, u) {
+    const { hash } = await hashPasswordAsync(password, u.salt);
     return timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(u.passHash, "hex"));
 }
 const DUMMY = hashPassword(randomBytes(12).toString("hex"));
@@ -218,7 +225,8 @@ const routes = [];
 const route = (method, pattern, h, open = false) => routes.push({ method, re: new RegExp("^" + pattern + "$"), h, open });
 route("GET", "health", () => json({ ok: true, storage: isConfigured, translator: providerName() }), true);
 route("POST", "auth/register", async ({ req }) => {
-    if (await limited("reg:" + clientIp(req), 10, 3600))
+    // Per IP, generous: a whole venue on one Wi-Fi (or a mobile carrier) shares an address.
+    if (await limited("reg:" + clientIp(req), 500, 3600))
         throw new HttpError(429, "rate_limited");
     const b = await readJson(req);
     const name = clean(b.name, 60);
@@ -239,7 +247,7 @@ route("POST", "auth/register", async ({ req }) => {
     const claimed = await cmd("SET", "de:" + email, id, "NX");
     if (claimed !== "OK")
         throw new HttpError(409, "email_taken");
-    const { hash, salt } = hashPassword(password);
+    const { hash, salt } = await hashPasswordAsync(password);
     const user = {
         id,
         email,
@@ -271,12 +279,12 @@ route("POST", "auth/register", async ({ req }) => {
 route("POST", "auth/login", async ({ req }) => {
     const b = await readJson(req);
     const email = clean(b.email, 120).toLowerCase();
-    if ((await limited("login:" + clientIp(req), 30, 900)) || (await limited("login:" + email, 10, 900))) {
+    if ((await limited("login:" + clientIp(req), 500, 900)) || (await limited("login:" + email, 10, 900))) {
         throw new HttpError(429, "rate_limited");
     }
     const id = (await cmd("GET", "de:" + email));
     const user = id ? await getUser(id) : null;
-    const ok = checkPassword(String(b.password || ""), user || { passHash: DUMMY.hash, salt: DUMMY.salt });
+    const ok = await checkPassword(String(b.password || ""), user || { passHash: DUMMY.hash, salt: DUMMY.salt });
     if (!user || !ok)
         throw new HttpError(401, "bad_credentials");
     if (adminEmails().includes(user.email) && user.role !== "admin") {
@@ -500,7 +508,7 @@ route("GET", "sync", async ({ req, url, user }) => {
     const matches = events.filter((e) => e.type === "match" && e.users?.includes(u.id)).map((e) => e.users.find((x) => x !== u.id));
     const matchUsers = (await Promise.all(matches.map(getUser))).filter(Boolean).map(publicUser);
     const announce = events.some((e) => e.type === "announce");
-    const approvals = events.some((e) => e.type === "approvals");
+    const approvals = events.filter((e) => e.type === "approvals").reduce((a, e) => Math.max(a, e.at || 1), 0) || false;
     const quest = events.some((e) => e.type === "quest");
     // Organizers hear about new requests; the sender hears about replies.
     const request = events.some((e) => e.type === "request" && (e.to === u.id || (e.to === "admins" && u.role === "admin")));
@@ -570,14 +578,18 @@ route("POST", "meet/swipe", async ({ req, user }) => {
 const ONLINE_MS = 30000;
 route("GET", "plenary", async ({ user }) => {
     const now = Date.now();
-    const [, , ids] = await pipe(["ZADD", "dpres", now, user.id], ["ZREMRANGEBYSCORE", "dpres", "-inf", now - 10 * 60000], ["ZRANGEBYSCORE", "dpres", now - ONLINE_MS, "+inf"]);
+    // Only the 150 most recent are drawn; the total comes from ZCOUNT, so a
+    // full hall doesn't ship every member id from storage on each call.
+    const [, , newest, total] = await pipe(["ZADD", "dpres", now, user.id], ["ZREMRANGEBYSCORE", "dpres", "-inf", now - 10 * 60000], ["ZREVRANGEBYSCORE", "dpres", "+inf", now - ONLINE_MS, "LIMIT", 0, 150], ["ZCOUNT", "dpres", now - ONLINE_MS, "+inf"]);
+    const ids = newest.slice().reverse();
     if (!ids.includes(user.id))
         ids.push(user.id);
     for (const d of DEMO)
         if (demoOn() && !ids.includes(d.id))
             ids.unshift(d.id);
     const people = (await usersByIds(ids.slice(-150))).filter(listed).map(publicUser);
-    return json({ people });
+    const extra = people.length - Math.min(ids.length, 150);
+    return json({ people, count: Math.max(people.length, Number(total) + Math.max(0, extra)) });
 });
 // ------------------------------------------------------------ directory and congress team
 async function allUsers() {
@@ -854,7 +866,14 @@ async function loadApprovals() {
     d.lcs.forEach(normalizeLc);
     return d;
 }
-route("GET", "approvals", async () => json(await loadApprovals()));
+// Same numbers for everyone, so the CDN answers it: a crowd on the league
+// page (or a herd after an organizer saves) costs one function call per
+// region every few seconds. The app adds ?v=<save time> after a save, which
+// is a fresh cache key, so nobody is served the old numbers.
+route("GET", "approvals", async () => json(await loadApprovals(), 200, {
+    "cache-control": "public, max-age=0, must-revalidate",
+    "vercel-cdn-cache-control": "public, s-maxage=5, stale-while-revalidate=30",
+}), true);
 route("POST", "approvals", async ({ req, user }) => {
     if (user.role !== "admin")
         throw new HttpError(403, "forbidden");
@@ -1271,7 +1290,7 @@ route("POST", "admin/users/([\\w-]+)/password", async ({ user, m }) => {
         throw new HttpError(403, "owner");
     const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
     const password = Array.from(randomBytes(10), (x) => alphabet[x % alphabet.length]).join("");
-    const { hash, salt } = hashPassword(password);
+    const { hash, salt } = await hashPasswordAsync(password);
     u.passHash = hash;
     u.salt = salt;
     await saveUser(u);

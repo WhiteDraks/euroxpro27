@@ -1436,6 +1436,7 @@ function viewPlenary(screen) {
     hall.append(sheet);
   };
 
+  let hallTotal = null;
   const sync = (people) => {
     const b = bounds();
     const ids = new Set(people.map((p) => p.id));
@@ -1467,7 +1468,7 @@ function viewPlenary(screen) {
       walkers.set(p.id, w);
       if (!mine) w.timer = setTimeout(() => wander(w), 600 + Math.random() * 3000);
     }
-    count.textContent = t("inHall", { n: people.length });
+    count.textContent = t("inHall", { n: hallTotal ?? people.length });
   };
 
   // Tap the floor to walk your own avatar there.
@@ -1510,7 +1511,11 @@ function viewPlenary(screen) {
   const heatTimer = setInterval(drawHeat, 700);
   const refresh = () =>
     api("GET", "/api/plenary")
-      .then((d) => alive && sync(d.people))
+      .then((d) => {
+        if (!alive) return;
+        hallTotal = d.count;
+        sync(d.people);
+      })
       .catch(() => {});
   refresh();
   const timer = setInterval(() => document.visibilityState === "visible" && refresh(), 8000);
@@ -1525,10 +1530,20 @@ function viewPlenary(screen) {
 // ------------------------------------------------------------------ live stream
 
 // Vercel functions can't keep a connection open, so the app asks the
-// server for news every few seconds while it is on screen.
-const POLL_MS = 4000;
+// server for news while it is on screen: every 4 s in chat, where speed
+// matters, and every 15 s elsewhere, so a crowd of thousands stays cheap.
+// A little jitter keeps phones from asking in lockstep, and failures back
+// off (up to a minute) instead of hammering a struggling server.
+const POLL_FAST_MS = 4000;
+const POLL_SLOW_MS = 15000;
 let pollTimer = null;
 let syncSince = 0;
+let pollFails = 0;
+const pollDelay = () => {
+  const base = here().startsWith("/messages") ? POLL_FAST_MS : POLL_SLOW_MS;
+  const ms = pollFails ? Math.min(60000, base * 2 ** pollFails) : base;
+  return Math.round(ms * (0.85 + Math.random() * 0.3));
+};
 
 async function poll() {
   clearTimeout(pollTimer);
@@ -1536,6 +1551,7 @@ async function poll() {
   if (document.visibilityState === "visible" && navigator.onLine) {
     try {
       const d = await api("GET", "/api/sync?since=" + syncSince);
+      pollFails = 0;
       syncSince = d.now;
       let refreshList = false;
       for (const m of d.messages) {
@@ -1552,7 +1568,7 @@ async function poll() {
       for (const r of d.removed || []) window.dispatchEvent(new CustomEvent("chat-removed", { detail: r }));
       if (d.users) window.dispatchEvent(new Event("admin-updated"));
       if (d.signup && !here().startsWith("/admin")) toast(adminText("newSignupToast"));
-      if (d.approvals) window.dispatchEvent(new Event("approvals-updated"));
+      if (d.approvals) window.dispatchEvent(new CustomEvent("approvals-updated", { detail: d.approvals }));
       if (d.quest) window.dispatchEvent(new Event("quest-updated"));
       if (d.request) {
         window.dispatchEvent(new Event("requests-updated"));
@@ -1565,6 +1581,7 @@ async function poll() {
         if (d.agendaChange && here().startsWith("/agenda")) toast(t("updatedLive"));
       }
     } catch (e) {
+      pollFails = Math.min(pollFails + 1, 4);
       if (e.status === 401) {
         state.user = null;
         return go("/welcome", { replace: true });
@@ -1577,7 +1594,7 @@ async function poll() {
       }
     }
   }
-  pollTimer = setTimeout(poll, POLL_MS);
+  pollTimer = setTimeout(poll, pollDelay());
 }
 
 function startStream() {
@@ -2301,6 +2318,9 @@ const PRODUCTS = ["GV", "GTa", "GTe"];
 const METRICS = ["apd", "re", "co"];
 const metricVal = (x, m, prod) => (prod === "all" ? PRODUCTS.reduce((a, k) => a + (x.p?.[k]?.[m] || 0), 0) : x.p?.[prod]?.[m] || 0);
 const shortLc = (name) => name.replace(/^AIESEC in /i, "");
+// The league is served from the CDN for a few seconds. After a save the
+// sync event carries the save time, which makes a fresh cache key.
+const approvalsUrl = (e) => (e?.detail > 1 ? "/api/approvals?v=" + e.detail : "/api/approvals");
 function groupByMc(lcs) {
   const m = new Map();
   for (const x of lcs) {
@@ -2421,7 +2441,7 @@ function viewApprovals(screen) {
             showGoal && x.week ? h("span", { class: "league-week " + (x.week > 0 ? "up" : "down") }, `${x.week > 0 ? "▲" : "▼"} ${Math.abs(x.week)}`) : null)));
     }));
   };
-  const load = () => api("GET", "/api/approvals").then((d) => {
+  const load = (e) => api("GET", approvalsUrl(e)).then((d) => {
     data = d;
     draw();
   }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
@@ -2520,7 +2540,7 @@ function viewApprovalsLive(screen) {
       r.el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 900, easing: "cubic-bezier(.2,.8,.2,1)" });
     }
   };
-  const load = () => api("GET", "/api/approvals").then((d) => {
+  const load = (e) => api("GET", approvalsUrl(e)).then((d) => {
     data = d;
     draw();
   }).catch(() => {});
@@ -3592,9 +3612,10 @@ function viewHome(screen) {
 
   // How many people are in the hall right now, with tiny figures.
   const hallCount = () =>
-    api("GET", "/api/plenary").then(({ people }) => {
-      hallT.extra.replaceChildren(h("span", { class: "mini-hall" }, people.slice(0, 6).map((p) => figure(p))), h("span", { class: "tile-num" }, String(people.length)));
-      hallT.sub.textContent = t("inHall", { n: people.length });
+    api("GET", "/api/plenary").then(({ people, count }) => {
+      const n = count ?? people.length;
+      hallT.extra.replaceChildren(h("span", { class: "mini-hall" }, people.slice(0, 6).map((p) => figure(p))), h("span", { class: "tile-num" }, String(n)));
+      hallT.sub.textContent = t("inHall", { n });
     }).catch(() => {});
   hallCount();
   const hallTimer = setInterval(() => document.visibilityState === "visible" && hallCount(), 15000);

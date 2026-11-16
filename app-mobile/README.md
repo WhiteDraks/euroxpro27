@@ -41,7 +41,9 @@ lib/agenda-seed.js The first agenda (taken from the website's draft programme)
 dev-server.js    Local testing, or running on any Node host
 ```
 
-Live updates come from the app calling `/api/sync` every 4 seconds while it is on screen. When nothing has changed, that costs one Redis read.
+Live updates come from the app calling `/api/sync` while it is on screen: every 4 seconds in Messages, every 15 seconds elsewhere (with a little jitter, and backing off up to a minute when requests fail). When nothing has changed, a sync costs one storage round trip. `/api/approvals` needs no sign-in and is cached on Vercel's CDN for 5 seconds; after an organizer saves, the app asks for `/api/approvals?v=<save time>`, a fresh cache key.
+
+**Crowd sizing (10k open phones):** about 670 syncs a second, so the Vercel project must be on Pro (Hobby's 1M requests a month last under an hour) and Upstash should be on a fixed plan (commands are not metered there; pay-as-you-go would bill every sync).
 
 ## Local testing
 
