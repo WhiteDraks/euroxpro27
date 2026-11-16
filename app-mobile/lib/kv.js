@@ -112,6 +112,22 @@ function memCmd(args) {
             const hi = rest[1] === "+inf" ? Infinity : Number(rest[1]);
             return [...v.zset].filter(([, sc]) => sc >= lo && sc <= hi).sort((a, b) => a[1] - b[1]).map(([m]) => m);
         }
+        case "ZREVRANGEBYSCORE": {
+            if (!v || !v.zset)
+                return [];
+            const hi = rest[0] === "+inf" ? Infinity : Number(rest[0]);
+            const lo = rest[1] === "-inf" ? -Infinity : Number(rest[1]);
+            const all = [...v.zset].filter(([, sc]) => sc >= lo && sc <= hi).sort((a, b) => b[1] - a[1]).map(([m]) => m);
+            const li = rest.findIndex((x) => x.toUpperCase() === "LIMIT");
+            return li >= 0 ? all.slice(Number(rest[li + 1]), Number(rest[li + 1]) + Number(rest[li + 2])) : all;
+        }
+        case "ZCOUNT": {
+            if (!v || !v.zset)
+                return 0;
+            const lo = rest[0] === "-inf" ? -Infinity : Number(rest[0]);
+            const hi = rest[1] === "+inf" ? Infinity : Number(rest[1]);
+            return [...v.zset.values()].filter((sc) => sc >= lo && sc <= hi).length;
+        }
         case "ZREMRANGEBYSCORE": {
             if (!v || !v.zset)
                 return 0;
