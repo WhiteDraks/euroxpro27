@@ -733,7 +733,8 @@ function viewAgenda(screen) {
         )
       )
     );
-    body.replaceChildren(
+    // filter(Boolean): a null child would show up as the text "null".
+    body.replaceChildren(...[
       banner,
       liveCard(agenda),
       days,
@@ -751,8 +752,8 @@ function viewAgenda(screen) {
         h("span", {}, `${fmtDay(day.date, { weekday: "long", day: "numeric", month: "long" })} · ${t("sessions", { n: shown.length })}`)
       ),
       h("div", { class: "group sessions" }, shown.map((s) => sessionRow(day, s, now))),
-      h("p", { class: "fineprint" }, (agenda.draft ? t("draft") + " " : "") + t("localTime"))
-    );
+      h("p", { class: "fineprint" }, (agenda.draft ? t("draft") + " " : "") + t("localTime")),
+    ].filter(Boolean));
   };
 
   const cached = state.agenda || cachedAgenda();
@@ -916,12 +917,15 @@ function viewMap(screen) {
     )
   );
 
-  if (!window.L) {
-    mapEl.append(h("p", { class: "empty" }, t("err_network")));
-  }
-  const L = window.L;
-  let map, tiles, markers = {}, meMarker;
-  if (L) {
+  // Leaflet (~160 KB) is only fetched when the map opens, so it no longer
+  // slows down every app start.
+  let L = null;
+  let alive = true;
+  let map, tiles, markers = {}, meMarker, unbind;
+  const startMap = () => {
+    if (!alive) return;
+    L = window.L;
+    if (!L) return mapEl.append(h("p", { class: "empty" }, t("err_network")));
     map = L.map(mapEl, { zoomControl: false, attributionControl: true }).setView(CENTER, 12);
     const fitAll = () => map.fitBounds(L.latLngBounds(PLACES.map((p) => [p.lat, p.lng])), { padding: [28, 28] });
     const setTiles = () => {
@@ -949,12 +953,14 @@ function viewMap(screen) {
       map.invalidateSize();
       fitAll();
     }, 50);
-    var unbind = () => {
+    unbind = () => {
       mq.removeEventListener("change", setTiles);
       window.removeEventListener("theme-changed", setTiles);
       map.remove();
     };
-  }
+    if (selected) select(PLACES.find((p) => p.id === selected), false);
+  };
+  loadLeaflet().then(startMap, startMap);
 
   locateBtn.addEventListener("click", () => {
     if (!navigator.geolocation || !map) return;
@@ -999,7 +1005,10 @@ function viewMap(screen) {
     list.replaceChildren(...rows);
   }
   drawList();
-  return () => unbind && unbind();
+  return () => {
+    alive = false;
+    if (unbind) unbind();
+  };
 }
 
 // ------------------------------------------------------------------ messages
@@ -1935,14 +1944,27 @@ function countUp(el, to, ms = 900) {
 }
 const fmtNum = (n) => Number(n).toLocaleString(locale());
 
+// Each script is fetched once; later callers wait for the same load.
+const scriptLoads = new Map();
 function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) return resolve();
-    const s = h("script", { src });
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.append(s);
-  });
+  if (!scriptLoads.has(src))
+    scriptLoads.set(src, new Promise((resolve, reject) => {
+      const s = h("script", { src });
+      s.onload = resolve;
+      s.onerror = () => {
+        scriptLoads.delete(src);
+        s.remove();
+        reject(new Error("load"));
+      };
+      document.head.append(s);
+    }));
+  return scriptLoads.get(src);
+}
+function loadLeaflet() {
+  // Before app.css, so the app's own map styles still win.
+  if (!document.querySelector('link[href="/vendor/leaflet/leaflet.css"]'))
+    document.head.insertBefore(h("link", { rel: "stylesheet", href: "/vendor/leaflet/leaflet.css" }), document.querySelector('link[href="/app.css"]'));
+  return loadScript("/vendor/leaflet/leaflet.js");
 }
 
 // ------------------------------------------------------------------ effects
@@ -3984,11 +4006,65 @@ const ADMIN = makeAdmin({
   },
 });
 
+function saveUser(u) {
+  try {
+    if (u) localStorage.setItem("user", JSON.stringify(u));
+    else localStorage.removeItem("user");
+  } catch {}
+}
+
+function showFirstScreen() {
+  offlineBanner();
+  if (here() === "/" || here() === "/index.html") history.replaceState({}, "", withBase(state.user ? "/home" : "/welcome"));
+  render();
+}
+
 async function boot() {
   applyTheme(getThemePref());
   setLang(detectLang());
+  let saved = null;
   try {
-    const { user } = await api("GET", "/api/me");
+    saved = JSON.parse(localStorage.getItem("user"));
+  } catch {}
+  // Signed in before: draw the app at once from the saved profile and check
+  // the session in the background, so opening the app never waits for the
+  // server (or for a sleeping function to start up).
+  const fast = !!(saved?.id && approved(saved));
+  if (fast) {
+    state.user = saved;
+    setLang(saved.lang);
+    showFirstScreen();
+    startStream();
+    pushResync();
+    refreshConversations().catch(() => {});
+  }
+  let user = null;
+  let err = null;
+  try {
+    ({ user } = await api("GET", "/api/me"));
+  } catch (e) {
+    err = e;
+  }
+  if (fast) {
+    // Offline or a server hiccup: keep going with the saved profile.
+    if (!user && err?.status !== 401) return;
+    if (!user) {
+      stopStream();
+      state.user = null;
+      saveUser(null);
+      return go("/welcome", { replace: true });
+    }
+    const redraw = user.lang !== saved.lang || user.role !== saved.role || !approved(user);
+    state.user = user;
+    saveUser(user);
+    if (redraw) {
+      setLang(user.lang);
+      if (!approved(user)) stopStream();
+      render();
+    }
+    return;
+  }
+  if (user) {
     state.user = user;
     setLang(user.lang);
     if (approved(user)) {
@@ -3996,27 +4072,13 @@ async function boot() {
       pushResync();
       refreshConversations().catch(() => {});
     }
-  } catch (e) {
+  } else if (err?.code === "network") {
     // Offline but signed in before: keep the last known profile so the
     // saved agenda and map still open.
-    if (e.code === "network") {
-      try {
-        state.user = JSON.parse(localStorage.getItem("user"));
-      } catch {}
-    }
+    state.user = saved;
   }
-  if (state.user) {
-    try {
-      localStorage.setItem("user", JSON.stringify(state.user));
-    } catch {}
-  } else {
-    try {
-      localStorage.removeItem("user");
-    } catch {}
-  }
-  offlineBanner();
-  if (here() === "/" || here() === "/index.html") history.replaceState({}, "", withBase(state.user ? "/home" : "/welcome"));
-  render();
+  saveUser(state.user);
+  showFirstScreen();
 }
 
 if ("serviceWorker" in navigator) {
