@@ -54,8 +54,11 @@ export const siteConfig = {
   logo: "/images/euroxpro-logo.png",
 
   // SEO: absolute address used for share previews (WhatsApp, Instagram,
-  // LinkedIn). On Vercel this is the production domain of the project.
-  siteUrl: process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "https://euroxpro27.vercel.app",
+  // LinkedIn). SITE_URL wins when set (e.g. https://euroxpro27.com); on
+  // Vercel it is otherwise the project's production domain, which becomes
+  // the custom domain once one is added.
+  siteUrl: (process.env.SITE_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "https://euroxpro27.vercel.app")).replace(/\/$/, ""),
 };

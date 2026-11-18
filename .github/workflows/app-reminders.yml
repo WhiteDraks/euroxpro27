@@ -12,4 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - run: curl -fsS --max-time 60 -H "authorization: Bearer ${{ secrets.APP_CRON_SECRET }}" https://app-mobile-murex.vercel.app/api/push/cron
+      - run: curl -fsS --max-time 60 -H "authorization: Bearer ${{ secrets.APP_CRON_SECRET }}" "${{ vars.APP_URL || 'https://app-mobile-murex.vercel.app' }}/api/push/cron"
