@@ -1142,7 +1142,21 @@ function viewChat(screen, { id }) {
     messages.push(m);
   };
   const toBottom = () => (scroller.scrollTop = scroller.scrollHeight);
-  const markRead = () => api("POST", `/api/conversations/${encodeURIComponent(id)}/read`).then(refreshConversations).catch(() => {});
+  // Several messages arriving together send one "read" call, and the
+  // unread badge is cleared locally instead of reloading every conversation.
+  let readTimer = null;
+  const markRead = () => {
+    clearTimeout(readTimer);
+    readTimer = setTimeout(() => {
+      api("POST", `/api/conversations/${encodeURIComponent(id)}/read`).catch(() => {});
+      const c = state.conversations?.find((x) => x.id === id);
+      if (c) {
+        c.unread = 0;
+        state.unread = state.conversations.reduce((n, x) => n + x.unread, 0);
+        updateBadge();
+      } else refreshConversations().catch(() => {});
+    }, 1500);
+  };
 
   api("GET", `/api/conversations/${encodeURIComponent(id)}/messages`)
     .then((d) => {
@@ -1518,7 +1532,7 @@ function viewPlenary(screen) {
       })
       .catch(() => {});
   refresh();
-  const timer = setInterval(() => document.visibilityState === "visible" && refresh(), 8000);
+  const timer = setInterval(() => document.visibilityState === "visible" && refresh(), 15000);
   return () => {
     alive = false;
     clearInterval(timer);
@@ -1530,17 +1544,20 @@ function viewPlenary(screen) {
 // ------------------------------------------------------------------ live stream
 
 // Vercel functions can't keep a connection open, so the app asks the
-// server for news while it is on screen: every 4 s in chat, where speed
-// matters, and every 30 s elsewhere, so a crowd of thousands stays cheap.
+// server for news while it is on screen: every 4 s inside an open chat,
+// where speed matters, 10 s on the chat list and 30 s elsewhere, so a
+// crowd of thousands stays cheap.
 // A little jitter keeps phones from asking in lockstep, and failures back
 // off (up to a minute) instead of hammering a struggling server.
 const POLL_FAST_MS = 4000;
+const POLL_LIST_MS = 10000;
 const POLL_SLOW_MS = 30000;
 let pollTimer = null;
 let syncSince = 0;
 let pollFails = 0;
 const pollDelay = () => {
-  const base = here().startsWith("/messages") ? POLL_FAST_MS : POLL_SLOW_MS;
+  const path = here();
+  const base = path.startsWith("/messages/") && path !== "/messages/new" ? POLL_FAST_MS : path.startsWith("/messages") ? POLL_LIST_MS : POLL_SLOW_MS;
   const ms = pollFails ? Math.min(60000, base * 2 ** pollFails) : base;
   return Math.round(ms * (0.85 + Math.random() * 0.3));
 };
@@ -1553,11 +1570,31 @@ async function poll() {
       const d = await api("GET", "/api/sync?since=" + syncSince);
       pollFails = 0;
       syncSince = d.now;
+      // New messages update the cached conversation list in place. Asking
+      // the server for the whole list again would mean every open phone
+      // calls /api/conversations each time someone writes in General.
       let refreshList = false;
+      let touched = false;
       for (const m of d.messages) {
         window.dispatchEvent(new CustomEvent("chat-message", { detail: m }));
         const viewing = here() === "/messages/" + encodeURIComponent(m.conv) || here() === "/messages/" + m.conv;
-        if (!viewing && m.from !== state.user?.id) refreshList = true;
+        if (viewing || m.from === state.user?.id) continue;
+        const c = state.conversations?.find((x) => x.id === m.conv);
+        if (!c) {
+          refreshList = true;
+          continue;
+        }
+        if (!c.last || c.last.id !== m.id) {
+          c.last = m;
+          c.unread += 1;
+          touched = true;
+        }
+      }
+      if (touched && !refreshList) {
+        state.conversations.sort((a, b) => (a.id === "general" ? -1 : b.id === "general" ? 1 : (b.last?.at || 0) - (a.last?.at || 0)));
+        state.unread = state.conversations.reduce((n, c) => n + c.unread, 0);
+        updateBadge();
+        window.dispatchEvent(new Event("conversations-updated"));
       }
       for (const peer of d.matches || []) toast(t("matchText", { name: peer.name }));
       if (d.announce) {
@@ -2548,7 +2585,7 @@ function viewApprovalsLive(screen) {
   const tick = () => (clock.textContent = new Date(nowMs()).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" }));
   tick();
   const timers = [
-    setInterval(load, 20000),
+    setInterval(load, 60000),
     setInterval(tick, 10000),
     setInterval(() => {
       if (!auto) return;
