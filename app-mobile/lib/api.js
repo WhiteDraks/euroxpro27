@@ -77,7 +77,8 @@ function sessionCookie(token, maxAge) {
     return `exs=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
 }
 function clientIp(req) {
-    return (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "local";
+    // Vercel sets x-real-ip itself; it is not taken from the client.
+    return (req.headers.get("x-real-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0]).trim() || "local";
 }
 async function limited(key, max, windowSec) {
     const n = (await cmd("INCR", "drl:" + key));
@@ -117,6 +118,12 @@ const SETTINGS_DEFAULT = { approval: true, signups: true };
 async function loadSettings() {
     return { ...SETTINGS_DEFAULT, ...(parse(await cmd("GET", "dset")) || {}) };
 }
+// True once per install: the first ADMIN_EMAILS sign-up, when no organizer exists yet.
+async function bootstrapOwner(id) {
+    if ((await cmd("SET", "downer", id, "NX")) !== "OK")
+        return false;
+    return !(await allUsers()).some((x) => x.role === "admin");
+}
 function needAdmin(u) {
     if (u.role !== "admin")
         throw new HttpError(403, "forbidden");
@@ -131,12 +138,18 @@ async function currentUser(req) {
     const token = cookie(req, "exs");
     if (!token)
         return null;
-    const id = (await cmd("GET", "ds:" + sha256(token)));
-    return id ? getUser(id) : null;
+    const v = (await cmd("GET", "ds:" + sha256(token)));
+    if (!v)
+        return null;
+    // "<id>.<session version>": a new password bumps the version, so every
+    // session opened with the old one stops working at once.
+    const [id, ver = "0"] = String(v).split(".");
+    const u = await getUser(id);
+    return u && String(u.sv || 0) === ver ? u : null;
 }
 async function startSession(u, status = 200) {
     const token = randomBytes(32).toString("base64url");
-    await cmd("SET", "ds:" + sha256(token), u.id, "EX", SESSION_DAYS * 86400);
+    await cmd("SET", "ds:" + sha256(token), `${u.id}.${u.sv || 0}`, "EX", SESSION_DAYS * 86400);
     return json({ user: me(u) }, status, { "set-cookie": sessionCookie(token, SESSION_DAYS * 86400) });
 }
 // ------------------------------------------------------------ chat
@@ -238,15 +251,21 @@ route("POST", "auth/register", async ({ req }) => {
         throw new HttpError(400, "email_invalid");
     if (password.length < 8 || password.length > 200)
         throw new HttpError(400, "password_short");
-    const owner = adminEmails().includes(email);
+    const ownerEmail = adminEmails().includes(email);
     const settings = await loadSettings();
-    if (!settings.signups && !owner)
+    if (!settings.signups && !ownerEmail)
         throw new HttpError(403, "signups_closed");
     const id = newId();
     // SET NX on the e-mail key makes two parallel sign-ups with one address impossible.
     const claimed = await cmd("SET", "de:" + email, id, "NX");
     if (claimed !== "OK")
         throw new HttpError(409, "email_taken");
+    // E-mail addresses are not verified, so anyone could sign up with an
+    // ADMIN_EMAILS address nobody has used yet. Only the very first organizer
+    // of a fresh install becomes one straight away; after that, such an
+    // account waits like everyone else, and an organizer has to approve it
+    // before the address gives organizer rights (see auth/login).
+    const owner = ownerEmail && (await bootstrapOwner(id));
     const { hash, salt } = await hashPasswordAsync(password);
     const user = {
         id,
@@ -258,7 +277,8 @@ route("POST", "auth/register", async ({ req }) => {
         passHash: hash,
         salt,
         role: owner ? "admin" : "delegate",
-        status: owner || !settings.approval ? "active" : "pending",
+        // ADMIN_EMAILS addresses always wait for an organizer, even with approval off.
+        status: owner || (!settings.approval && !ownerEmail) ? "active" : "pending",
         createdAt: Date.now(),
     };
     const generalCount = (await cmd("LLEN", "dm:" + GENERAL));
@@ -287,7 +307,9 @@ route("POST", "auth/login", async ({ req }) => {
     const ok = await checkPassword(String(b.password || ""), user || { passHash: DUMMY.hash, salt: DUMMY.salt });
     if (!user || !ok)
         throw new HttpError(401, "bad_credentials");
-    if (adminEmails().includes(user.email) && user.role !== "admin") {
+    // Only an account an organizer has approved: an unverified sign-up with
+    // an ADMIN_EMAILS address must not promote itself.
+    if (adminEmails().includes(user.email) && user.role !== "admin" && isActive(user)) {
         user.role = "admin";
         await saveUser(user);
     }
@@ -446,7 +468,9 @@ async function checkConv(u, conv) {
     if (!canSee(u, conv))
         throw new HttpError(404, "not_found");
     const peer = await convPeer(u, conv);
-    if (conv !== GENERAL && !peer)
+    // One conversation per pair: "dm:<b>:<a>" would open a second thread
+    // that skips the checks below.
+    if (conv !== GENERAL && (!peer || conv !== dmId(u.id, peer.id)))
         throw new HttpError(404, "not_found");
     return peer;
 }
@@ -460,6 +484,9 @@ route("POST", "conversations/([\\w:-]+)/messages", async ({ req, user, m }) => {
     const u = user;
     const conv = m[1];
     const peer = await checkConv(u, conv);
+    // No new messages to waiting, suspended or removed accounts (organizers may).
+    if (peer && peer.id !== u.id && !listed(peer) && u.role !== "admin")
+        throw new HttpError(404, "not_found");
     if (await limited("msg:" + u.id, 30, 60))
         throw new HttpError(429, "rate_limited");
     const b = await readJson(req);
@@ -1145,7 +1172,7 @@ route("GET", "push/cron", async ({ req, url }) => {
 // ------------------------------------------------------------ organizer panel (/admin in the app)
 // Sign-up approval, people management, app settings and chat moderation.
 // Every route checks the organizer role here, not only in the app.
-const adminView = (u, seen = 0) => ({ ...me(u), createdAt: u.createdAt || 0, lastSeen: seen, owner: isOwner(u), demo: !!u.demo, approvedBy: u.approvedBy || "", approvedAt: u.approvedAt || 0 });
+const adminView = (u, seen = 0) => ({ ...me(u), createdAt: u.createdAt || 0, lastSeen: seen, owner: isOwner(u) && u.role === "admin", demo: !!u.demo, approvedBy: u.approvedBy || "", approvedAt: u.approvedAt || 0 });
 async function adminUsers() {
     const ids = await cmd("SMEMBERS", "dusers");
     if (!ids.length)
@@ -1286,13 +1313,14 @@ route("POST", "admin/users/([\\w-]+)/password", async ({ user, m }) => {
     const u = await getUser(m[1]);
     if (!u || u.demo)
         throw new HttpError(404, "not_found");
-    if (isOwner(u) && u.id !== user.id)
+    if (isOwner(u) && u.role === "admin" && u.id !== user.id)
         throw new HttpError(403, "owner");
     const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
     const password = Array.from(randomBytes(10), (x) => alphabet[x % alphabet.length]).join("");
     const { hash, salt } = await hashPasswordAsync(password);
     u.passHash = hash;
     u.salt = salt;
+    u.sv = (u.sv || 0) + 1; // signs out every device that used the old password
     await saveUser(u);
     return json({ password });
 });
@@ -1305,7 +1333,7 @@ route("POST", "admin/users/([\\w-]+)/delete", async ({ user, m }) => {
         throw new HttpError(404, "not_found");
     if (u.id === user.id)
         throw new HttpError(403, "self");
-    if (isOwner(u))
+    if (isOwner(u) && u.role === "admin")
         throw new HttpError(403, "owner");
     await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id], ["SREM", "dusers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
     await pushEvent({ at: Date.now(), type: "users" });

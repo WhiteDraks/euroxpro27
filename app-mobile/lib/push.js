@@ -82,10 +82,21 @@ function encrypt(payload, p256dh, authSecret) {
 
 const subId = (endpoint) => createHash("sha1").update(endpoint).digest("base64url");
 
+// Browser push services only, so the server can't be made to POST to any
+// address someone puts in a subscription.
+const PUSH_HOSTS = /(^|\.)(fcm\.googleapis\.com|android\.googleapis\.com|push\.services\.mozilla\.com|push\.apple\.com|notify\.windows\.com)$/;
+function pushHostOk(endpoint) {
+    try {
+        const u = new URL(String(endpoint));
+        return u.protocol === "https:" && !u.port && PUSH_HOSTS.test(u.hostname);
+    }
+    catch {
+        return false;
+    }
+}
 export function validSubscription(s) {
     try {
-        const u = new URL(String(s?.endpoint || ""));
-        return u.protocol === "https:" && unb64u(s.keys?.p256dh).length === 65 && unb64u(s.keys?.auth).length === 16;
+        return pushHostOk(s?.endpoint) && unb64u(s.keys?.p256dh).length === 65 && unb64u(s.keys?.auth).length === 16;
     }
     catch {
         return false;
@@ -120,6 +131,10 @@ export async function sendToUser(uid, msg, subject) {
     const subs = await subscriptionsOf(uid);
     const payload = JSON.stringify(msg);
     const results = await Promise.all(subs.map(async (s) => {
+        if (!pushHostOk(s.endpoint)) {
+            await removeSubscription(uid, s.endpoint);
+            return false;
+        }
         try {
             const res = await fetch(s.endpoint, {
                 method: "POST",
