@@ -20,6 +20,20 @@ function background(fn) {
     const ctx = globalThis[Symbol.for("@vercel/request-context")]?.get?.();
     ctx?.waitUntil?.(p);
 }
+// Small per-instance cache for answers everyone shares (user lists, the
+// quest board, the world map). A warm function instance serves a crowd from
+// memory for a few seconds instead of reading storage on every request.
+const memo = new Map();
+function cached(key, ms, fn) {
+    const hit = memo.get(key);
+    if (hit && Date.now() - hit.at < ms)
+        return hit.p;
+    const p = fn();
+    memo.set(key, { at: Date.now(), p });
+    p.catch(() => memo.delete(key));
+    return p;
+}
+const forget = (...keys) => keys.forEach((k) => memo.delete(k));
 class HttpError extends Error {
     status;
     constructor(status, code) {
@@ -133,14 +147,28 @@ async function getUser(id) {
 }
 async function saveUser(u) {
     await cmd("SET", "du:" + u.id, JSON.stringify(u));
+    forget("listed", "hall", "world", "qboard");
 }
+// Session token -> "<id>.<version>", kept per instance for a minute so each
+// poll costs one storage read less. The user record is still read fresh on
+// every request, so a password reset or suspension takes effect at once.
+const SESSION_MEMO_MS = 60000;
+const sessions = new Map();
 async function currentUser(req) {
     const token = cookie(req, "exs");
     if (!token)
         return null;
-    const v = (await cmd("GET", "ds:" + sha256(token)));
-    if (!v)
-        return null;
+    const key = sha256(token);
+    const hit = sessions.get(key);
+    let v = hit && Date.now() - hit.at < SESSION_MEMO_MS ? hit.v : null;
+    if (!v) {
+        v = (await cmd("GET", "ds:" + key));
+        if (!v)
+            return null;
+        if (sessions.size > 20000)
+            sessions.clear();
+        sessions.set(key, { v, at: Date.now() });
+    }
     // "<id>.<session version>": a new password bumps the version, so every
     // session opened with the old one stops working at once.
     const [id, ver = "0"] = String(v).split(".");
@@ -182,6 +210,7 @@ async function forReader(u, msgs) {
 }
 async function pushEvent(e) {
     await pipe(["LPUSH", "dev", JSON.stringify(e)], ["LTRIM", "dev", 0, EVENTS_KEPT - 1], ["SET", "devat", e.at]);
+    lastEvent = { v: 0, at: 0 };
 }
 // ------------------------------------------------------------ agenda
 async function loadAgenda() {
@@ -317,8 +346,10 @@ route("POST", "auth/login", async ({ req }) => {
 }, true);
 route("POST", "auth/logout", async ({ req }) => {
     const token = cookie(req, "exs");
-    if (token)
+    if (token) {
+        sessions.delete(sha256(token));
         await cmd("DEL", "ds:" + sha256(token));
+    }
     return json({ ok: true }, 200, { "set-cookie": sessionCookie("", 0) });
 }, true);
 route("GET", "me", ({ user }) => json({ user: me(user) }), "any");
@@ -422,14 +453,13 @@ route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
     }
     return json({ ok: true });
 });
+// Everyone visible to delegates, read at most every 20 s per instance:
+// the directory, the team page and the world map all start from it.
+const USERS_MEMO_MS = 20000;
+const listedUsers = () => cached("listed", USERS_MEMO_MS, async () => (await allUsers()).filter(listed));
 route("GET", "people", async ({ user }) => {
-    const ids = (await cmd("SMEMBERS", "dusers")).filter((x) => x !== user.id);
-    if (!ids.length)
-        return json({ people: [] });
-    const raw = (await cmd("MGET", ...ids.map((x) => "du:" + x)));
-    const people = raw
-        .map((r) => parse(r))
-        .filter(listed)
+    const people = (await listedUsers())
+        .filter((x) => x.id !== user.id)
         .map(publicUser)
         .sort((a, b) => a.name.localeCompare(b.name, user.lang));
     return json({ people });
@@ -440,10 +470,13 @@ route("GET", "conversations", async ({ user }) => {
     const convs = [GENERAL, ...dms];
     const res = await pipe(["HGETALL", "dr:" + u.id], ...convs.flatMap((c) => [["LLEN", "dm:" + c], ["LRANGE", "dm:" + c, -1, -1]]));
     const reads = hashToObject(res[0]);
+    // All chat partners in one storage read instead of one read per chat.
+    const peerIds = dms.map((c) => c.split(":").slice(1).find((x) => x !== u.id) || u.id);
+    const peers = new Map((await usersByIds(peerIds)).map((p) => [p.id, p]));
     const rows = await Promise.all(convs.map(async (c, i) => {
         const count = res[1 + i * 2];
         const last = parse(res[2 + i * 2][0]);
-        const peer = await convPeer(u, c);
+        const peer = c === GENERAL ? null : peers.get(peerIds[i - 1]) || null;
         if (c !== GENERAL && !peer)
             return null;
         return {
@@ -515,14 +548,25 @@ route("POST", "conversations/([\\w:-]+)/read", async ({ user, m }) => {
     await cmd("HSET", "dr:" + user.id, m[1], n);
     return json({ ok: true });
 });
+let lastEvent = { v: 0, at: 0 };
 // Polled by the app every few seconds. Costs one storage read when nothing changed.
 route("GET", "sync", async ({ req, url, user }) => {
     const u = user;
     remindersSoon(pushSubject(req));
     const since = Number(url.searchParams.get("since")) || 0;
-    // Presence for the plenary hall rides along with the poll (same round trip).
-    const [rawLast] = await pipe(["GET", "devat"], ["ZADD", "dpres", Date.now(), u.id]);
-    const lastAt = Number(rawLast) || 0;
+    // Presence for the plenary hall rides along with the poll (same round
+    // trip). The "last event" time is shared for 2 s per instance, so a
+    // crowd polling at once reads it once instead of once per phone.
+    let lastAt;
+    if (Date.now() - lastEvent.at < 2000) {
+        lastAt = lastEvent.v;
+        await cmd("ZADD", "dpres", Date.now(), u.id);
+    }
+    else {
+        const [rawLast] = await pipe(["GET", "devat"], ["ZADD", "dpres", Date.now(), u.id]);
+        lastAt = Number(rawLast) || 0;
+        lastEvent = { v: lastAt, at: Date.now() };
+    }
     if (!since || lastAt <= since)
         return json({ now: Math.max(lastAt, since || Date.now()), messages: [], agenda: false, matches: [], announce: false, request: false });
     const events = (await cmd("LRANGE", "dev", 0, 99))
@@ -603,20 +647,34 @@ route("POST", "meet/swipe", async ({ req, user }) => {
 });
 // ------------------------------------------------------------ plenary hall (who is in the app right now)
 const ONLINE_MS = 30000;
-route("GET", "plenary", async ({ user }) => {
+let presenceTrimmed = 0;
+// Who is in the hall, shared by everyone on the same instance for 5 s.
+// Only the 150 most recent are drawn; the total comes from ZCOUNT, so a
+// full hall doesn't ship every member id from storage on each call.
+const hall = () => cached("hall", 5000, async () => {
     const now = Date.now();
-    // Only the 150 most recent are drawn; the total comes from ZCOUNT, so a
-    // full hall doesn't ship every member id from storage on each call.
-    const [, , newest, total] = await pipe(["ZADD", "dpres", now, user.id], ["ZREMRANGEBYSCORE", "dpres", "-inf", now - 10 * 60000], ["ZREVRANGEBYSCORE", "dpres", "+inf", now - ONLINE_MS, "LIMIT", 0, 150], ["ZCOUNT", "dpres", now - ONLINE_MS, "+inf"]);
+    const [newest, total] = await pipe(["ZREVRANGEBYSCORE", "dpres", "+inf", now - ONLINE_MS, "LIMIT", 0, 150], ["ZCOUNT", "dpres", now - ONLINE_MS, "+inf"]);
     const ids = newest.slice().reverse();
-    if (!ids.includes(user.id))
-        ids.push(user.id);
     for (const d of DEMO)
         if (demoOn() && !ids.includes(d.id))
             ids.unshift(d.id);
-    const people = (await usersByIds(ids.slice(-150))).filter(listed).map(publicUser);
-    const extra = people.length - Math.min(ids.length, 150);
-    return json({ people, count: Math.max(people.length, Number(total) + Math.max(0, extra)) });
+    const people = (await usersByIds(ids)).filter(listed).map(publicUser);
+    return { people, total: Number(total) || 0 };
+});
+route("GET", "plenary", async ({ user }) => {
+    const now = Date.now();
+    const trim = now - presenceTrimmed > 60000;
+    if (trim)
+        presenceTrimmed = now;
+    await pipe(["ZADD", "dpres", now, user.id], ...(trim ? [["ZREMRANGEBYSCORE", "dpres", "-inf", now - 10 * 60000]] : []));
+    const h = await hall();
+    let people = h.people;
+    let count = h.total;
+    if (!people.some((p) => p.id === user.id)) {
+        people = [...people.slice(-149), publicUser(user)];
+        count += 1;
+    }
+    return json({ people, count: Math.max(people.length, count) });
 });
 // ------------------------------------------------------------ directory and congress team
 async function allUsers() {
@@ -638,7 +696,7 @@ route("GET", "photo/([\\w-]+)", async ({ m }) => {
     return new Response(Buffer.from(b64, "base64"), { headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=31536000, immutable", "x-content-type-options": "nosniff" } });
 });
 route("GET", "team", async ({ user }) => {
-    const team = (await allUsers())
+    const team = (await listedUsers())
         .filter((x) => x.role === "admin")
         .map(publicUser)
         .sort((a, b) => (a.title || "~").localeCompare(b.title || "~") || a.name.localeCompare(b.name, user.lang));
@@ -770,7 +828,9 @@ async function loadQuest() {
     return q;
 }
 const questOf = async (uid) => parse(await cmd("GET", "dqst:" + uid)) || { done: [], points: 0, spent: 0, claims: [] };
-async function questBoard() {
+// The leaderboard reads every player, so it is shared per instance for 10 s.
+const questBoard = () => cached("qboard", 10000, buildQuestBoard);
+async function buildQuestBoard() {
     const ids = await cmd("SMEMBERS", "dqplayers");
     if (!ids.length)
         return [];
@@ -810,6 +870,7 @@ route("POST", "quest/checkin", async ({ req, user }) => {
         mine.points += st.pts;
         mine.lastAt = Date.now();
         await pipe(["SET", "dqst:" + user.id, JSON.stringify(mine)], ["SADD", "dqplayers", user.id]);
+        forget("qboard");
         await pushEvent({ at: Date.now(), type: "quest" });
     }
     return json({ station: { id: st.id, name: st.name, pts: st.pts }, fresh, points: mine.points, all: mine.done.length === q.stations.length });
@@ -1022,9 +1083,11 @@ route("POST", "store/products/([\\w-]+)", async ({ req, user, m }) => {
 // ------------------------------------------------------------ where delegates come from (for the world map)
 // `delegates` feeds the Global Connections map. `connections` counts pairs of
 // delegates from different countries who matched in Meet or started a chat.
-route("GET", "world", async () => {
-    const ids = await cmd("SMEMBERS", "dusers");
-    const users = (await usersByIds(ids)).filter(listed);
+// Reads every delegate's matches and chats, so the answer is built at most
+// once a minute per instance and shared by everyone who opens the map.
+route("GET", "world", async () => json(await cached("world", 60000, worldMap)));
+async function worldMap() {
+    const users = await listedUsers();
     const home = new Map(users.map((u) => [u.id, countryOf(u.entity)?.code || ""]));
     const links = users.length ? await pipe(...users.flatMap((u) => [["SMEMBERS", "dmatch:" + u.id], ["SMEMBERS", "dconvs:" + u.id]])) : [];
     const pairs = new Set();
@@ -1036,8 +1099,8 @@ route("GET", "world", async () => {
                 pairs.add([u.id, p].sort().join(":"));
         }
     });
-    return json({ entities: users.map((u) => u.entity || "").filter(Boolean), delegates: users.map(publicUser), connections: pairs.size });
-});
+    return { entities: users.map((u) => u.entity || "").filter(Boolean), delegates: users.map(publicUser), connections: pairs.size };
+}
 // ------------------------------------------------------------ personal congress recap (shareable story)
 route("GET", "recap", async ({ user }) => {
     const u = user;

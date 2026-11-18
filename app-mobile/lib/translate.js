@@ -132,10 +132,22 @@ export async function peekMany(items, to) {
     todo.forEach((it, j) => (out[it.i] = res[j]));
     return out;
 }
-export async function translate(text, from, to) {
+// When a new chat message reaches hundreds of open phones at once, every
+// poll on this instance waits for the same single translation instead of
+// each one checking storage and calling the provider on its own.
+const inflight = new Map();
+export function translate(text, from, to) {
     if (!text || from === to || !isLang(to))
-        return { text, translated: false };
+        return Promise.resolve({ text, translated: false });
     const k = key(text, to);
+    let p = inflight.get(k);
+    if (!p) {
+        p = translateOnce(text, from, to, k).finally(() => inflight.delete(k));
+        inflight.set(k, p);
+    }
+    return p;
+}
+async function translateOnce(text, from, to, k) {
     const hit = (await cmd("GET", k));
     if (hit)
         return { text: hit, translated: true };
