@@ -15,12 +15,16 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
     <link rel="stylesheet" href="/app.css" />
     <link rel="stylesheet" href="/admin.css" />
     <script src="/theme-init.js"></script>
-    <script src="/vendor/leaflet/leaflet.js" defer></script>
     <script type="module" src="/app.js"></script>
+    <!-- Fetch app.js's imports in parallel instead of one after another. -->
+    <link rel="modulepreload" href="/i18n.js" />
+    <link rel="modulepreload" href="/admin.js" />
+    <link rel="modulepreload" href="/places.js" />
+    <link rel="modulepreload" href="/countries.js" />
   </head>
   <body>
     <div id="app">
