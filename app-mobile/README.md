@@ -25,6 +25,10 @@ A separate web app for delegates that can be added to the home screen. It lives 
 4. Under **Settings → Environment Variables**:
    - `ADMIN_EMAILS`: comma-separated organizer email addresses. Accounts registered with these addresses can edit the agenda.
    - `DEEPL_API_KEY` (recommended): a DeepL API Free key, which gives 500k characters a month at no cost. Without it, Google Translate's free web endpoint is used (MyMemory as backup). `GOOGLE_TRANSLATE_API_KEY` (Google Cloud, 500k chars a month free) also works. The language is detected from the text.
+   - E-mail (optional): organizers get an e-mail for every new sign-up (default recipient `elifkurnaz@aiesec.org.tr`, change with `SIGNUP_NOTIFY_EMAIL`, comma-separated, `off` to stop), and delegates get a "your account is approved" e-mail (`APPROVAL_EMAIL=off` to stop). Pick one sender:
+     - **Gmail / Google Workspace (no domain needed):** `SMTP_HOST=smtp.gmail.com`, `SMTP_USER=<the sending address>`, `SMTP_PASS=<a Google app password>` (needs 2-step verification on that account). Optional `SMTP_PORT` (default 465), `MAIL_FROM` (default `SMTP_USER`).
+     - **Resend:** `RESEND_API_KEY`, plus `MAIL_FROM` on a domain verified in Resend. Without a verified domain Resend only delivers to the Resend account's own address, so approval e-mails to delegates would not arrive.
+     - `APP_URL` (e.g. `https://app-mobile-murex.vercel.app`) sets the links in the e-mails. The app stops at `MAIL_DAILY_MAX` e-mails a day (default 450 for SMTP, 95 for Resend, below the free limits). Sending is best-effort: an e-mail problem never blocks sign-up or approval.
 5. **Deployments → Redeploy.** The app is now live at an address like `euroxpro27-app.vercel.app`. You can also add a domain such as `app.euroxpro27.com`.
 
 After that, every merge to `main` deploys automatically. Until Redis is connected, the app opens but sign-up shows a "still being set up" message.
@@ -37,6 +41,7 @@ api/index.js     Vercel function: every /api/* request comes here
 lib/api.js       Accounts, agenda, messages, sync
 lib/kv.js        Upstash Redis (REST); memory when no env vars are set
 lib/translate.js DeepL / LibreTranslate / MyMemory
+lib/mail.js      Sign-up and approval e-mails (Resend or SMTP, no packages)
 lib/agenda-seed.js The first agenda (taken from the website's draft programme)
 dev-server.js    Local testing, or running on any Node host
 ```
