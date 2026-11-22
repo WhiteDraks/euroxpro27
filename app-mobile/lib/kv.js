@@ -70,8 +70,9 @@ function memCmd(args) {
             v.splice(i, 1);
             return 1;
         }
-        case "INCR": {
-            const n = Number(typeof v === "string" ? v : 0) + 1;
+        case "INCR":
+        case "INCRBY": {
+            const n = Number(typeof v === "string" ? v : 0) + (c === "INCRBY" ? Number(rest[0]) : 1);
             mem.data.set(key, String(n));
             return n;
         }

@@ -10,6 +10,7 @@ import seed from "./agenda-seed.js";
 import { countryOf } from "../public/countries.js";
 import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
 import { LANGS, isLang, peekMany, providerName, translate } from "./translate.js";
+import { approvalEnabled, provider as mailProvider, sendApprovedEmail, sendSignupEmail } from "./mail.js";
 import { hasSubscription, publicKey, pushers, removeSubscription, saveSubscription, sendToUser, validSubscription } from "./push.js";
 
 // Run work after the response is sent. On Vercel the platform's request
@@ -99,6 +100,35 @@ async function limited(key, max, windowSec) {
     if (n === 1)
         await cmd("EXPIRE", "drl:" + key, windowSec);
     return n > max;
+}
+// E-mail goes out through a provider with a daily free quota (Resend 100,
+// Gmail 500), so the app keeps its own count and stops a little before it.
+async function mailQuota(n) {
+    const kind = mailProvider();
+    if (!kind || n <= 0)
+        return 0;
+    const max = Number(process.env.MAIL_DAILY_MAX) || (kind === "smtp" ? 450 : 95);
+    const key = "dmail:" + new Date().toISOString().slice(0, 10);
+    const used = Number(await cmd("INCRBY", key, n));
+    if (used === n)
+        await cmd("EXPIRE", key, 2 * 86400);
+    return Math.max(0, Math.min(n, max - (used - n)));
+}
+const appAddress = (req) => (process.env.APP_URL || pushSubject(req)).replace(/\/+$/, "");
+// "Your account is approved" e-mails, a few at a time, within the quota.
+async function mailApproved(users, appUrl) {
+    if (!approvalEnabled())
+        return;
+    const list = users.filter((u) => !u.demo && u.email);
+    const allowed = await mailQuota(list.length);
+    if (allowed < list.length)
+        console.warn(`[delegate mail] approval e-mails over the daily limit: ${list.length - allowed} skipped`);
+    const queue = list.slice(0, allowed);
+    const worker = async () => {
+        for (let u; (u = queue.shift());)
+            await sendApprovedEmail(u, appUrl).catch((e) => console.error("[delegate mail]", e.message));
+    };
+    await Promise.all(Array.from({ length: Math.min(4, queue.length) }, worker));
 }
 async function readJson(req, max = 32 * 1024) {
     const text = await req.text();
@@ -323,6 +353,12 @@ route("POST", "auth/register", async ({ req }) => {
                 await notify("messages", subject, (p) => ({ title: pt(p, "signup"), body: pt(p, "signupBody", { n: user.name + (user.entity ? ` · ${user.entity}` : "") }), url: "/admin", tag: "signup" }), admins);
         });
     }
+    // E-mail the organizers too (lib/mail.js); best-effort, never blocks sign-up.
+    const appUrl = appAddress(req);
+    background(async () => {
+        if (await mailQuota(1))
+            await sendSignupEmail(user, appUrl);
+    });
     return startSession(user, 201);
 }, true);
 route("POST", "auth/login", async ({ req }) => {
@@ -1352,6 +1388,8 @@ route("POST", "admin/users/([\\w-]+)", async ({ req, user, m }) => {
     if (before !== "active" && statusOf(u) === "active" && !u.demo) {
         const subject = pushSubject(req);
         background(() => notify("messages", subject, (p) => ({ title: pt(p, "approved"), body: pt(p, "approvedBody"), url: "/home", tag: "approved" }), [u.id]));
+        const appUrl = appAddress(req);
+        background(() => mailApproved([u], appUrl));
     }
     return json({ user: adminView(u) });
 });
@@ -1367,6 +1405,8 @@ route("POST", "admin/approve-all", async ({ req, user }) => {
         await pushEvent({ at: now, type: "users" });
         const subject = pushSubject(req);
         background(() => notify("messages", subject, (p) => ({ title: pt(p, "approved"), body: pt(p, "approvedBody"), url: "/home", tag: "approved" }), waiting.map((u) => u.id)));
+        const appUrl = appAddress(req);
+        background(() => mailApproved(waiting, appUrl));
     }
     return json({ approved: waiting.length });
 });
