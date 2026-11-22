@@ -3,6 +3,7 @@ import { t, setLang, getLang, detectLang, LANGS, locale } from "./i18n.js";
 import { PLACES, CENTER } from "./places.js";
 import { COUNTRIES, countryOf, flag } from "./countries.js";
 import { makeAdmin, at as adminText, SHIELD_ICON } from "./admin.js";
+import { KVKK_VERSION, kvkkText } from "./kvkk.js";
 
 const root = document.getElementById("app");
 // Set to e.g. "/app" if the app is ever served from a sub-folder.
@@ -482,7 +483,7 @@ function field({ label, name, type = "text", autocomplete, hint, value = "", req
   return { row, input, hint };
 }
 
-function authForm(screen, { title, fields, submitLabel, footer, onSubmit }) {
+function authForm(screen, { title, fields, submitLabel, footer, extra = null, onSubmit }) {
   const error = h("p", { class: "form-error", role: "alert", hidden: true });
   const submit = h("button", { type: "submit", class: "btn btn-filled" }, submitLabel);
   const groups = h("div", { class: "group" }, fields.map((f) => f.row));
@@ -508,6 +509,7 @@ function authForm(screen, { title, fields, submitLabel, footer, onSubmit }) {
     },
     groups,
     hints.length ? h("p", { class: "group-footer" }, hints.join(" · ")) : null,
+    extra,
     error,
     submit,
     footer
@@ -566,13 +568,69 @@ function viewRegister(screen) {
       { row: h("label", { class: "field" }, h("span", { class: "field-label" }, t("position")), positionSelect("", "position")) },
       langField,
     ],
+    extra: consentBlock(),
     footer: h("p", { class: "auth-switch" }, t("haveAccount") + " ", h("a", { href: "/login", "data-link": true }, t("login"))),
     onSubmit: async (data) => {
-      const { user } = await api("POST", "/api/auth/register", { ...data, lang });
+      // The server checks this too; this just answers before the round trip.
+      if (!data.kvkk) throw Object.assign(new Error("kvkk_required"), { code: "kvkk_required" });
+      if (!data.abroad) throw Object.assign(new Error("abroad_required"), { code: "abroad_required" });
+      const { user } = await api("POST", "/api/auth/register", { ...data, lang, kvkk: true, abroad: true, kvkkVersion: KVKK_VERSION });
       await afterAuth(user);
     },
   });
   form.querySelector(".group-footer").textContent = `${t("passwordHint")}. ${t("languageHint")}`;
+}
+
+// KVKK: the privacy notice must be acknowledged and the transfer abroad
+// consented to before an account is created. Two separate boxes, because
+// the law wants explicit consent kept apart from the notice.
+function consentBlock() {
+  const box = (name, text) =>
+    h(
+      "label",
+      { class: "consent" },
+      h("input", { type: "checkbox", name, value: "1", required: true }),
+      h("span", { class: "consent-text" }, text)
+    );
+  const link = h(
+    "button",
+    {
+      type: "button",
+      class: "consent-link",
+      onclick: (e) => {
+        e.preventDefault(); // don't tick the box the link sits in
+        openKvkk();
+      },
+    },
+    t("kvkkLink")
+  );
+  const [before, after = ""] = t("kvkkAgree", { link: "\u0000" }).split("\u0000");
+  return h(
+    "div",
+    { class: "consent-group" },
+    box("kvkk", [before, link, after]),
+    box("abroad", t("kvkkAbroad"))
+  );
+}
+
+function openKvkk() {
+  const doc = kvkkText(getLang());
+  const { box, close } = gcSheet("kvkk-sheet");
+  box.setAttribute("aria-label", doc.title);
+  box.append(
+    h("div", { class: "sheet-grab", "aria-hidden": "true" }),
+    h(
+      "div",
+      { class: "kvkk-doc" },
+      h("h2", {}, doc.title),
+      h("p", {}, doc.intro),
+      doc.sections.flatMap(([head, paras]) => [
+        h("h3", {}, head),
+        ...paras.map((p) => (Array.isArray(p) ? h("ul", {}, p.map((li) => h("li", {}, li))) : h("p", {}, p))),
+      ])
+    ),
+    h("button", { type: "button", class: "btn btn-filled", onclick: close }, t("close"))
+  );
 }
 
 // ------------------------------------------------------------------ agenda

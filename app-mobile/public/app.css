@@ -2610,3 +2610,66 @@ ol.group { list-style: none; margin: 0; padding: 0; }
   .rv { opacity: 1; transform: none; }
   .hero .wordmark span, .welcome .wordmark span { background-position: 100% 0; }
 }
+
+/* KVKK consent at sign-up */
+.consent-group {
+  margin-top: 20px;
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.consent {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.consent + .consent::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50px;
+  right: 0;
+  border-top: 0.5px solid var(--sep);
+}
+.consent input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--bordeaux);
+  cursor: pointer;
+}
+.consent-text { flex: 1; min-width: 0; }
+.consent-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--tint);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.kvkk-sheet { max-height: 88dvh; }
+.kvkk-doc {
+  width: 100%;
+  min-height: 0;
+  flex: 0 1 auto;
+  margin-bottom: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.kvkk-doc h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
+.kvkk-doc h3 { margin: 18px 0 4px; font-size: 16px; font-weight: 700; }
+.kvkk-doc p { margin: 0 0 8px; }
+.kvkk-doc ul { margin: 0 0 8px; padding-left: 20px; }
+.kvkk-doc li { margin-bottom: 4px; }

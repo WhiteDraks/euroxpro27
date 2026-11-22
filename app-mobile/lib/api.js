@@ -129,6 +129,8 @@ const isActive = (u) => statusOf(u) === "active";
 const listed = (u) => !!u && isActive(u) && !(u.demo && !demoOn());
 const isOwner = (u) => adminEmails().includes(String(u.email || "").toLowerCase());
 const SETTINGS_DEFAULT = { approval: true, signups: true };
+// Keep in step with KVKK_VERSION in public/kvkk.js.
+const KVKK_VERSION = "2026-11-22";
 async function loadSettings() {
     return { ...SETTINGS_DEFAULT, ...(parse(await cmd("GET", "dset")) || {}) };
 }
@@ -280,6 +282,12 @@ route("POST", "auth/register", async ({ req }) => {
         throw new HttpError(400, "email_invalid");
     if (password.length < 8 || password.length > 200)
         throw new HttpError(400, "password_short");
+    // KVKK: no account without the privacy notice acknowledged and explicit
+    // consent to the transfer abroad (hosting, database, translation).
+    if (b.kvkk !== true)
+        throw new HttpError(400, "kvkk_required");
+    if (b.abroad !== true)
+        throw new HttpError(400, "abroad_required");
     const ownerEmail = adminEmails().includes(email);
     const settings = await loadSettings();
     if (!settings.signups && !ownerEmail)
@@ -309,6 +317,8 @@ route("POST", "auth/register", async ({ req }) => {
         // ADMIN_EMAILS addresses always wait for an organizer, even with approval off.
         status: owner || (!settings.approval && !ownerEmail) ? "active" : "pending",
         createdAt: Date.now(),
+        // Proof of consent: which notice version, and when.
+        consent: { v: KVKK_VERSION, kvkkAt: Date.now(), abroadAt: Date.now() },
     };
     const generalCount = (await cmd("LLEN", "dm:" + GENERAL));
     await pipe(["SET", "du:" + id, JSON.stringify(user)], ["SADD", "dusers", id], ["HSET", "dr:" + id, GENERAL, generalCount] // no backlog of "unread" history
@@ -1235,7 +1245,7 @@ route("GET", "push/cron", async ({ req, url }) => {
 // ------------------------------------------------------------ organizer panel (/admin in the app)
 // Sign-up approval, people management, app settings and chat moderation.
 // Every route checks the organizer role here, not only in the app.
-const adminView = (u, seen = 0) => ({ ...me(u), createdAt: u.createdAt || 0, lastSeen: seen, owner: isOwner(u) && u.role === "admin", demo: !!u.demo, approvedBy: u.approvedBy || "", approvedAt: u.approvedAt || 0 });
+const adminView = (u, seen = 0) => ({ ...me(u), createdAt: u.createdAt || 0, lastSeen: seen, owner: isOwner(u) && u.role === "admin", demo: !!u.demo, approvedBy: u.approvedBy || "", approvedAt: u.approvedAt || 0, consentAt: u.consent?.kvkkAt || 0, consentV: u.consent?.v || "" });
 async function adminUsers() {
     const ids = await cmd("SMEMBERS", "dusers");
     if (!ids.length)
