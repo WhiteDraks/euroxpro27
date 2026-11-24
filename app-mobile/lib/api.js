@@ -7,6 +7,7 @@
 import { createHash, randomBytes, scrypt, scryptSync, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import seed from "./agenda-seed.js";
+import teamSeed from "./team-seed.js";
 import { countryOf } from "../public/countries.js";
 import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
 import { LANGS, isLang, peekMany, providerName, translate } from "./translate.js";
@@ -965,11 +966,61 @@ route("GET", "photo/([\\w-]+)", async ({ user, m }) => {
     // The URL carries a version, so the image can be cached for good.
     return new Response(Buffer.from(b64, "base64"), { headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=31536000, immutable", "x-content-type-options": "nosniff" } });
 });
+// ------------------------------------------------------------ CC Team (the organizing committee)
+// The list starts as the website's team page (lib/team-seed.js) and
+// organizers edit it in the app. A member is linked to an app account with
+// the same e-mail or name, so delegates can message them from the card.
+async function loadTeam() {
+    return parse(await cmd("GET", "dteam")) || JSON.parse(JSON.stringify(teamSeed));
+}
+const nameKey = (s) => String(s || "").toLocaleLowerCase("tr").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+const LINKEDIN_RE = /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/[\w\-./%]{1,150}$/i;
+const INSTA_RE = /^@?[A-Za-z0-9._]{1,30}$/;
 route("GET", "team", async ({ user }) => {
-    const team = (await listedUsers())
-        .filter((x) => x.role === "admin")
-        .map(publicUser)
-        .sort((a, b) => (a.title || "~").localeCompare(b.title || "~") || a.name.localeCompare(b.name, user.lang));
+    const [roster, users] = await Promise.all([loadTeam(), listedUsers()]);
+    const organizers = users.filter((x) => x.role === "admin" && !x.demo);
+    const byEmail = new Map(users.filter((x) => x.email).map((x) => [x.email.toLowerCase(), x]));
+    const byName = new Map(users.map((x) => [nameKey(x.name), x]));
+    const linked = new Set();
+    const team = roster.map((m) => {
+        const acc = (m.email && byEmail.get(m.email.toLowerCase())) || byName.get(nameKey(m.name)) || null;
+        if (acc)
+            linked.add(acc.id);
+        return { ...m, uid: acc ? acc.id : "", photo: m.photo || (acc ? publicUser(acc).photo : "") };
+    });
+    const others = organizers.filter((x) => !linked.has(x.id)).map(publicUser).sort((a, b) => a.name.localeCompare(b.name, user.lang));
+    return json({ team, organizers: others, canEdit: user.role === "admin" });
+});
+route("POST", "team", async ({ req, user }) => {
+    needAdmin(user);
+    const b = await readJson(req, 64 * 1024);
+    if (!Array.isArray(b.team) || b.team.length > 80)
+        throw new HttpError(400, "bad_data");
+    const seen = new Set();
+    const team = b.team.map((x) => {
+        const name = clean(x?.name, 60);
+        if (name.length < 2)
+            return null;
+        let id = /^[a-z0-9-]{1,60}$/.test(String(x.id || "")) ? String(x.id) : newId().toLowerCase().replace(/[^a-z0-9]/g, "x");
+        while (seen.has(id))
+            id += "-2";
+        seen.add(id);
+        const m = { id, name, role: clean(x.role, 40), dept: clean(x.dept, 40) };
+        const email = clean(x.email, 120).toLowerCase();
+        if (email && EMAIL_RE.test(email))
+            m.email = email;
+        const li = clean(x.linkedin, 200);
+        if (li && LINKEDIN_RE.test(li))
+            m.linkedin = li;
+        const ig = clean(x.instagram, 31);
+        if (ig && INSTA_RE.test(ig))
+            m.instagram = "@" + ig.replace(/^@/, "");
+        // Only the bundled photos (public/team/); anyone with an app account shows their own photo.
+        if (typeof x.photo === "string" && /^\/team\/[a-z0-9-]+\.(webp|jpg|png)$/.test(x.photo))
+            m.photo = x.photo;
+        return m;
+    }).filter(Boolean);
+    await cmd("SET", "dteam", JSON.stringify(team));
     return json({ team });
 });
 // ------------------------------------------------------------ announcements (organizers post, everyone reads, translated)

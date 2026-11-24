@@ -244,6 +244,7 @@ const ROUTES = [
   { path: "/profile", view: viewProfile, tab: "profile" },
   { path: "/people", view: viewDirectory, tab: "home" },
   { path: "/team", view: viewTeam, tab: "home" },
+  { path: "/team/edit", view: viewTeamEdit, tab: "home" },
   { path: "/info", view: viewInfo, tab: "home" },
   { path: "/requests", view: viewRequests, tab: "home" },
   { path: "/quest", view: viewQuest, tab: "home" },
@@ -3949,20 +3950,131 @@ function viewDirectory(screen) {
   }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
 }
 
+// First and last name, so "Berfin Türkü Dağlı" becomes "BD" (as on the website).
+function teamInitials(name) {
+  const parts = String(name || "").split(/\s+/).filter(Boolean);
+  const picked = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts;
+  return picked.map((x) => x[0].toLocaleUpperCase("tr")).join("");
+}
+function teamAvatar(m, cls) {
+  return m.photo ? avatar(m, cls) : h("span", { class: `avatar team-initials ${cls}`, "aria-hidden": "true" }, teamInitials(m.name));
+}
+const instaUrl = (v) => "https://instagram.com/" + String(v).replace(/^@/, "");
+
+function teamSheet(m) {
+  const { box, close } = gcSheet("team-sheet");
+  box.setAttribute("aria-label", m.name);
+  const links = [
+    m.email ? h("a", { class: "row row-action", href: "mailto:" + m.email }, icon("messages", "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, t("email")), h("span", { class: "row-label" }, m.email))) : null,
+    m.linkedin ? h("a", { class: "row row-action", href: m.linkedin, target: "_blank", rel: "noopener noreferrer" }, icon("people", "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, "LinkedIn"), h("span", { class: "row-label" }, m.linkedin.replace(/^https:\/\/(www\.)?/, "")))) : null,
+    m.instagram ? h("a", { class: "row row-action", href: instaUrl(m.instagram), target: "_blank", rel: "noopener noreferrer" }, icon("profile", "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, "Instagram"), h("span", { class: "row-label" }, m.instagram))) : null,
+  ].filter(Boolean);
+  const msg = m.uid && m.uid !== state.user.id
+    ? h("button", { type: "button", class: "btn btn-filled", onclick: async () => {
+        try {
+          const { id: conv } = await api("POST", "/api/conversations/dm", { userId: m.uid });
+          close();
+          go("/messages/" + encodeURIComponent(conv));
+        } catch (err) {
+          toast(errText(err));
+        }
+      } }, t("teamMessage"))
+    : !m.uid ? h("p", { class: "fineprint center" }, t("teamNoAccount")) : "";
+  box.append(
+    h("div", { class: "sheet-grab", "aria-hidden": "true" }),
+    teamAvatar(m, "avatar-xl"),
+    h("h2", { class: "sheet-name" }, m.name),
+    h("p", { class: "sheet-sub" }, [m.role, m.dept && !String(m.role).toLowerCase().includes(m.dept.toLowerCase()) ? m.dept : ""].filter(Boolean).join(" · ")),
+    links.length ? h("div", { class: "group team-links" }, links) : "",
+    msg,
+    h("button", { type: "button", class: "btn btn-plain", onclick: close }, t("close"))
+  );
+}
+
 function viewTeam(screen) {
   const grid = h("div", { class: "team-grid" }, h("div", { class: "loading" }));
-  screen.append(navBar({ title: t("team"), back: "/home" }), grid);
-  api("GET", "/api/team").then(({ team }) => {
-    if (!team.length) return grid.replaceChildren(h("p", { class: "empty" }, t("teamEmpty")));
+  const extra = h("div");
+  const nav = navBar({ title: t("team"), back: "/home" });
+  screen.append(nav, grid, extra);
+  api("GET", "/api/team").then(({ team, organizers, canEdit }) => {
+    if (canEdit) nav.lastChild.replaceWith(h("a", { href: "/team/edit", "data-link": true, class: "nav-action" }, t("edit")));
+    if (!team.length && !organizers.length) return grid.replaceChildren(h("p", { class: "empty" }, t("teamEmpty")));
     grid.replaceChildren(
-      ...team.map((p) =>
-        h("button", { type: "button", class: "team-card", onclick: () => openPerson(p.id) },
-          avatar(p, "avatar-xl"),
-          h("span", { class: "team-name" }, p.name),
-          h("span", { class: "team-title" }, p.title || t("organizer")))
+      ...team.map((m, i) =>
+        h("button", { type: "button", class: "team-card" + (i === 0 ? " lead" : ""), onclick: () => teamSheet(m) },
+          teamAvatar(m, "avatar-xl"),
+          h("span", { class: "team-name" }, m.name),
+          h("span", { class: "team-title", lang: m.role ? "en" : null }, m.role || t("organizer")))
       )
     );
+    extra.replaceChildren(
+      ...(organizers.length
+        ? [
+            h("h2", { class: "group-header" }, t("teamOthers")),
+            h("div", { class: "team-grid" }, organizers.map((p) =>
+              h("button", { type: "button", class: "team-card", onclick: () => openPerson(p.id) },
+                avatar(p, "avatar-xl"),
+                h("span", { class: "team-name" }, p.name),
+                h("span", { class: "team-title" }, p.title || t("organizer"))))),
+          ]
+        : [])
+    );
   }).catch((e) => grid.replaceChildren(h("p", { class: "empty" }, errText(e))));
+}
+
+function viewTeamEdit(screen) {
+  if (state.user.role !== "admin") return go("/team", { replace: true });
+  let rows = [];
+  const list = h("div", { class: "team-edit" }, h("div", { class: "loading" }));
+  const save = h("button", { type: "button", class: "btn btn-filled" }, t("save"));
+  const input = (r, k, label, attrs = {}) => {
+    const el = h("input", { type: "text", value: r[k] || "", maxlength: attrs.maxlength || 60, autocapitalize: attrs.type ? "off" : null, spellcheck: attrs.type ? "false" : null, inputmode: attrs.type === "email" ? "email" : attrs.type === "url" ? "url" : null, placeholder: attrs.placeholder || "", oninput: (e) => (r[k] = e.target.value) });
+    return h("label", { class: "field" }, h("span", { class: "field-label" }, label), el);
+  };
+  const move = (i, d) => {
+    const j = i + d;
+    if (j < 0 || j >= rows.length) return;
+    [rows[i], rows[j]] = [rows[j], rows[i]];
+    draw();
+  };
+  const draw = () => {
+    list.replaceChildren(
+      ...rows.map((r, i) =>
+        h("div", { class: "group team-edit-row" },
+          h("div", { class: "team-edit-head" },
+            teamAvatar(r, "avatar-sm"),
+            h("strong", {}, r.name || "—"),
+            h("span", { class: "team-edit-tools" },
+              h("button", { type: "button", class: "btn btn-small btn-muted", "aria-label": t("teamUp"), disabled: i === 0, onclick: () => move(i, -1) }, "↑"),
+              h("button", { type: "button", class: "btn btn-small btn-muted", "aria-label": t("teamDown"), disabled: i === rows.length - 1, onclick: () => move(i, 1) }, "↓"),
+              h("button", { type: "button", class: "btn btn-small btn-muted destructive", onclick: () => { rows.splice(i, 1); draw(); } }, t("teamRemove")))),
+          input(r, "name", t("name")),
+          input(r, "role", t("teamRole"), { maxlength: 40, placeholder: "CCVP IT" }),
+          input(r, "dept", t("teamDept"), { maxlength: 40 }),
+          input(r, "email", t("email"), { maxlength: 120, type: "email", placeholder: "name@aiesec.org.tr" }),
+          input(r, "linkedin", "LinkedIn", { maxlength: 200, type: "url", placeholder: "https://www.linkedin.com/in/…" }),
+          input(r, "instagram", "Instagram", { maxlength: 31, type: "text", placeholder: "@kullanici" }))
+      ),
+      h("button", { type: "button", class: "btn btn-tinted", onclick: () => { rows.push({ id: "", name: "", role: "", dept: "" }); draw(); list.lastElementChild.previousElementSibling?.querySelector("input")?.focus(); } }, t("teamAdd"))
+    );
+  };
+  save.addEventListener("click", async () => {
+    save.disabled = true;
+    try {
+      const { team } = await api("POST", "/api/team", { team: rows });
+      if (team.length < rows.length) toast(t("teamNameMissing"));
+      else toast(t("teamSaved"));
+      go("/team");
+    } catch (err) {
+      toast(errText(err));
+      save.disabled = false;
+    }
+  });
+  screen.append(navBar({ title: t("teamEdit"), back: "/team" }), h("p", { class: "fineprint" }, t("teamEditHint")), list, h("div", { class: "team-edit-save" }, save));
+  api("GET", "/api/team").then(({ team }) => {
+    rows = team.map(({ uid, ...m }) => (m.photo && !m.photo.startsWith("/team/") ? { ...m, photo: undefined } : m));
+    draw();
+  }).catch((e) => list.replaceChildren(h("p", { class: "empty" }, errText(e))));
 }
 
 async function loadAnnouncements() {
