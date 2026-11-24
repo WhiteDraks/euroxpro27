@@ -92,12 +92,6 @@ const S = {
     reopen: "Yeniden aç",
     viewUser: "Kişiyi aç",
     newReportToast: "Yeni bir bildirim (şikayet) geldi",
-    twofa: "2 adımlı giriş",
-    twofaOnShort: "Açık",
-    twofaOffShort: "Kapalı",
-    twofaReset: "2 adımlı girişi sıfırla",
-    twofaResetConfirm: "Sıfırlansın mı?",
-    twofaResetDone: "Sıfırlandı. Kişi bir sonraki girişte yeniden kuracak.",
     usersTitle: "Kullanıcılar",
     search: "İsim, e-posta veya ülke ara",
     fAll: "Tümü",
@@ -253,12 +247,6 @@ const S = {
     reopen: "Reopen",
     viewUser: "Open person",
     newReportToast: "A new report came in",
-    twofa: "Two-step sign-in",
-    twofaOnShort: "On",
-    twofaOffShort: "Off",
-    twofaReset: "Reset two-step sign-in",
-    twofaResetConfirm: "Reset it?",
-    twofaResetDone: "Reset. They will set it up again at next sign-in.",
     usersTitle: "People",
     search: "Search name, e-mail or country",
     fAll: "All",
@@ -414,12 +402,6 @@ const S = {
     reopen: "Otwórz ponownie",
     viewUser: "Otwórz osobę",
     newReportToast: "Nowe zgłoszenie",
-    twofa: "Logowanie dwuetapowe",
-    twofaOnShort: "Włączone",
-    twofaOffShort: "Wyłączone",
-    twofaReset: "Resetuj logowanie dwuetapowe",
-    twofaResetConfirm: "Zresetować?",
-    twofaResetDone: "Zresetowano. Osoba skonfiguruje je przy następnym logowaniu.",
     usersTitle: "Osoby",
     search: "Szukaj imienia, e-maila lub kraju",
     fAll: "Wszyscy",
@@ -786,30 +768,6 @@ export function makeAdmin(ctx) {
           btn.disabled = false;
         }));
       if (u.photo) actions.push(action(a("removePhoto"), "profile", run(() => post({ photo: "" }))));
-      if (!self && u.twofa && !u.demo) {
-        let armed = false;
-        const btn = action(a("twofaReset"), "shield", async () => {
-          if (!armed) {
-            armed = true;
-            btn.querySelector(".row-value").textContent = a("twofaResetConfirm");
-            btn.classList.add("armed");
-            setTimeout(() => {
-              armed = false;
-              btn.querySelector(".row-value").textContent = a("twofaReset");
-              btn.classList.remove("armed");
-            }, 4000);
-            return;
-          }
-          try {
-            await api("POST", `/api/admin/users/${u.id}/2fa-reset`);
-            toast(a("twofaResetDone"));
-          } catch (err) {
-            toast(errText(err));
-          }
-          load();
-        });
-        actions.push(btn);
-      }
 
       // Profile fields an organizer can correct.
       const nameIn = h("input", { type: "text", value: u.name, maxlength: 60, "aria-label": a("name") });
@@ -846,7 +804,6 @@ export function makeAdmin(ctx) {
           info(a("joined"), dateTime(u.createdAt)),
           info(a("kvkk"), u.consentAt ? `${dateTime(u.consentAt)} · v${u.consentV}` : a("kvkkNone")),
           info(a("lastSeen"), ago(u.lastSeen)),
-          u.demo ? null : info(a("twofa"), u.twofa ? a("twofaOnShort") : a("twofaOffShort")),
           u.approvedBy ? info(a("approvedBy"), `${u.approvedBy} · ${dateTime(u.approvedAt)}`) : null,
           info(a("language"), String(u.lang || "").toUpperCase()),
           info(a("questPts"), `${u.points} · ${u.stations}/12`),

@@ -43,3 +43,10 @@ Turnstile is off until its keys are set on Vercel.
 
 Tests: an API run against a local server, 17 checks (CSRF, block/unblock, session after
 sign-out-everywhere, photo visibility, matches, bad path) plus the device cap: all pass.
+
+## Update: two-step sign-in removed (same day)
+
+Dincer asked to remove the authenticator (TOTP) feature. The set-up screen, the Profile row, the organizer reset
+button, the login code box and the `/api/me/2fa/*` and `/api/admin/users/:id/2fa-reset` routes are gone, and
+`ADMIN_2FA` is no longer read. Accounts that had it on sign in with the password only; their stored secret is
+deleted at that sign-in. "Sign out all other devices" stays.
