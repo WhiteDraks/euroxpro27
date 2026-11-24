@@ -27,6 +27,8 @@ const tileIcons: Record<string, LucideIcon> = {
   "/contact": Mail,
 };
 
+const tickerWords = [siteConfig.name, "Antalya, Türkiye", siteConfig.datesLabel, "AIESEC in Europe", "Mediterranean"];
+
 export default function HomePage() {
   const { hero, countdown, tiles, city, news } = content.home;
   const latest = announcements.slice(0, 3);
@@ -38,19 +40,22 @@ export default function HomePage() {
       {/* ── 1. HELLO: large title over a slow burgundy light ── */}
       <section className="relative">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="glow absolute left-1/2 top-[-140px] h-[720px] w-[1100px] max-w-none -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,#A3304A_0%,#7D1A30_38%,rgba(125,26,48,0.35)_62%,transparent_100%)]" />
+          <div className="glow absolute left-1/2 top-[-160px] h-[680px] w-[1000px] max-w-none -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,#A3304A_0%,#7D1A30_38%,rgba(125,26,48,0.3)_62%,transparent_100%)]" />
+          <div className="drift-a absolute left-[8%] top-[10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(closest-side,rgba(224,100,125,0.35),transparent)] blur-2xl" />
+          <div className="drift-b absolute right-[6%] top-[28%] h-[380px] w-[380px] rounded-full bg-[radial-gradient(closest-side,rgba(100,20,42,0.7),transparent)] blur-2xl" />
+          <div className="grid-floor absolute left-1/2 top-[300px] sm:top-[360px] h-[520px] w-[220%] sm:w-[160%] -translate-x-1/2" />
         </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-14 sm:pt-20 lg:pt-24 text-center flex flex-col items-center">
-          <p className="glass inline-flex rounded-full text-sm font-semibold px-4 py-1.5">{siteConfig.datesLabel}</p>
-          <h1 className="title-gradient mt-6 text-[3.4rem] sm:text-8xl lg:text-[8.5rem] leading-[0.9] tracking-[-0.045em] pb-2">
+          <p className="rise glass inline-flex rounded-full text-sm font-semibold px-4 py-1.5">{siteConfig.datesLabel}</p>
+          <h1 className="rise rise-2 title-gradient mt-6 text-[3.4rem] sm:text-8xl lg:text-[8.5rem] leading-[0.9] tracking-[-0.045em] pb-2">
             {hero.title}
           </h1>
-          <p className="mt-5 text-lg sm:text-2xl text-[#F4EDE2]/85 max-w-xl">{hero.text}</p>
+          <p className="rise rise-3 mt-5 text-lg sm:text-2xl text-[#F4EDE2]/85 max-w-xl">{hero.text}</p>
 
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="rise rise-4 mt-8 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <Link
               href="/congress"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#F4EDE2] text-[#7D1A30] font-semibold text-[17px] px-7 h-[52px] hover:bg-white transition-colors"
+              className="sheen inline-flex items-center justify-center gap-2 rounded-full bg-[#F4EDE2] text-[#7D1A30] font-semibold text-[17px] px-7 h-[52px] hover:bg-white transition-colors"
             >
               {hero.button} <ArrowRight size={19} aria-hidden="true" />
             </Link>
@@ -62,33 +67,49 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="mt-10 w-full flex justify-center">
+          <div className="rise rise-5 mt-10 w-full flex justify-center">
             <Countdown start={siteConfig.startDate.toISOString()} end={siteConfig.endDate.toISOString()} labels={countdown} />
           </div>
         </div>
 
         <div className="relative max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 mt-12 sm:mt-16">
-          <div className="relative aspect-[4/3] sm:aspect-[21/9] rounded-[28px] sm:rounded-[36px] overflow-hidden border border-white/10 bg-[#1C1416] shadow-[0_40px_120px_-30px_rgba(163,48,74,0.7)]">
+          <div className="tilt-in relative aspect-[4/3] sm:aspect-[21/9] rounded-[28px] sm:rounded-[36px] overflow-hidden border border-white/10 bg-[#1C1416] shadow-[0_40px_120px_-30px_rgba(163,48,74,0.7)]">
             <Image src={hero.image} alt={hero.imageAlt} fill preload quality={65} sizes="(max-width: 1280px) 100vw, 1200px" className="object-cover object-center" />
           </div>
           {hero.themeNote && <p className="mt-3 px-2 text-xs text-[#B8A69C] text-center">{hero.themeNote}</p>}
         </div>
       </section>
 
+      {/* ── Ticker ── */}
+      <div className="mt-16 sm:mt-20 border-y border-white/10 py-4 overflow-hidden" aria-hidden="true">
+        <div className="marquee-track">
+          {[0, 1].map((copy) => (
+            <div key={copy} className="flex shrink-0 items-center">
+              {[...tickerWords, ...tickerWords].map((word, i) => (
+                <span key={i} className="flex items-center font-serif-title text-2xl sm:text-4xl whitespace-nowrap text-[#FBF7F0]/85">
+                  {word}
+                  <span className="mx-6 sm:mx-10 inline-block w-2.5 h-2.5 rounded-full bg-[#E0647D]" />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── 2. WHAT DO YOU NEED? Bento of big, plain buttons ── */}
-      <section className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-20 sm:pt-28">
-        <h2 className="px-1 text-4xl sm:text-6xl">{tiles.title}</h2>
-        <ul className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <section className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-16 sm:pt-24">
+        <h2 className="reveal px-1 text-4xl sm:text-6xl">{tiles.title}</h2>
+        <ul data-stagger className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {tiles.items.map((t, i) => {
             const Icon = tileIcons[t.link] ?? ArrowRight;
             const wide = i === 0 || i === tiles.items.length - 1;
             const featured = i === 0;
             return (
-              <li key={t.link} className={cn(wide && "col-span-2")}>
+              <li key={t.link} className={cn("reveal", wide && "col-span-2")}>
                 <Link
                   href={t.link}
                   className={cn(
-                    "group relative h-full min-h-[168px] sm:min-h-[210px] flex flex-col rounded-[28px] p-5 sm:p-7 overflow-hidden transition-transform duration-300 hover:-translate-y-1",
+                    "spot group relative h-full min-h-[168px] sm:min-h-[210px] flex flex-col rounded-[28px] p-5 sm:p-7 overflow-hidden transition-transform duration-300 hover:-translate-y-1",
                     featured
                       ? "bg-[linear-gradient(140deg,#A3304A_0%,#7D1A30_55%,#4A0F1F_100%)]"
                       : "glass hover:bg-white/10"
@@ -120,7 +141,7 @@ export default function HomePage() {
 
       {/* ── 3. ANTALYA: swipeable cards on phones, a row on bigger screens ── */}
       <section className="pt-20 sm:pt-28">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-end justify-between gap-5">
+        <div className="reveal max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-end justify-between gap-5">
           <div>
             <h2 className="text-5xl sm:text-7xl">{city.title}</h2>
             <p className="mt-3 text-lg text-[#F4EDE2]/80 max-w-md">{city.text}</p>
@@ -132,9 +153,9 @@ export default function HomePage() {
             {city.button} <ChevronRight size={18} aria-hidden="true" />
           </Link>
         </div>
-        <ul className="mt-8 max-w-6xl mx-auto flex sm:grid sm:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible snap-x snap-mandatory px-4 sm:px-6 lg:px-8 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul data-stagger className="mt-8 max-w-6xl mx-auto flex sm:grid sm:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible snap-x snap-mandatory px-4 sm:px-6 lg:px-8 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {city.items.map((item, i) => (
-            <li key={i} className="snap-start flex-shrink-0 w-[78%] sm:w-auto">
+            <li key={i} className="reveal snap-start flex-shrink-0 w-[78%] sm:w-auto">
               <Link href="/explore-antalya" className="group relative block aspect-[3/4] rounded-[28px] overflow-hidden bg-[#1C1416] border border-white/10">
                 <Image src={item.image} alt={item.imageAlt} fill quality={60} sizes="(max-width: 640px) 80vw, 33vw" className="object-cover object-center transition-transform duration-500 group-hover:scale-105" />
                 <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" aria-hidden="true" />
@@ -148,13 +169,13 @@ export default function HomePage() {
       {/* ── 4. NEWS: an inset grouped list, like iOS Settings ── */}
       {latest.length > 0 && (
         <section className="max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-20 sm:pb-28">
-          <div className="px-1 flex items-end justify-between gap-4">
+          <div className="reveal px-1 flex items-end justify-between gap-4">
             <h2 className="text-4xl sm:text-5xl">{news.title}</h2>
             <Link href="/announcements" className="font-semibold text-[#E0647D] hover:text-white whitespace-nowrap">
               {news.linkText}
             </Link>
           </div>
-          <ul className="mt-6 rounded-[24px] bg-[#1C1416] border border-white/10 divide-y divide-white/10 overflow-hidden">
+          <ul className="reveal mt-6 rounded-[24px] bg-[#1C1416] border border-white/10 divide-y divide-white/10 overflow-hidden">
             {latest.map((a) => (
               <li key={a.id}>
                 <Link href="/announcements" className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors">

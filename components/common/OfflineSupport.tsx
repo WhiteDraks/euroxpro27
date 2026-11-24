@@ -51,7 +51,7 @@ export function OfflineSupport() {
   return (
     <div
       role="status"
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md flex items-center gap-3 bg-[#140D0E] text-[#F4EDE2] border border-[#3A2A2A] rounded-sm px-4 py-3 shadow-lg text-sm"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md flex items-center gap-3 bg-[#141012] text-[#F4EDE2] border border-[#3A2A2A] rounded-xl px-4 py-3 shadow-lg text-sm"
     >
       <WifiOff size={16} className="text-[#E0647D] flex-shrink-0" />
       <span>You are offline. Showing the version saved on this device.</span>

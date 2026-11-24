@@ -37,15 +37,15 @@ export default function CongressPage() {
             { label: hero.venueLabel, value: siteConfig.venueName },
           ].map(({ label, value }) => (
             <div key={label}>
-              <dt className="text-xs text-[#6B5B55]">{label}</dt>
-              <dd className="font-serif-title text-xl sm:text-2xl text-[#140D0E] mt-0.5">{value}</dd>
+              <dt className="text-xs text-[#B8A69C]">{label}</dt>
+              <dd className="font-serif-title text-xl sm:text-2xl text-[#FBF7F0] mt-0.5">{value}</dd>
             </div>
           ))}
         </dl>
       </PageHero>
 
       {/* ── ABOUT & OBJECTIVES (EDITORIAL TWO-COLUMN) ── */}
-      <section className="py-20 sm:py-24 bg-[#FBF7F0]">
+      <section className="py-20 sm:py-24 bg-[#141012]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
@@ -55,7 +55,7 @@ export default function CongressPage() {
                 title={about.title}
                 description={about.description}
               />
-              <div className="space-y-4 text-base text-[#374151] leading-relaxed">
+              <div className="space-y-4 text-base text-[#D6C8BC] leading-relaxed">
                 {about.paragraphs.map((paragraph, i) => (
                   <p key={i}>
                     <RichText text={paragraph} />
@@ -68,10 +68,10 @@ export default function CongressPage() {
               <p className="kicker mb-2">{about.objectivesTitle}</p>
               <ol>
                 {about.objectives.map(({ title, desc }, i) => (
-                  <li key={i} className="border-t border-[#CDBDA8] py-6 last:border-b">
+                  <li key={i} className="border-t border-white/15 py-6 last:border-b">
                     <div>
-                      <h3 className="font-serif-title text-xl sm:text-2xl text-[#140D0E] font-normal leading-snug">{title}</h3>
-                      <p className="mt-2 text-sm text-[#6B5B55] leading-relaxed">{desc}</p>
+                      <h3 className="font-serif-title text-xl sm:text-2xl text-[#FBF7F0] font-normal leading-snug">{title}</h3>
+                      <p className="mt-2 text-sm text-[#B8A69C] leading-relaxed">{desc}</p>
                     </div>
                   </li>
                 ))}
@@ -86,7 +86,7 @@ export default function CongressPage() {
       <PreviousEditions />
 
       {/* ── CONGRESS SCHEDULE & TIMETABLE (DEEP NAVY) ── */}
-      <section id="schedule" className="py-24 bg-[#140D0E] text-white">
+      <section id="schedule" className="py-24 bg-[#141012] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow={scheduleText.eyebrow}
@@ -116,7 +116,7 @@ export default function CongressPage() {
           )}
 
           {isSchedulePublished && isDraftSchedule && (
-            <div className="mb-10 flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-sm p-4">
+            <div className="mb-10 flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
               <AlertTriangle size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-amber-200 leading-relaxed">
                 <RichText text={scheduleText.draftNotice} />
@@ -131,7 +131,7 @@ export default function CongressPage() {
       {/* ── EVENING SOCIAL EVENTS WITH RICH PHOTOGRAPHY ── */}
       {/* Part of the programme, so hidden until the agenda is published. */}
       {isSchedulePublished && (
-      <section className="py-24 bg-[#F4EDE2] border-t border-[#DCCFBE]">
+      <section className="py-24 bg-black border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow={evenings.eyebrow}
@@ -141,9 +141,9 @@ export default function CongressPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {evenings.items.map((event, i) => (
-              <div key={i} className="reveal bg-[#FBF7F0] border border-[#DCCFBE] rounded-sm overflow-hidden flex flex-col justify-between group">
+              <div key={i} className="reveal bg-[#141012] border border-white/10 rounded-xl overflow-hidden flex flex-col justify-between group">
                 <div>
-                  <div className="aspect-[16/10] relative overflow-hidden bg-[#140D0E]">
+                  <div className="aspect-[16/10] relative overflow-hidden bg-[#141012]">
                     <Image
                       src={event.image}
                       alt={event.title}
@@ -153,19 +153,19 @@ export default function CongressPage() {
                       className="object-cover object-center img-zoom"
                     />
                     <div className="absolute top-3 left-3">
-                      <span className="text-[10px] bg-[#140D0E]/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-sm">
+                      <span className="text-[10px] bg-[#140D0E]/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-xl">
                         {event.tag}
                       </span>
                     </div>
                   </div>
                   <div className="p-6">
-                    <h3 className="font-serif-title text-xl text-[#140D0E] font-normal mb-2">{event.title}</h3>
-                    <p className="text-xs text-[#6B5B55] leading-relaxed mb-4 font-light">{event.desc}</p>
+                    <h3 className="font-serif-title text-xl text-[#FBF7F0] font-normal mb-2">{event.title}</h3>
+                    <p className="text-xs text-[#B8A69C] leading-relaxed mb-4 font-light">{event.desc}</p>
                   </div>
                 </div>
-                <div className="px-6 py-3.5 bg-[#F4EDE2]/80 border-t border-[#DCCFBE] flex items-center justify-between text-xs">
+                <div className="px-6 py-3.5 bg-black/80 border-t border-white/10 flex items-center justify-between text-xs">
                   <span className="text-[#8C7A72] text-[10px]">{evenings.dressCodeLabel}</span>
-                  <span className="font-semibold text-[#7D1A30]">{event.dress}</span>
+                  <span className="font-semibold text-[#E0647D]">{event.dress}</span>
                 </div>
               </div>
             ))}

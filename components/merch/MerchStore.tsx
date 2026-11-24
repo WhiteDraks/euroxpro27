@@ -108,19 +108,19 @@ export function MerchStore({
   };
 
   return (
-    <div className="pt-10 sm:pt-14 pb-20 sm:pb-28 bg-[#F4EDE2]">
+    <div className="pt-10 sm:pt-14 pb-20 sm:pb-28 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notice on illustrative nature */}
-        <div className="mb-10 pl-4 border-l-2 border-[#7D1A30] max-w-3xl text-base text-[#374151] leading-relaxed">
+        <div className="mb-10 pl-4 border-l-2 border-[#7D1A30] max-w-3xl text-base text-[#D6C8BC] leading-relaxed">
           <p>
-            <strong className="font-semibold text-[#140D0E]">This is a preview, not a shop yet.</strong> Designs and prices
+            <strong className="font-semibold text-[#FBF7F0]">This is a preview, not a shop yet.</strong> Designs and prices
             are still being worked on. Sending a pre-order request just tells the Organizing Committee what you would like;
             nothing is charged here, and AIESEC in Türkiye will share how to pay once the collection is final.
           </p>
         </div>
 
         {/* Categories */}
-        <div className="flex gap-x-6 mb-10 border-b border-[#CDBDA8] overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex gap-x-6 mb-10 border-b border-white/15 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((c) => (
             <button
               key={c.id}
@@ -130,8 +130,8 @@ export function MerchStore({
               className={cn(
                 "whitespace-nowrap py-3 -mb-px text-sm border-b-2 transition-colors",
                 selectedCategory === c.id
-                  ? "border-[#7D1A30] text-[#140D0E] font-semibold"
-                  : "border-transparent text-[#6B5B55] hover:text-[#140D0E]"
+                  ? "border-[#7D1A30] text-[#FBF7F0] font-semibold"
+                  : "border-transparent text-[#B8A69C] hover:text-white"
               )}
             >
               {c.label}
@@ -145,7 +145,7 @@ export function MerchStore({
             {filteredProducts.map((p) => (
               <Card key={p.id} className="bg-transparent border-0 rounded-none flex flex-col justify-between group">
                 <div>
-                  <div className="aspect-[4/3] bg-[#ECE1D1] overflow-hidden relative">
+                  <div className="aspect-[4/3] bg-[#1C1416] overflow-hidden relative">
                     {p.image ? (
                       <Image
                         src={p.image}
@@ -156,23 +156,23 @@ export function MerchStore({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag size={28} className="text-[#7D1A30]" />
+                        <ShoppingBag size={28} className="text-[#E0647D]" />
                       </div>
                     )}
 
                   </div>
                   <div className="pt-4">
-                    <p className="text-xs text-[#7D1A30]">
+                    <p className="text-xs text-[#E0647D]">
                       {categories.find((c) => c.id === p.category)?.label ?? p.category}
                       {p.badge && <> · {p.badge}</>} · Sample design
                     </p>
                     <div className="flex items-baseline justify-between gap-4 mt-1">
-                      <h3 className="font-serif-title text-xl text-[#140D0E] font-normal">{p.name}</h3>
-                      <span className="text-base text-[#140D0E] tabular-nums whitespace-nowrap">
+                      <h3 className="font-serif-title text-xl text-[#FBF7F0] font-normal">{p.name}</h3>
+                      <span className="text-base text-[#FBF7F0] tabular-nums whitespace-nowrap">
                         {formatPrice(p.price)}
                       </span>
                     </div>
-                    <p className="text-sm text-[#4B5563] leading-relaxed line-clamp-2 mt-2 mb-4">
+                    <p className="text-sm text-[#D6C8BC] leading-relaxed line-clamp-2 mt-2 mb-4">
                       {p.description}
                     </p>
                   </div>
@@ -191,9 +191,9 @@ export function MerchStore({
           </div>
 
           {/* Cart & Expression of Interest Drawer */}
-          <div className="bg-[#FBF7F0] border border-[#DCCFBE] rounded-sm p-6 sticky top-28">
-            <div className="flex items-center justify-between pb-4 border-b border-[#DCCFBE] mb-4">
-              <h3 className="font-serif-title text-xl text-[#140D0E]">Pre-Order Cart</h3>
+          <div className="bg-[#141012] border border-white/10 rounded-xl p-6 sticky top-28">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+              <h3 className="font-serif-title text-xl text-[#FBF7F0]">Pre-Order Cart</h3>
               <Badge variant="burgundy">{cart.reduce((n, i) => n + i.quantity, 0)} items</Badge>
             </div>
 
@@ -203,11 +203,11 @@ export function MerchStore({
               </div>
             ) : orderSubmitted ? (
               <div className="text-center py-6">
-                <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                <div className="w-12 h-12 bg-green-500/15 text-green-400 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check size={24} />
                 </div>
-                <h4 className="font-serif-title font-bold text-lg text-[#140D0E] mb-2">Almost done</h4>
-                <p className="text-xs text-[#6B5B55] leading-relaxed mb-4">
+                <h4 className="font-serif-title font-bold text-lg text-[#FBF7F0] mb-2">Almost done</h4>
+                <p className="text-xs text-[#B8A69C] leading-relaxed mb-4">
                   Thank you, {formData.name}. Your email app should have opened with your pre-order request ready to send. Press send there to register your interest with the Organizing Committee (no payment is taken), or write to {siteConfig.supportEmail}.
                 </p>
                 <Button
@@ -225,9 +225,9 @@ export function MerchStore({
               <div>
                 <div className="space-y-4 max-h-64 overflow-y-auto mb-4 pr-1">
                   {cart.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between gap-3 text-xs pb-3 border-b border-[#DCCFBE]">
+                    <div key={idx} className="flex items-center justify-between gap-3 text-xs pb-3 border-b border-white/10">
                       <div className="min-w-0">
-                        <p className="font-medium text-[#140D0E] truncate">{item.product.name}</p>
+                        <p className="font-medium text-[#FBF7F0] truncate">{item.product.name}</p>
                         <p className="text-[11px] text-[#B8A69C]">
                           {item.quantity}x @ {formatPrice(item.product.price)}
                           {item.selectedSize && ` · ${item.selectedSize}`}
@@ -235,12 +235,12 @@ export function MerchStore({
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="font-bold text-[#7D1A30]">
+                        <span className="font-bold text-[#E0647D]">
                           {formatPrice(item.product.price * item.quantity)}
                         </span>
                         <button
                           onClick={() => removeFromCart(idx)}
-                          className="text-[#B8A69C] hover:text-red-600 transition-colors"
+                          className="text-[#B8A69C] hover:text-red-400 transition-colors"
                           aria-label="Remove item"
                         >
                           <Trash2 size={13} />
@@ -250,10 +250,10 @@ export function MerchStore({
                   ))}
                 </div>
 
-                <div className="pt-2 border-t border-[#DCCFBE] mb-6">
+                <div className="pt-2 border-t border-white/10 mb-6">
                   <div className="flex justify-between items-baseline mb-1">
-                    <span className="text-xs font-semibold text-[#140D0E]">Estimated Subtotal:</span>
-                    <span className="text-xl font-bold text-[#7D1A30]">{formatPrice(cartSubtotal)}</span>
+                    <span className="text-xs font-semibold text-[#FBF7F0]">Estimated Subtotal:</span>
+                    <span className="text-xl font-bold text-[#E0647D]">{formatPrice(cartSubtotal)}</span>
                   </div>
                   <span className="text-[10px] text-[#B8A69C] block">
                     No payment is collected at this stage.
@@ -263,35 +263,35 @@ export function MerchStore({
                 {/* Reservation Form */}
                 <form onSubmit={handleOrderSubmit} className="space-y-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#140D0E] mb-1">Your Full Name</label>
+                    <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">Your Full Name</label>
                     <input
                       type="text"
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g. Maria Rossi"
-                      className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#140D0E] mb-1">Email Address</label>
+                    <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">Email Address</label>
                     <input
                       type="email"
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="maria@aiesec.net"
-                      className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#140D0E] mb-1">AIESEC Entity / LC</label>
+                    <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">AIESEC Entity / LC</label>
                     <input
                       type="text"
                       value={formData.entity}
                       onChange={(e) => setFormData({ ...formData, entity: e.target.value })}
                       placeholder="e.g. AIESEC in Italy"
-                      className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <Button type="submit" variant="primary" className="w-full text-xs py-2.5 mt-2">
@@ -306,17 +306,17 @@ export function MerchStore({
         {/* Modal for Variant Configuration */}
         {activeModalProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-[#FBF7F0] rounded-sm max-w-lg w-full p-6 relative border border-[#DCCFBE] shadow-2xl">
+            <div className="bg-[#141012] rounded-xl max-w-lg w-full p-6 relative border border-white/10 shadow-2xl">
               <button
                 onClick={() => setActiveModalProduct(null)}
-                className="absolute top-4 right-4 text-[#B8A69C] hover:text-[#140D0E] transition-colors"
+                className="absolute top-4 right-4 text-[#B8A69C] hover:text-white transition-colors"
                 aria-label="Close modal"
               >
                 <X size={18} />
               </button>
 
               {activeModalProduct.image && (
-                <div className="aspect-[16/9] relative overflow-hidden rounded-sm mb-4 bg-[#140D0E]">
+                <div className="aspect-[16/9] relative overflow-hidden rounded-xl mb-4 bg-[#141012]">
                   <Image
                     src={activeModalProduct.image}
                     alt={activeModalProduct.name}
@@ -327,17 +327,17 @@ export function MerchStore({
                 </div>
               )}
 
-              <h3 className="font-serif-title text-2xl text-[#140D0E] mb-1">
+              <h3 className="font-serif-title text-2xl text-[#FBF7F0] mb-1">
                 {activeModalProduct.name}
               </h3>
-              <p className="text-xs text-[#6B5B55] mb-3 leading-relaxed">{activeModalProduct.description}</p>
-              <p className="text-xl font-bold text-[#7D1A30] mb-5">
+              <p className="text-xs text-[#B8A69C] mb-3 leading-relaxed">{activeModalProduct.description}</p>
+              <p className="text-xl font-bold text-[#E0647D] mb-5">
                 {formatPrice(activeModalProduct.price)}
               </p>
 
               {activeModalProduct.sizes && (
                 <div className="mb-4">
-                  <label className="block text-[11px] font-semibold text-[#140D0E] mb-2">
+                  <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-2">
                     Select Size
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -347,10 +347,10 @@ export function MerchStore({
                         type="button"
                         onClick={() => setSelectedSize(s)}
                         className={cn(
-                          "px-3 py-1.5 text-xs font-semibold border rounded-sm transition-colors",
+                          "px-3 py-1.5 text-xs font-semibold border rounded-xl transition-colors",
                           selectedSize === s
                             ? "border-[#7D1A30] bg-[#7D1A30] text-white"
-                            : "border-[#DCCFBE] text-[#6B5B55] hover:border-[#140D0E]"
+                            : "border-white/10 text-[#B8A69C] hover:border-white"
                         )}
                       >
                         {s}
@@ -362,8 +362,8 @@ export function MerchStore({
 
               {activeModalProduct.colors && (
                 <div className="mb-5">
-                  <label className="block text-[11px] font-semibold text-[#140D0E] mb-2">
-                    Select Color: <span className="text-[#7D1A30] normal-case">{selectedColor?.name}</span>
+                  <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-2">
+                    Select Color: <span className="text-[#E0647D] normal-case">{selectedColor?.name}</span>
                   </label>
                   <div className="flex gap-2">
                     {activeModalProduct.colors.map((c) => (
@@ -384,20 +384,20 @@ export function MerchStore({
               )}
 
               <div className="flex items-center gap-4 mb-6">
-                <label className="text-[11px] font-semibold text-[#140D0E]">
+                <label className="text-[11px] font-semibold text-[#FBF7F0]">
                   Quantity:
                 </label>
-                <div className="flex items-center border border-[#DCCFBE] rounded-sm">
+                <div className="flex items-center border border-white/10 rounded-xl">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-1 text-sm text-[#6B5B55] hover:bg-gray-100"
+                    className="px-3 py-1 text-sm text-[#B8A69C] hover:bg-gray-100"
                   >
                     -
                   </button>
-                  <span className="px-4 py-1 text-sm font-semibold text-[#140D0E]">{quantity}</span>
+                  <span className="px-4 py-1 text-sm font-semibold text-[#FBF7F0]">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-1 text-sm text-[#6B5B55] hover:bg-gray-100"
+                    className="px-3 py-1 text-sm text-[#B8A69C] hover:bg-gray-100"
                   >
                     +
                   </button>

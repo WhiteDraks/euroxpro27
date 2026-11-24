@@ -9,19 +9,19 @@ import { cn } from "@/lib/utils";
 function AnnouncementCard({ ann }: { ann: Announcement }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <article className="border-t border-[#140D0E] py-8 grid sm:grid-cols-[11rem_1fr] gap-x-8 gap-y-2">
-      <div className="text-sm text-[#6B5B55]">
+    <article className="border-t border-white/25 py-8 grid sm:grid-cols-[11rem_1fr] gap-x-8 gap-y-2">
+      <div className="text-sm text-[#B8A69C]">
         <time dateTime={ann.publishedAt}>{formatDate(ann.publishedAt)}</time>
-        <p className="text-[#7D1A30] mt-0.5">
+        <p className="text-[#E0647D] mt-0.5">
           {ann.isPinned && <>Pinned · </>}
           {ann.category.charAt(0).toUpperCase() + ann.category.slice(1)}
         </p>
       </div>
       <div>
-        <h3 className="font-serif-title font-normal text-[#140D0E] text-2xl sm:text-3xl leading-snug">{ann.title}</h3>
-        <p className="text-[#4B5563] text-base leading-relaxed mt-2">{ann.summary}</p>
+        <h3 className="font-serif-title font-normal text-[#FBF7F0] text-2xl sm:text-3xl leading-snug">{ann.title}</h3>
+        <p className="text-[#D6C8BC] text-base leading-relaxed mt-2">{ann.summary}</p>
         {expanded && (
-          <div className="mt-4 text-[#374151] text-base leading-relaxed whitespace-pre-line">
+          <div className="mt-4 text-[#D6C8BC] text-base leading-relaxed whitespace-pre-line">
             {ann.content}
           </div>
         )}
@@ -30,7 +30,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
             type="button"
             onClick={() => setExpanded(!expanded)}
             aria-expanded={expanded}
-            className="text-[#7D1A30] text-sm font-semibold link-underline"
+            className="text-[#E0647D] text-sm font-semibold link-underline"
           >
             {expanded ? "Show less" : "Read more"}
           </button>
@@ -39,7 +39,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
               href={ann.externalLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[#6B5B55] text-sm hover:text-[#7D1A30] transition-colors"
+              className="flex items-center gap-1 text-[#B8A69C] text-sm hover:text-[#E0647D] transition-colors"
             >
               <ExternalLink size={13} /> Link
             </a>
@@ -67,10 +67,10 @@ export function AnnouncementsPage({
   const rest = filtered.filter((a) => !a.isPinned);
 
   return (
-    <section className="pb-20 sm:pb-28 bg-[#F4EDE2]">
+    <section className="pb-20 sm:pb-28 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Category Filter */}
-        <div className="flex gap-x-6 mb-4 border-b border-[#CDBDA8] overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex gap-x-6 mb-4 border-b border-white/15 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -80,8 +80,8 @@ export function AnnouncementsPage({
               className={cn(
                 "whitespace-nowrap py-3 -mb-px text-sm border-b-2 transition-colors",
                 activeCategory === cat.id
-                  ? "border-[#7D1A30] text-[#140D0E] font-semibold"
-                  : "border-transparent text-[#6B5B55] hover:text-[#140D0E]"
+                  ? "border-[#7D1A30] text-[#FBF7F0] font-semibold"
+                  : "border-transparent text-[#B8A69C] hover:text-white"
               )}
             >
               {cat.label}
@@ -90,14 +90,14 @@ export function AnnouncementsPage({
         </div>
 
         {filtered.length === 0 ? (
-          <div className="py-16 border-t border-[#140D0E]">
-            <h4 className="font-serif-title text-xl text-[#140D0E] mb-2">No Announcements in this Category</h4>
-            <p className="text-base text-[#6B5B55] max-w-md leading-relaxed">
+          <div className="py-16 border-t border-white/25">
+            <h4 className="font-serif-title text-xl text-[#FBF7F0] mb-2">No Announcements in this Category</h4>
+            <p className="text-base text-[#B8A69C] max-w-md leading-relaxed">
               Nothing here yet. Try &ldquo;All&rdquo;, or check back closer to the congress.
             </p>
           </div>
         ) : (
-          <div className="border-b border-[#140D0E]">
+          <div className="border-b border-white/25">
             {pinned.map((ann) => (
               <AnnouncementCard key={ann.id} ann={ann} />
             ))}

@@ -14,11 +14,11 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-[#7D1A30] text-white hover:bg-[#64142A] border border-transparent",
   secondary:
-    "bg-[#140D0E] text-white hover:bg-[#2A1D1E] border border-transparent",
+    "bg-[#1C1416] text-white hover:bg-[#2A1D1E] border border-white/10",
   outline:
-    "bg-transparent text-[#140D0E] border-2 border-[#140D0E] hover:bg-[#140D0E] hover:text-white",
+    "bg-transparent text-[#FBF7F0] border-2 border-white/25 hover:bg-[#7D1A30] hover:text-white",
   ghost:
-    "bg-transparent text-current hover:bg-black/10 border border-transparent",
+    "bg-transparent text-current hover:bg-white/10 border border-transparent",
   danger:
     "bg-red-600 text-white hover:bg-red-700 border border-transparent",
 };
@@ -49,7 +49,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           "inline-flex items-center justify-center gap-2 font-semibold",
           "transition-all duration-200 ease-in-out",
-          "rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7D1A30] focus-visible:ring-offset-2",
+          "sheen rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7D1A30] focus-visible:ring-offset-2 ring-offset-black",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           variantStyles[variant],
           sizeStyles[size],

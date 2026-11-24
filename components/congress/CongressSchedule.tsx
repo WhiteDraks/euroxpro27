@@ -11,7 +11,7 @@ const sessionTypeConfig = {
   networking: { icon: Users, color: "text-purple-400", bg: "bg-purple-500/10", label: "Networking" },
   social: { icon: PartyPopper, color: "text-[#E0647D]", bg: "bg-[#7D1A30]/20", label: "Social" },
   break: { icon: Coffee, color: "text-amber-400", bg: "bg-amber-500/10", label: "Break" },
-  logistics: { icon: Truck, color: "text-[#B8A69C]", bg: "bg-[#FBF7F0]/5", label: "Logistics" },
+  logistics: { icon: Truck, color: "text-[#B8A69C]", bg: "bg-white/5", label: "Logistics" },
 };
 
 function SessionCard({ session }: { session: ScheduleSession }) {
@@ -26,13 +26,13 @@ function SessionCard({ session }: { session: ScheduleSession }) {
         )}
       </div>
       <div className="flex gap-3 sm:gap-4 flex-1 min-w-0">
-        <div className={cn("w-8 h-8 rounded-sm flex items-center justify-center flex-shrink-0 mt-0.5", config.bg)}>
+        <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5", config.bg)}>
           <Icon size={14} className={config.color} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <h4 className="text-white font-medium leading-snug">{session.title}</h4>
-            <span className={cn("text-xs px-2 py-0.5 rounded-sm flex-shrink-0", config.bg, config.color)}>
+            <span className={cn("text-xs px-2 py-0.5 rounded-xl flex-shrink-0", config.bg, config.color)}>
               {config.label}
             </span>
           </div>
@@ -75,7 +75,7 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
             key={day.day}
             onClick={() => setActiveDay(index)}
             className={cn(
-              "px-5 py-2.5 text-sm font-medium rounded-sm transition-all duration-200",
+              "px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
               activeDay === index
                 ? "bg-[#7D1A30] text-white"
                 : "bg-[#1F1415] text-[#B8A69C] hover:text-white border border-[#3A2A2A]"
@@ -89,16 +89,16 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
 
       {/* Day Content */}
       {currentDay && (
-        <div className="bg-[#1F1415] border border-[#3A2A2A] rounded-sm p-4 sm:p-8">
+        <div className="bg-[#1F1415] border border-[#3A2A2A] rounded-xl p-4 sm:p-8">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#3A2A2A]">
             <div>
-              <span className="text-[11px] text-[#7D1A30] block mb-1">
+              <span className="text-[11px] text-[#E0647D] block mb-1">
                 Day {currentDay.day} Focus
               </span>
               <h3 className="font-serif-title text-white text-2xl font-normal">{currentDay.label}</h3>
               <p className="text-[#B8A69C] text-xs mt-1">{currentDay.date}</p>
             </div>
-            <Clock size={18} className="text-[#7D1A30]" />
+            <Clock size={18} className="text-[#E0647D]" />
           </div>
           <div>
             {currentDay.sessions.map((session) => (

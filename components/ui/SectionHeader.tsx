@@ -17,11 +17,11 @@ export function SectionHeader({
   centered = false,
 }: SectionHeaderProps) {
   return (
-    <div className={cn("mb-12", centered && "text-center", className)}>
+    <div className={cn("reveal mb-12", centered && "text-center", className)}>
       <h2
         className={cn(
           "font-serif-title text-[2.1rem] md:text-5xl lg:text-[3.6rem] leading-[1.02]",
-          light ? "text-white" : "text-[#140D0E]"
+          light ? "text-white" : "text-[#FBF7F0]"
         )}
       >
         {title}
@@ -30,7 +30,7 @@ export function SectionHeader({
         <p
           className={cn(
             "mt-4 text-base md:text-lg leading-relaxed max-w-2xl",
-            light ? "text-[#D6C8BC]" : "text-[#4B5563]",
+            light ? "text-[#D6C8BC]" : "text-[#D6C8BC]",
             centered && "mx-auto"
           )}
         >

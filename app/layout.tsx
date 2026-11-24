@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { MotionLayer } from "@/components/common/MotionLayer";
 import { OfflineSupport } from "@/components/common/OfflineSupport";
 import { siteConfig } from "@/lib/config";
 import { Analytics } from "@vercel/analytics/next";
@@ -57,6 +58,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <Footer />
         <OfflineSupport />
+        <MotionLayer />
         <Analytics />
       </body>
     </html>
