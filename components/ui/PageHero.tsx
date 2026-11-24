@@ -20,13 +20,15 @@ type PageHeroProps = {
 export function PageHero({ title, intro, image, imageAlt, children, className }: PageHeroProps) {
   return (
     <section className={cn("text-[#140D0E]", className)}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-8 sm:pb-10">
-        <h1 className="text-[3rem] leading-[0.92] sm:text-7xl lg:text-[6rem] lg:leading-[0.9] max-w-4xl">{title}</h1>
-        {intro && <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-[#4B3F3B] max-w-2xl">{intro}</p>}
-        {children && <div className="mt-8">{children}</div>}
+      <div className="bg-[#7D1A30] text-[#FBF7F0]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-10 sm:pb-14">
+          <h1 className="text-[3rem] leading-[0.92] sm:text-7xl lg:text-[6rem] lg:leading-[0.9] max-w-4xl">{title}</h1>
+          {intro && <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-[#F4EDE2] max-w-2xl">{intro}</p>}
+        </div>
       </div>
+      {children && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-2">{children}</div>}
       {image && (
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-12 sm:pb-16">
           <div className="relative aspect-[4/3] sm:aspect-[21/9] overflow-hidden rounded-3xl bg-[#140D0E]">
             <Image
               src={image}

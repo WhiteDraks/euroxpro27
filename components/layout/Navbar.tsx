@@ -34,7 +34,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0E0909]">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#7D1A30]">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main">
           <div className="flex items-center justify-between h-16 lg:h-20 gap-4">
             <Link href="/" onClick={closeMenu} className="flex items-center py-1" aria-label="EUROXPRO'27 home">
@@ -55,7 +55,7 @@ export function Navbar() {
                   href={link.href}
                   className={cn(
                     "px-3.5 py-2 rounded-full text-[15px] font-semibold whitespace-nowrap transition-colors",
-                    pathname === link.href ? "bg-[#F4EDE2] text-[#140D0E]" : "text-[#E9DED2] hover:bg-white/10"
+                    pathname === link.href ? "bg-[#F4EDE2] text-[#7D1A30]" : "text-[#FBF7F0] hover:bg-white/15"
                   )}
                 >
                   {link.label}
@@ -67,7 +67,7 @@ export function Navbar() {
               <Link
                 href="/merch"
                 onClick={closeMenu}
-                className="hidden lg:flex w-10 h-10 items-center justify-center rounded-full text-[#E9DED2] hover:bg-white/10"
+                className="hidden lg:flex w-10 h-10 items-center justify-center rounded-full text-[#FBF7F0] hover:bg-white/15"
                 aria-label="Merch"
                 title="Merch"
               >
@@ -76,7 +76,7 @@ export function Navbar() {
               <Link
                 href="/contact"
                 onClick={closeMenu}
-                className="hidden sm:inline-flex items-center px-5 py-2.5 rounded-full bg-[#7D1A30] text-[#FBF7F0] text-[15px] font-bold hover:bg-[#64142A] transition-colors"
+                className="hidden sm:inline-flex items-center px-5 py-2.5 rounded-full bg-[#0E0909] text-[#FBF7F0] text-[15px] font-bold hover:bg-[#140D0E] transition-colors"
               >
                 Contact
               </Link>
@@ -98,7 +98,7 @@ export function Navbar() {
       <div
         id="mobile-menu"
         className={cn(
-          "fixed inset-0 z-40 lg:hidden bg-[#0E0909] pt-16 transition-opacity duration-200",
+          "fixed inset-0 z-40 lg:hidden bg-[#7D1A30] pt-16 transition-opacity duration-200",
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         aria-hidden={!isOpen}
@@ -113,10 +113,10 @@ export function Navbar() {
                   tabIndex={isOpen ? 0 : -1}
                   className={cn(
                     "flex flex-col gap-4 rounded-2xl p-4 font-serif-title text-2xl transition-colors",
-                    pathname === href ? "bg-[#7D1A30] text-[#FBF7F0]" : "bg-[#1F1415] text-[#F4EDE2] hover:bg-[#2A1D1E]"
+                    pathname === href ? "bg-[#F4EDE2] text-[#7D1A30]" : "bg-[#64142A] text-[#FBF7F0] hover:bg-[#561024]"
                   )}
                 >
-                  <Icon size={28} aria-hidden="true" className={pathname === href ? "text-[#FBF7F0]" : "text-[#E0647D]"} />
+                  <Icon size={28} aria-hidden="true" className={pathname === href ? "text-[#7D1A30]" : "text-[#E8D5B5]"} />
                   {label}
                 </Link>
               </li>
@@ -126,7 +126,7 @@ export function Navbar() {
             href="/contact"
             onClick={closeMenu}
             tabIndex={isOpen ? 0 : -1}
-            className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#F4EDE2] text-[#140D0E] font-bold text-lg py-4"
+            className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#0E0909] text-[#FBF7F0] font-bold text-lg py-4"
           >
             <Mail size={20} aria-hidden="true" /> Contact us
           </Link>

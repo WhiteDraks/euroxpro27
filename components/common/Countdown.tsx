@@ -26,7 +26,7 @@ export function Countdown({ start, end, labels }: { start: string; end: string; 
 
   if (now !== null && now >= startAt) {
     return (
-      <p className="text-lg font-semibold text-[#E0647D]">
+      <p className="text-lg font-semibold text-[#F4EDE2]">
         {now < endAt ? labels.liveText : labels.endedText}
       </p>
     );
@@ -42,7 +42,7 @@ export function Countdown({ start, end, labels }: { start: string; end: string; 
 
   return (
     <div role="timer" aria-label={labels.label}>
-      <p className="text-sm text-[#D6C8BC] mb-2">{labels.label}</p>
+      <p className="text-sm text-[#F4EDE2] mb-2">{labels.label}</p>
       <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-md">
         {units.map(({ label, value }, i) => {
           const shown = value === null ? "--" : i === 0 ? String(value) : String(value).padStart(2, "0");
