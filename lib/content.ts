@@ -12,7 +12,18 @@ import type { FAQCategory, GalleryItem, HistoricalEdition, ScheduleDay, UsefulLo
 type TitledText = { title: string; desc: string };
 
 // An empty name or photo shows a placeholder until the editor fills it in.
-export type TeamMember = { name: string; role: string; department: string; bio: string; image: string };
+export type TeamMember = {
+  name: string;
+  role: string;
+  department: string;
+  bio: string;
+  image: string;
+  // Contact details are optional; empty ones are not shown.
+  email: string;
+  phone: string;
+  linkedin: string;
+  instagram: string;
+};
 
 export type SiteContent = {
   home: {

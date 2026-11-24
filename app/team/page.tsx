@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { content } from "@/lib/content";
 import { PageHero } from "@/components/ui/PageHero";
+import { MemberContacts } from "@/components/team/MemberContacts";
 
 export const metadata: Metadata = {
   title: "Organizing Committee — The Team",
@@ -73,7 +74,10 @@ export default function TeamPage() {
                     <p className={cn("mt-1 font-semibold", lead ? "text-lg text-[#F4EDE2]" : "text-sm sm:text-base text-[#E0647D]")}>
                       {member.role}
                     </p>
-                    {member.bio && <p className="mt-2 text-sm text-[#B8A69C]">{member.bio}</p>}
+                    {member.bio && (
+                      <p className={cn("mt-2 text-sm", lead ? "text-[#F4EDE2]/85" : "text-[#B8A69C]")}>{member.bio}</p>
+                    )}
+                    <MemberContacts member={member} onBrand={lead} />
                   </div>
                 </article>
               </li>
