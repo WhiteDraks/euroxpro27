@@ -115,23 +115,25 @@ export default function HomePage() {
 
       {/* ── 4. NEWS ── */}
       {latest.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+        <section className="bg-[#0E0909] text-[#FBF7F0]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-4xl sm:text-5xl text-[#7D1A30]">{news.title}</h2>
-            <Link href="/announcements" className="font-semibold text-[#7D1A30] link-underline whitespace-nowrap">
+            <h2 className="text-4xl sm:text-5xl">{news.title}</h2>
+            <Link href="/announcements" className="font-semibold text-[#E8D5B5] link-underline whitespace-nowrap">
               {news.linkText}
             </Link>
           </div>
           <ul className="mt-8 grid md:grid-cols-3 gap-4">
             {latest.map((a) => (
               <li key={a.id}>
-                <Link href="/announcements" className="block h-full rounded-2xl bg-[#FBF7F0] border border-[#DCCFBE] p-6 hover:border-[#140D0E] transition-colors">
-                  <time dateTime={a.publishedAt} className="text-sm text-[#6B5B55]">{formatDate(a.publishedAt)}</time>
+                <Link href="/announcements" className="block h-full rounded-2xl bg-[#7D1A30] p-6 hover:bg-[#64142A] transition-colors">
+                  <time dateTime={a.publishedAt} className="text-sm text-[#E8D5B5]">{formatDate(a.publishedAt)}</time>
                   <h3 className="mt-2 text-xl leading-snug">{a.title}</h3>
                 </Link>
               </li>
             ))}
           </ul>
+        </div>
         </section>
       )}
     </div>
