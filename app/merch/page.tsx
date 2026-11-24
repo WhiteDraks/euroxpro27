@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 
 export default function MerchPage() {
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow="Pre-order preview"
-        title="Congress Merch"
-        intro="Hoodies, tees, totes and a few small things to take home from Antalya. Pick a size and colour and let us know what you would like to pre-order."
+        title="Merch"
+        intro="Hoodies, tees and more. Tell us what you want."
       />
 
       <MerchStore

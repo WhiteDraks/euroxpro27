@@ -10,7 +10,6 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({
-  eyebrow,
   title,
   description,
   className,
@@ -18,16 +17,11 @@ export function SectionHeader({
   centered = false,
 }: SectionHeaderProps) {
   return (
-    <div className={cn("mb-12", centered && "text-center", className)}>
-      {eyebrow && (
-        <p className={cn("kicker mb-4", light && "text-[#e58aa6]")}>
-          {eyebrow}
-        </p>
-      )}
+    <div className={cn("reveal mb-12", centered && "text-center", className)}>
       <h2
         className={cn(
-          "font-serif-title font-normal text-[2rem] md:text-5xl lg:text-[3.5rem] leading-[1.05]",
-          light ? "text-white" : "text-[#101B35]"
+          "font-serif-title text-[2.1rem] md:text-5xl lg:text-[3.6rem] leading-[1.02]",
+          light ? "text-white" : "text-[#FBF7F0]"
         )}
       >
         {title}
@@ -36,7 +30,7 @@ export function SectionHeader({
         <p
           className={cn(
             "mt-4 text-base md:text-lg leading-relaxed max-w-2xl",
-            light ? "text-[#C9CED8]" : "text-[#4B5563]",
+            light ? "text-[#D6C8BC]" : "text-[#D6C8BC]",
             centered && "mx-auto"
           )}
         >

@@ -23,7 +23,7 @@ const REFRESH_MS = 60000;
 
 function Tabs<T extends string>({ value, options, onChange, label }: { value: T; options: [T, string][]; onChange: (v: T) => void; label: string }) {
   return (
-    <div role="group" aria-label={label} className="inline-flex rounded-full bg-[#EFE9DF] p-1 max-w-full overflow-x-auto">
+    <div role="group" aria-label={label} className="inline-flex rounded-full bg-[#1C1416] p-1 max-w-full overflow-x-auto">
       {options.map(([v, text]) => (
         <button
           key={v}
@@ -32,7 +32,7 @@ function Tabs<T extends string>({ value, options, onChange, label }: { value: T;
           onClick={() => onChange(v)}
           className={cn(
             "whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-            value === v ? "bg-[#101B35] text-white" : "text-[#374151] hover:text-[#741F3D]"
+            value === v ? "bg-[#7D1A30] text-white" : "text-[#D6C8BC] hover:text-[#E0647D]"
           )}
         >
           {text}
@@ -53,7 +53,7 @@ function Chips<T extends string>({ value, options, onChange, label }: { value: T
           onClick={() => onChange(v)}
           className={cn(
             "whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-            value === v ? "border-[#741F3D] bg-[#741F3D] text-white" : "border-[#D9D2C5] text-[#374151] hover:border-[#741F3D]"
+            value === v ? "border-[#7D1A30] bg-[#7D1A30] text-white" : "border-white/15 text-[#D6C8BC] hover:border-[#7D1A30]"
           )}
         >
           {text}
@@ -97,9 +97,9 @@ export function ApprovalsLeague({ initial }: { initial: League | null }) {
 
   if (!data || !lcs.length) {
     return (
-      <section className="bg-[#F7F3ED] pb-20 sm:pb-28">
+      <section className="bg-black pb-20 sm:pb-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="border-t border-[#101B35] pt-8 text-[#4B5563]">The league will appear here once the organizers open it. Check back soon.</p>
+          <p className="border-t border-white/25 pt-8 text-[#D6C8BC]">The league will appear here once the organizers open it. Check back soon.</p>
         </div>
       </section>
     );
@@ -112,10 +112,10 @@ export function ApprovalsLeague({ initial }: { initial: League | null }) {
   const sub = (x: Row) => (mode === "mc" ? `${x.n} LCs` : x.mc);
 
   return (
-    <section className="bg-[#F7F3ED] pb-20 sm:pb-28">
+    <section className="bg-black pb-20 sm:pb-28">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {data.demo && (
-          <p className="mb-6 rounded-xl bg-[#EFE9DF] px-4 py-3 text-sm text-[#5A6478]">Sample data: the organizers will replace it with the real numbers.</p>
+          <p className="mb-6 rounded-xl bg-[#1C1416] px-4 py-3 text-sm text-[#B8A69C]">Sample data: the organizers will replace it with the real numbers.</p>
         )}
 
         <div className="space-y-4">
@@ -131,12 +131,12 @@ export function ApprovalsLeague({ initial }: { initial: League | null }) {
           <div className="mt-10 grid grid-cols-3 items-end gap-2 sm:gap-4" aria-label="Top three">
             {[podium[1], podium[0], podium[2]].map((r) => (
               <div key={r.x.id} className="flex min-w-0 flex-col items-center text-center">
-                <span className={cn("font-serif-title text-[#101B35] leading-tight break-words max-w-full", r.place === 1 ? "text-xl sm:text-2xl" : "text-base sm:text-xl")}>{name(r.x)}</span>
-                <span className="mt-0.5 mb-2 text-xs text-[#5A6478] truncate max-w-full">{sub(r.x)}</span>
+                <span className={cn("font-serif-title text-[#FBF7F0] leading-tight break-words max-w-full", r.place === 1 ? "text-xl sm:text-2xl" : "text-base sm:text-xl")}>{name(r.x)}</span>
+                <span className="mt-0.5 mb-2 text-xs text-[#B8A69C] truncate max-w-full">{sub(r.x)}</span>
                 <span
                   className={cn(
                     "flex w-full items-start justify-center rounded-t-xl pt-3 font-serif-title text-3xl sm:text-4xl",
-                    r.place === 1 ? "h-32 sm:h-40 bg-[#741F3D] text-white" : r.place === 2 ? "h-24 sm:h-28 bg-[#101B35] text-white" : "h-16 sm:h-20 bg-[#D9D2C5] text-[#101B35]"
+                    r.place === 1 ? "h-32 sm:h-40 bg-[#7D1A30] text-white" : r.place === 2 ? "h-24 sm:h-28 bg-[#141012] text-white" : "h-16 sm:h-20 bg-[#3A2A2A] text-[#FBF7F0]"
                   )}
                 >
                   {r.place}
@@ -148,22 +148,22 @@ export function ApprovalsLeague({ initial }: { initial: League | null }) {
 
         <ol className="mt-6 space-y-2">
           {rest.map((r) => (
-            <li key={r.x.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3">
-              <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#EFE9DF] text-sm font-semibold text-[#101B35]">{r.place}</span>
+            <li key={r.x.id} className="flex items-center gap-3 rounded-xl bg-[#141012] px-4 py-3">
+              <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#1C1416] text-sm font-semibold text-[#FBF7F0]">{r.place}</span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-3">
-                  <span className="truncate font-semibold text-[#101B35]">{name(r.x)}</span>
-                  <span className="flex-none text-xs text-[#5A6478]">{sub(r.x)}</span>
+                  <span className="truncate font-semibold text-[#FBF7F0]">{name(r.x)}</span>
+                  <span className="flex-none text-xs text-[#B8A69C]">{sub(r.x)}</span>
                 </span>
-                <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-[#EFE9DF]">
-                  <span className="block h-full rounded-full bg-[#741F3D] transition-[width] duration-700" style={{ width: `${Math.max(2, (r.v / top) * 100)}%` }} />
+                <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-[#1C1416]">
+                  <span className="block h-full rounded-full bg-[#7D1A30] transition-[width] duration-700" style={{ width: `${Math.max(2, (r.v / top) * 100)}%` }} />
                 </span>
               </span>
             </li>
           ))}
         </ol>
 
-        <p className="mt-8 text-sm text-[#5A6478]">
+        <p className="mt-8 text-sm text-[#B8A69C]">
           Delegates at the congress follow the league in the EUROXPRO&apos;27 app. This page refreshes on its own every minute.
         </p>
       </div>

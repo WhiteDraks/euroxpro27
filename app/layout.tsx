@@ -2,24 +2,19 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { MotionLayer } from "@/components/common/MotionLayer";
 import { OfflineSupport } from "@/components/common/OfflineSupport";
 import { siteConfig } from "@/lib/config";
 import { Analytics } from "@vercel/analytics/next";
-import { Fraunces, Instrument_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 
 // Fonts are downloaded at build time and served with the site, so they
 // keep working offline and never call Google from the visitor's browser.
-const display = Fraunces({
+// Apple devices use the system face (SF Pro); everyone else gets Inter,
+// which is drawn in the same spirit.
+const inter = Inter({
   subsets: ["latin", "latin-ext"],
-  style: ["normal", "italic"],
-  axes: ["opsz", "SOFT"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-const body = Instrument_Sans({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-body",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -57,12 +52,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body className="min-h-screen flex flex-col antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
         <OfflineSupport />
+        <MotionLayer />
         <Analytics />
       </body>
     </html>

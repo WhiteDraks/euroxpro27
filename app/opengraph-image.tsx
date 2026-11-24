@@ -48,13 +48,13 @@ async function heroPhoto(): Promise<string | null> {
 export default async function OpengraphImage() {
   const [photo, logo] = await Promise.all([
     heroPhoto(),
-    sharp(await publicFile(siteConfig.logo)).resize({ width: 520 }).png().toBuffer(),
+    sharp(await publicFile("/images/euroxpro-logo-light.png")).resize({ width: 520 }).png().toBuffer(),
   ]);
   const { hero } = content.home;
 
   const png = await new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: "#101B35" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: "#140D0E" }}>
         {photo && (
           <img src={photo} alt="" width={size.width} height={size.height} style={{ position: "absolute", top: 0, left: 0 }} />
         )}
@@ -66,7 +66,7 @@ export default async function OpengraphImage() {
             width: "100%",
             height: "100%",
             display: "flex",
-            background: "linear-gradient(90deg, rgba(16,27,53,0.96) 0%, rgba(16,27,53,0.82) 48%, rgba(16,27,53,0.25) 100%)",
+            background: "linear-gradient(90deg, rgba(20,13,14,0.96) 0%, rgba(20,13,14,0.8) 48%, rgba(20,13,14,0.2) 100%)",
           }}
         />
         <div
@@ -83,12 +83,11 @@ export default async function OpengraphImage() {
           <img src={`data:image/png;base64,${logo.toString("base64")}`} alt="" width={340} height={106} />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1, display: "flex", flexDirection: "column" }}>
-              <span>{hero.titleLine1}</span>
-              <span style={{ color: "#F2B8CA" }}>{hero.titleLine2}</span>
+              <span>{hero.title}</span>
             </div>
             <div style={{ display: "flex", gap: 16, marginTop: 36, fontSize: 28 }}>
-              <span style={{ background: "#741F3D", padding: "10px 20px", borderRadius: 4 }}>{siteConfig.datesLabel}</span>
-              <span style={{ background: "rgba(23,36,67,0.9)", border: "1px solid #233152", padding: "10px 20px", borderRadius: 4 }}>
+              <span style={{ background: "#7D1A30", padding: "10px 20px", borderRadius: 4 }}>{siteConfig.datesLabel}</span>
+              <span style={{ background: "rgba(20,13,14,0.9)", border: "1px solid #3A2A2A", padding: "10px 20px", borderRadius: 4 }}>
                 {siteConfig.venueCity}
               </span>
             </div>

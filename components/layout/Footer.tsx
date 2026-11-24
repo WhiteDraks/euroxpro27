@@ -36,7 +36,7 @@ const footerLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-[#101B35] text-[#F7F3ED]">
+    <footer className="site-footer bg-[#0E0909] text-[#F4EDE2] border-t border-white/10">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
@@ -45,7 +45,7 @@ export function Footer() {
             <Link href="/" className="inline-block mb-5 group" aria-label="EUROXPRO'27 Home">
               <div className="flex items-center gap-3">
                 <Image
-                  src="/images/euroxpro-logo.png"
+                  src="/images/euroxpro-logo-light.png"
                   alt="EUROXPRO Türkiye Official Logo"
                   width={160}
                   height={50}
@@ -53,15 +53,13 @@ export function Footer() {
                 />
               </div>
             </Link>
-            <p className="font-serif-title italic text-xl text-[#F7F3ED] leading-snug mb-6 max-w-xs">
-              {siteConfig.tagline}
-            </p>
-            <div className="flex items-center gap-2 text-[#A7AFBF] text-sm mb-3">
-              <MapPin size={14} className="text-[#741F3D] flex-shrink-0" />
+            <p className="font-serif-title text-2xl text-[#F4EDE2] mb-5">{siteConfig.datesLabel}</p>
+            <div className="flex items-center gap-2 text-[#B8A69C] text-sm mb-3">
+              <MapPin size={14} className="text-[#E0647D] flex-shrink-0" />
               <span>Antalya, Türkiye</span>
             </div>
-            <div className="flex items-center gap-2 text-[#A7AFBF] text-sm">
-              <Mail size={14} className="text-[#741F3D] flex-shrink-0" />
+            <div className="flex items-center gap-2 text-[#B8A69C] text-sm">
+              <Mail size={14} className="text-[#E0647D] flex-shrink-0" />
               <a
                 href={`mailto:${siteConfig.contactEmail}`}
                 className="hover:text-white transition-colors"
@@ -77,7 +75,7 @@ export function Footer() {
                   href={siteConfig.social.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 bg-[#172443] hover:bg-[#741F3D] rounded-sm flex items-center justify-center transition-colors text-white"
+                  className="w-9 h-9 bg-[#1F1415] hover:bg-[#7D1A30] rounded-full flex items-center justify-center transition-colors text-white"
                   aria-label="Follow on Instagram"
                 >
                   <Share2 size={16} />
@@ -89,7 +87,7 @@ export function Footer() {
           {/* Nav Columns */}
           {footerLinks.map((col) => (
             <div key={col.title}>
-              <h3 className="text-[#e58aa6] text-xs font-semibold tracking-[0.08em] uppercase mb-4">
+              <h3 className="text-white font-sans-body text-sm font-semibold tracking-normal mb-4">
                 {col.title}
               </h3>
               <ul className="space-y-2.5">
@@ -97,7 +95,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-[#A7AFBF] hover:text-white text-sm transition-colors"
+                      className="text-[#B8A69C] hover:text-white text-sm transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -110,12 +108,12 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-[#2A3556]">
+      <div className="border-t border-[#3A2A2A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-[#A7AFBF] text-xs">
-            &copy; {new Date().getFullYear()} EUROXPRO&apos;27 · AIESEC · All rights reserved.
+          <p className="text-[#B8A69C] text-xs">
+            &copy; {new Date().getFullYear()} EUROXPRO&apos;27, AIESEC. All rights reserved.
           </p>
-          <p className="text-[#A7AFBF] text-xs">
+          <p className="text-[#B8A69C] text-xs">
             Organised by AIESEC in Türkiye
           </p>
         </div>

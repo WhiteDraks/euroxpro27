@@ -16,18 +16,7 @@ export type TeamMember = { name: string; role: string; department: string; bio: 
 
 export type SiteContent = {
   home: {
-    hero: {
-      image: string;
-      imageAlt: string;
-      eyebrow: string;
-      titleLine1: string;
-      titleLine2: string;
-      supportingLine: string;
-      themeNote: string;
-      primaryButton: string;
-      secondaryButton: string;
-      tertiaryButton: string;
-    };
+    hero: { image: string; imageAlt: string; title: string; text: string; themeNote: string; button: string };
     countdown: {
       label: string;
       daysLabel: string;
@@ -37,24 +26,9 @@ export type SiteContent = {
       liveText: string;
       endedText: string;
     };
-    bulletin: { label: string; linkText: string };
-    dimensions: {
-      eyebrow: string;
-      title: string;
-      intro: string;
-      items: { label: string; title: string; text: string }[];
-    };
-    pillars: { eyebrow: string; title: string; intro: string; items: TitledText[] };
-    destination: {
-      eyebrow: string;
-      title: string;
-      intro: string;
-      buttonText: string;
-      items: { image: string; imageAlt: string; label: string; title: string; text: string }[];
-    };
-    delegatePrep: { eyebrow: string; title: string; text: string; primaryButton: string; secondaryButton: string };
-    merch: { eyebrow: string; title: string; linkText: string; badge: string; itemLinkText: string };
-    closing: { eyebrow: string; title: string; text: string; primaryButton: string; secondaryButton: string };
+    tiles: { title: string; items: { title: string; text: string; link: string }[] };
+    city: { title: string; text: string; button: string; items: { image: string; imageAlt: string; title: string }[] };
+    news: { title: string; linkText: string };
   };
   congress: {
     hero: {

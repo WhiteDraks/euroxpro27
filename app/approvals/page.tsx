@@ -15,11 +15,11 @@ export const revalidate = 30;
 export default async function ApprovalsPage() {
   const league = await getLeague();
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow="Live during the congress"
         title="Approvals League"
-        intro="Which committees are leading Europe right now. The ranking follows the delegate app and updates on its own while this page is open."
+        intro="Who is leading right now. Updates by itself."
       />
       <ApprovalsLeague initial={league} />
     </div>

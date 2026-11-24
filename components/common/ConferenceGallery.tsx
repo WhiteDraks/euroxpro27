@@ -28,7 +28,7 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
   const visibleItems = showAll ? filteredItems : filteredItems.slice(0, INITIAL_VISIBLE);
 
   return (
-    <section className="py-20 sm:py-28 bg-white text-[#101B35]">
+    <section className="py-20 sm:py-28 bg-[#141012] text-[#FBF7F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-12 items-end mb-8">
           <div className="lg:col-span-7">
@@ -37,12 +37,12 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
               {text.title}
             </h2>
           </div>
-          <p className="lg:col-span-5 text-base sm:text-lg text-[#4B5563] leading-relaxed">
+          <p className="lg:col-span-5 text-base sm:text-lg text-[#D6C8BC] leading-relaxed">
             {text.intro}
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-y border-[#E5E1DA] py-3 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-y border-white/10 py-3 mb-10">
           <div className="flex flex-wrap gap-x-6 gap-y-2" role="group" aria-label="Filter photos">
             {(
               [
@@ -70,15 +70,15 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
                 className={cn(
                   "text-sm py-1 transition-colors border-b-2",
                   activeFilter === id
-                    ? "text-[#101B35] font-semibold border-[#741F3D]"
-                    : "text-[#5A6478] border-transparent hover:text-[#101B35]"
+                    ? "text-[#FBF7F0] font-semibold border-[#7D1A30]"
+                    : "text-[#B8A69C] border-transparent hover:text-white"
                 )}
               >
-                {label} <span className="text-[#8F9AA0] font-normal">{count}</span>
+                {label} <span className="text-[#8C7A72] font-normal">{count}</span>
               </button>
             ))}
           </div>
-          <p className="text-xs text-[#5A6478] italic sm:text-right sm:max-w-sm">
+          <p className="text-xs text-[#B8A69C] italic sm:text-right sm:max-w-sm">
             <RichText text={text.notice} />
           </p>
         </div>
@@ -93,7 +93,7 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
               >
                 <div
                   className={cn(
-                    "relative overflow-hidden bg-[#101B35]",
+                    "relative overflow-hidden bg-[#141012]",
                     feature ? "aspect-[4/3] lg:aspect-auto lg:flex-1 lg:min-h-[360px]" : "aspect-[4/3]"
                   )}
                 >
@@ -107,11 +107,11 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
                   />
                 </div>
                 <figcaption className="mt-3">
-                  <p className="text-xs text-[#741F3D]">
+                  <p className="text-xs text-[#E0647D]">
                     {item.yearOrArea} · {item.location}
                   </p>
                   <h3 className={cn("font-serif-title font-normal mt-0.5", feature ? "text-2xl" : "text-lg")}>{item.title}</h3>
-                  <p className="text-sm text-[#5A6478] leading-relaxed mt-1">{item.caption}</p>
+                  <p className="text-sm text-[#B8A69C] leading-relaxed mt-1">{item.caption}</p>
                 </figcaption>
               </figure>
             );
@@ -119,11 +119,11 @@ export function ConferenceGallery({ text }: ConferenceGalleryProps) {
         </div>
 
         {!showAll && filteredItems.length > INITIAL_VISIBLE && (
-          <div className="mt-12 border-t border-[#E5E1DA] pt-6">
+          <div className="mt-12 border-t border-white/10 pt-6">
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="text-sm font-semibold text-[#101B35] link-underline decoration-[#741F3D] hover:text-[#741F3D]"
+              className="text-sm font-semibold text-[#FBF7F0] link-underline decoration-[#7D1A30] hover:text-[#E0647D]"
             >
               {text.showMoreButton} ({filteredItems.length - INITIAL_VISIBLE})
             </button>

@@ -12,21 +12,21 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#741F3D] text-white hover:bg-[#51152D] border border-transparent",
+    "bg-[#7D1A30] text-white hover:bg-[#64142A] border border-transparent",
   secondary:
-    "bg-[#101B35] text-[#F7F3ED] hover:bg-[#172443] border border-transparent",
+    "bg-[#1C1416] text-white hover:bg-[#2A1D1E] border border-white/10",
   outline:
-    "bg-transparent text-[#741F3D] border border-[#741F3D] hover:bg-[#741F3D] hover:text-white",
+    "bg-transparent text-[#FBF7F0] border-2 border-white/25 hover:bg-[#7D1A30] hover:text-white",
   ghost:
-    "bg-transparent text-current hover:bg-black/10 border border-transparent",
+    "bg-transparent text-current hover:bg-white/10 border border-transparent",
   danger:
     "bg-red-600 text-white hover:bg-red-700 border border-transparent",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
   sm: "px-3 py-1.5 text-sm",
-  md: "px-5 py-2.5 text-sm",
-  lg: "px-7 py-3.5 text-base",
+  md: "px-6 py-3 text-sm",
+  lg: "px-8 py-4 text-base",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -47,9 +47,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 font-medium tracking-wide",
+          "inline-flex items-center justify-center gap-2 font-semibold",
           "transition-all duration-200 ease-in-out",
-          "rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#741F3D] focus-visible:ring-offset-2",
+          "sheen rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7D1A30] focus-visible:ring-offset-2 ring-offset-black",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           variantStyles[variant],
           sizeStyles[size],

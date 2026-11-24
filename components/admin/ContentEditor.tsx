@@ -34,7 +34,9 @@ const SECTIONED_TABS = new Set<keyof SiteContent>(["home", "congress", "exploreA
 
 const SECTION_LABELS: Record<string, string> = {
   hero: "Giriş bölümü (büyük fotoğraf ve başlık)",
-  bulletin: "Duyuru şeridi",
+  news: "Duyurular bölümü",
+  tiles: "Ne arıyorsun? kutuları",
+  city: "Antalya fotoğrafları",
   dimensions: "Üç boyut kartları",
   pillars: "Dört sütun",
   destination: "Antalya tanıtım kartları",
@@ -61,7 +63,8 @@ const FIELD_LABELS: Record<string, string> = {
   kicker: "Küçük üst başlık",
   title: "Başlık",
   titleLine1: "Başlık – 1. satır",
-  titleLine2: "Başlık – 2. satır (italik)",
+  titleLine2: "Başlık – 2. satır",
+  photoCaption: "Fotoğraf alt yazısı",
   supportingLine: "Destek cümlesi",
   themeNote: "Tema notu",
   intro: "Giriş metni",
@@ -387,15 +390,15 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
   const tabData = (data as Record<string, Json>)[tab];
 
   return (
-    <div className="pt-16 lg:pt-20 pb-32 bg-[#F7F3ED] min-h-screen">
+    <div className="pt-16 lg:pt-20 pb-32 bg-[#F4EDE2] min-h-screen">
       {/* Toolbar */}
-      <div className="sticky top-16 lg:top-20 z-30 bg-white/95 backdrop-blur border-b border-[#E5E1DA]">
+      <div className="sticky top-16 lg:top-20 z-30 bg-white/95 backdrop-blur border-b border-[#DCCFBE]">
         <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
-          <h1 className="font-serif-title text-lg text-[#101B35] mr-auto">İçerik Editörü</h1>
+          <h1 className="font-serif-title text-lg text-[#140D0E] mr-auto">İçerik Editörü</h1>
           <button
             type="button"
             onClick={logout}
-            className="inline-flex items-center gap-1.5 text-xs text-[#5A6478] hover:text-[#101B35] px-2 py-2"
+            className="inline-flex items-center gap-1.5 text-xs text-[#6B5B55] hover:text-[#140D0E] px-2 py-2"
           >
             <LogOut size={14} /> Çıkış
           </button>
@@ -409,8 +412,8 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
               className={cn(
                 "whitespace-nowrap px-3 py-1.5 text-xs font-mono rounded-sm border",
                 tab === t.key
-                  ? "bg-[#101B35] text-white border-[#101B35]"
-                  : "bg-white text-[#5A6478] border-[#E5E1DA] hover:text-[#101B35]"
+                  ? "bg-[#140D0E] text-white border-[#140D0E]"
+                  : "bg-white text-[#6B5B55] border-[#DCCFBE] hover:text-[#140D0E]"
               )}
             >
               {t.label}
@@ -425,7 +428,7 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
         )}
         {status?.kind === "error" && <Notice {...status} />}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#5A6478]">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#6B5B55]">
           <p>
             Metinlerde <strong>**kalın**</strong> ve <em>*italik*</em> yazabilirsiniz. Yüklenen fotoğraflar
             otomatik küçültülür ve sıkıştırılır.
@@ -434,7 +437,7 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
             href={activeTab.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[#741F3D] font-semibold hover:underline"
+            className="inline-flex items-center gap-1 text-[#7D1A30] font-semibold hover:underline"
           >
             Sayfayı aç <ExternalLink size={12} />
           </a>
@@ -442,18 +445,18 @@ export function ContentEditor({ initialContent, mode }: { initialContent: SiteCo
 
         {SECTIONED_TABS.has(tab) ? (
           Object.entries(tabData as Record<string, Json>).map(([section, value]) => (
-            <details key={section} className="bg-white border border-[#E5E1DA] rounded-sm shadow-sm group" open={section === "hero"}>
-              <summary className="cursor-pointer select-none px-5 py-4 font-serif-title text-base text-[#101B35] flex items-center justify-between">
+            <details key={section} className="bg-white border border-[#DCCFBE] rounded-sm shadow-sm group" open={section === "hero"}>
+              <summary className="cursor-pointer select-none px-5 py-4 font-serif-title text-base text-[#140D0E] flex items-center justify-between">
                 {SECTION_LABELS[section] ?? labelFor(section)}
-                <span className="text-xs font-mono text-[#8F9AA0] group-open:hidden">düzenle</span>
+                <span className="text-xs font-mono text-[#8C7A72] group-open:hidden">düzenle</span>
               </summary>
-              <div className="px-5 pb-5 border-t border-[#E5E1DA] pt-4">
+              <div className="px-5 pb-5 border-t border-[#DCCFBE] pt-4">
                 <FieldGroup value={value} path={[tab, section]} ctx={ctx} />
               </div>
             </details>
           ))
         ) : (
-          <div className="bg-white border border-[#E5E1DA] rounded-sm shadow-sm p-5">
+          <div className="bg-white border border-[#DCCFBE] rounded-sm shadow-sm p-5">
             <FieldGroup value={tabData} path={[tab]} ctx={ctx} />
           </div>
         )}
@@ -509,7 +512,7 @@ function SaveBar({
       aria-label="Kaydet"
       className={cn(
         "fixed bottom-0 inset-x-0 z-40 border-t shadow-[0_-6px_20px_rgba(16,27,53,0.12)] pb-[env(safe-area-inset-bottom)]",
-        tone === "dirty" ? "bg-[#101B35] border-[#2A3556]" : "bg-white border-[#E5E1DA]"
+        tone === "dirty" ? "bg-[#140D0E] border-[#3A2A2A]" : "bg-white border-[#DCCFBE]"
       )}
     >
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
@@ -520,7 +523,7 @@ function SaveBar({
             tone === "dirty" && "text-white",
             tone === "ok" && "text-green-800",
             tone === "error" && "text-red-800",
-            tone === "idle" && "text-[#5A6478]"
+            tone === "idle" && "text-[#6B5B55]"
           )}
         >
           {saving ? (
@@ -549,7 +552,7 @@ function SaveBar({
             type="button"
             onClick={onDiscard}
             title="Değişiklikleri geri al"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#A7AFBF] hover:text-white px-2 py-2.5"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B8A69C] hover:text-white px-2 py-2.5"
           >
             <RotateCcw size={14} /> <span className="hidden sm:inline">Geri al</span>
           </button>
@@ -562,8 +565,8 @@ function SaveBar({
           className={cn(
             "inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-sm flex-shrink-0 transition-colors",
             canSave
-              ? "bg-[#741F3D] text-white hover:bg-[#8a2849]"
-              : "bg-[#EEEAE4] text-[#8F9AA0] cursor-not-allowed"
+              ? "bg-[#7D1A30] text-white hover:bg-[#64142A]"
+              : "bg-[#F1E9DC] text-[#8C7A72] cursor-not-allowed"
           )}
         >
           {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
@@ -581,7 +584,7 @@ function Notice({ kind, text, details, link }: { kind: "ok" | "error" | "info"; 
         "rounded-sm border px-4 py-3 text-sm",
         kind === "ok" && "bg-green-50 border-green-200 text-green-900",
         kind === "error" && "bg-red-50 border-red-200 text-red-900",
-        kind === "info" && "bg-white border-[#E5E1DA] text-[#374151]"
+        kind === "info" && "bg-white border-[#DCCFBE] text-[#374151]"
       )}
     >
       <p>{text}</p>
@@ -622,8 +625,8 @@ function Field({ name, value, path, ctx }: { name: string | number; value: Json;
 
   if (Array.isArray(value) || (value && typeof value === "object")) {
     return (
-      <fieldset className="border border-[#E5E1DA] rounded-sm p-4">
-        <legend className="px-1.5 text-xs font-mono uppercase tracking-wider text-[#741F3D]">{label}</legend>
+      <fieldset className="border border-[#DCCFBE] rounded-sm p-4">
+        <legend className="px-1.5 text-xs font-mono uppercase tracking-wider text-[#7D1A30]">{label}</legend>
         <FieldGroup value={value} path={path} ctx={ctx} />
       </fieldset>
     );
@@ -641,12 +644,12 @@ function Field({ name, value, path, ctx }: { name: string | number; value: Json;
   if (typeof value === "number") {
     return (
       <label className="block">
-        <span className="block text-xs font-semibold text-[#101B35] mb-1">{label}</span>
+        <span className="block text-xs font-semibold text-[#140D0E] mb-1">{label}</span>
         <input
           type="number"
           value={value}
           onChange={(e) => ctx.update(path, e.target.value === "" ? 0 : Number(e.target.value))}
-          className="w-40 border border-[#E5E1DA] rounded-sm px-3 py-2 text-sm focus:border-[#741F3D] outline-none"
+          className="w-40 border border-[#DCCFBE] rounded-sm px-3 py-2 text-sm focus:border-[#7D1A30] outline-none"
         />
       </label>
     );
@@ -661,11 +664,11 @@ function Field({ name, value, path, ctx }: { name: string | number; value: Json;
   if (options) {
     return (
       <label className="block">
-        <span className="block text-xs font-semibold text-[#101B35] mb-1">{label}</span>
+        <span className="block text-xs font-semibold text-[#140D0E] mb-1">{label}</span>
         <select
           value={text}
           onChange={(e) => ctx.update(path, e.target.value)}
-          className="border border-[#E5E1DA] rounded-sm px-3 py-2 text-sm bg-white focus:border-[#741F3D] outline-none"
+          className="border border-[#DCCFBE] rounded-sm px-3 py-2 text-sm bg-white focus:border-[#7D1A30] outline-none"
         >
           {options.map((o) => (
             <option key={o} value={o}>{o}</option>
@@ -678,20 +681,20 @@ function Field({ name, value, path, ctx }: { name: string | number; value: Json;
   const long = text.length > 70 || (typeof name === "string" && LONG_TEXT_KEYS.has(name)) || typeof name === "number";
   return (
     <label className="block">
-      <span className="block text-xs font-semibold text-[#101B35] mb-1">{label}</span>
+      <span className="block text-xs font-semibold text-[#140D0E] mb-1">{label}</span>
       {long ? (
         <textarea
           value={text}
           rows={Math.min(10, Math.max(2, Math.ceil(text.length / 90) + 1))}
           onChange={(e) => ctx.update(path, e.target.value)}
-          className="w-full border border-[#E5E1DA] rounded-sm px-3 py-2 text-sm leading-relaxed focus:border-[#741F3D] outline-none"
+          className="w-full border border-[#DCCFBE] rounded-sm px-3 py-2 text-sm leading-relaxed focus:border-[#7D1A30] outline-none"
         />
       ) : (
         <input
           type="text"
           value={text}
           onChange={(e) => ctx.update(path, e.target.value)}
-          className="w-full border border-[#E5E1DA] rounded-sm px-3 py-2 text-sm focus:border-[#741F3D] outline-none"
+          className="w-full border border-[#DCCFBE] rounded-sm px-3 py-2 text-sm focus:border-[#7D1A30] outline-none"
         />
       )}
     </label>
@@ -746,15 +749,15 @@ function ListField({ items, path, ctx }: { items: Json[]; path: Path; ctx: Edito
         }
 
         return (
-          <details key={index} className="border border-[#E5E1DA] rounded-sm bg-[#FBF9F6]">
+          <details key={index} className="border border-[#DCCFBE] rounded-sm bg-[#FBF7F0]">
             <summary className="cursor-pointer select-none px-3 py-2.5 flex items-center justify-between gap-3">
-              <span className="text-sm text-[#101B35] truncate">
-                <span className="font-mono text-xs text-[#8F9AA0] mr-2">{index + 1}.</span>
+              <span className="text-sm text-[#140D0E] truncate">
+                <span className="font-mono text-xs text-[#8C7A72] mr-2">{index + 1}.</span>
                 {summary || "(başlıksız)"}
               </span>
               {controls}
             </summary>
-            <div className="p-4 border-t border-[#E5E1DA]">
+            <div className="p-4 border-t border-[#DCCFBE]">
               <FieldGroup value={item} path={[...path, index]} ctx={ctx} />
             </div>
           </details>
@@ -763,7 +766,7 @@ function ListField({ items, path, ctx }: { items: Json[]; path: Path; ctx: Edito
       <button
         type="button"
         onClick={add}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#741F3D] border border-dashed border-[#741F3D]/50 rounded-sm px-3 py-2 hover:bg-[#741F3D]/5"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#7D1A30] border border-dashed border-[#7D1A30]/50 rounded-sm px-3 py-2 hover:bg-[#7D1A30]/5"
       >
         <Plus size={13} /> Yeni ekle
       </button>
@@ -785,8 +788,8 @@ function IconButton({
         onClick();
       }}
       className={cn(
-        "w-7 h-7 inline-flex items-center justify-center rounded-sm border border-[#E5E1DA] bg-white disabled:opacity-30",
-        danger ? "text-red-700 hover:bg-red-50" : "text-[#5A6478] hover:text-[#101B35]"
+        "w-7 h-7 inline-flex items-center justify-center rounded-sm border border-[#DCCFBE] bg-white disabled:opacity-30",
+        danger ? "text-red-700 hover:bg-red-50" : "text-[#6B5B55] hover:text-[#140D0E]"
       )}
     >
       {children}
@@ -822,9 +825,9 @@ function ImageField({ label, value, path, ctx }: { label: string; value: string;
 
   return (
     <div>
-      <span className="block text-xs font-semibold text-[#101B35] mb-1">{label}</span>
+      <span className="block text-xs font-semibold text-[#140D0E] mb-1">{label}</span>
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="w-full sm:w-48 aspect-[16/10] bg-[#101B35] rounded-sm overflow-hidden flex-shrink-0">
+        <div className="w-full sm:w-48 aspect-[16/10] bg-[#140D0E] rounded-sm overflow-hidden flex-shrink-0">
           {preview && (
             // A plain <img> previews new uploads before they are published.
             // eslint-disable-next-line @next/next/no-img-element
@@ -836,7 +839,7 @@ function ImageField({ label, value, path, ctx }: { label: string; value: string;
             type="button"
             disabled={busy || !ctx.uploadsEnabled}
             onClick={() => input.current?.click()}
-            className="inline-flex items-center gap-2 bg-[#101B35] text-white text-xs font-semibold px-3 py-2 rounded-sm disabled:opacity-40"
+            className="inline-flex items-center gap-2 bg-[#140D0E] text-white text-xs font-semibold px-3 py-2 rounded-sm disabled:opacity-40"
           >
             <ImageUp size={14} /> {busy ? "Yükleniyor…" : "Yeni fotoğraf yükle"}
           </button>
@@ -852,9 +855,9 @@ function ImageField({ label, value, path, ctx }: { label: string; value: string;
             value={value}
             onChange={(e) => ctx.update(path, e.target.value)}
             placeholder="/uploads/... veya https://images.unsplash.com/..."
-            className="w-full border border-[#E5E1DA] rounded-sm px-3 py-1.5 text-xs font-mono text-[#5A6478] focus:border-[#741F3D] outline-none"
+            className="w-full border border-[#DCCFBE] rounded-sm px-3 py-1.5 text-xs font-mono text-[#6B5B55] focus:border-[#7D1A30] outline-none"
           />
-          <p className="text-[11px] text-[#8F9AA0]">
+          <p className="text-[11px] text-[#8C7A72]">
             Bilgisayarınızdan veya telefonunuzdan yükleyin ya da bir Unsplash adresi yapıştırın.
           </p>
           {error && <p className="text-xs text-red-700">{error}</p>}

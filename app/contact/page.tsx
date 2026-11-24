@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow="Get in touch"
-        title="Contact the Committee"
-        intro="Questions about delegations, visas, partnerships or logistics? Write to us and someone from the Organizing Committee will get back to you."
+        title="Contact us"
+        intro="Write to us. We usually reply within a few days."
       />
 
       <ContactSection config={siteConfig} />

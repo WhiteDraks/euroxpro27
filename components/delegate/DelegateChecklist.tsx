@@ -60,19 +60,19 @@ export function DelegateChecklist() {
   return (
     <div>
       {/* Progress Bar */}
-      <div className="mb-8 bg-[#172443] border border-[#2A3556] rounded-sm p-5">
+      <div className="mb-8 bg-[#1F1415] border border-[#3A2A2A] rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
           <span className="text-white font-medium text-sm">{done} of {total} items completed</span>
-          <span className="text-[#741F3D] font-bold text-sm">{percent}%</span>
+          <span className="text-[#E0647D] font-bold text-sm">{percent}%</span>
         </div>
-        <div className="h-1.5 bg-[#2A3556] rounded-full overflow-hidden">
+        <div className="h-1.5 bg-[#3A2A2A] rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#741F3D] rounded-full transition-all duration-300"
+            className="h-full bg-[#7D1A30] rounded-full transition-all duration-300"
             style={{ width: `${percent}%` }}
           />
         </div>
-        <p className="text-[#A7AFBF] text-[11px] mt-2">
-          Progress is automatically synchronized to your local browser storage.
+        <p className="text-[#B8A69C] text-[11px] mt-2">
+          Saved on this device.
         </p>
       </div>
 
@@ -82,12 +82,12 @@ export function DelegateChecklist() {
           const items = checklistItems.filter((i) => i.category === category);
           const catDone = items.filter((i) => localChecked.has(i.id)).length;
           return (
-            <div key={category} className="bg-white border border-[#E5E1DA] rounded-sm overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E1DA] bg-[#F7F3ED]/80">
-                <h3 className="text-[#101B35] font-serif-title font-semibold text-base">{category}</h3>
-                <span className="text-[#8F9AA0] text-xs">{catDone}/{items.length}</span>
+            <div key={category} className="bg-[#141012] border border-white/10 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/80">
+                <h3 className="text-[#FBF7F0] font-serif-title font-semibold text-base">{category}</h3>
+                <span className="text-[#8C7A72] text-xs">{catDone}/{items.length}</span>
               </div>
-              <div className="divide-y divide-[#E5E1DA]">
+              <div className="divide-y divide-white/10">
                 {items.map((item) => {
                   const isChecked = localChecked.has(item.id);
                   return (
@@ -96,22 +96,22 @@ export function DelegateChecklist() {
                       onClick={() => toggle(item.id)}
                       className={cn(
                         "w-full flex items-start gap-3 px-5 py-3.5 text-left transition-colors",
-                        isChecked ? "bg-[#741F3D]/5" : "hover:bg-[#F7F3ED]/40"
+                        isChecked ? "bg-[#7D1A30]/5" : "hover:bg-white/5"
                       )}
                     >
                       {isChecked
-                        ? <CheckSquare size={16} className="text-[#741F3D] flex-shrink-0 mt-0.5" />
-                        : <Square size={16} className="text-[#A7AFBF] flex-shrink-0 mt-0.5" />
+                        ? <CheckSquare size={16} className="text-[#E0647D] flex-shrink-0 mt-0.5" />
+                        : <Square size={16} className="text-[#B8A69C] flex-shrink-0 mt-0.5" />
                       }
                       <div>
                         <span className={cn(
                           "text-xs font-medium",
-                          isChecked ? "text-[#8F9AA0] line-through" : "text-[#101B35]"
+                          isChecked ? "text-[#8C7A72] line-through" : "text-[#FBF7F0]"
                         )}>
                           {item.label}
                         </span>
                         {item.detail && (
-                          <p className="text-[#8F9AA0] text-[11px] mt-0.5">{item.detail}</p>
+                          <p className="text-[#8C7A72] text-[11px] mt-0.5">{item.detail}</p>
                         )}
                       </div>
                     </button>
@@ -125,7 +125,7 @@ export function DelegateChecklist() {
 
       {done > 0 && (
         <div className="mt-6 text-center">
-          <Button variant="ghost" className="text-xs text-[#8F9AA0] hover:text-[#101B35]" onClick={reset}>
+          <Button variant="ghost" className="text-xs text-[#8C7A72] hover:text-white" onClick={reset}>
             <RotateCcw size={12} /> Reset Checklist
           </Button>
         </div>

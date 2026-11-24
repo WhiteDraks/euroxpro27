@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { content } from "@/lib/content";
 import { PageHero } from "@/components/ui/PageHero";
 
@@ -12,74 +12,86 @@ export const metadata: Metadata = {
   alternates: { canonical: "/team" },
 };
 
+// First and last name, so "Berfin Türkü Dağlı" becomes "BD".
 function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toLocaleUpperCase("tr"))
-    .join("");
+  const parts = name.split(/\s+/).filter(Boolean);
+  const picked = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts;
+  return picked.map((part) => part[0].toLocaleUpperCase("tr")).join("");
 }
 
 export default function TeamPage() {
   const { hero, notice, comingSoonLabel, members, contactTitle, contactText, contactButton } = content.team;
-  const hasPlaceholders = members.some((m) => !m.name.trim() || !m.image);
+  const hasPlaceholders = members.some((m) => !m.name.trim());
 
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero eyebrow={hero.eyebrow} title={hero.title} intro={hero.intro} />
 
-      <section className="pb-20 sm:pb-28 bg-[#F7F3ED]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {hasPlaceholders && notice && (
-            <p className="mb-10 text-sm text-[#5A6478] italic">{notice}</p>
-          )}
+      <section className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-12 sm:py-20">
+        {hasPlaceholders && notice && <p className="mb-8 px-1 text-base text-[#B8A69C]">{notice}</p>}
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-12">
-            {members.map((member, i) => {
-              const name = member.name.trim();
-              return (
-                <article key={i} className="reveal flex flex-col group">
-                  <div className="aspect-square relative overflow-hidden bg-[#E6DED1]">
+        <ul data-stagger className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {members.map((member, i) => {
+            const name = member.name.trim();
+            const lead = i === 0;
+            return (
+              <li
+                key={i}
+                className={cn(
+                  "reveal",
+                  lead && "col-span-2 lg:col-span-4",
+                  // An odd last card on phones fills the row instead of sitting alone.
+                  !lead && i === members.length - 1 && (members.length - 1) % 2 === 1 && "col-span-2 lg:col-span-1"
+                )}
+              >
+                <article
+                  className={cn(
+                    "spot h-full rounded-[28px] p-5 sm:p-6 flex flex-col",
+                    lead
+                      ? "bg-[linear-gradient(140deg,#A3304A_0%,#7D1A30_55%,#4A0F1F_100%)] sm:flex-row sm:items-center sm:gap-6"
+                      : "glass"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "relative flex-shrink-0 overflow-hidden rounded-full flex items-center justify-center",
+                      lead ? "w-20 h-20 sm:w-28 sm:h-28 bg-white/15" : "w-16 h-16 sm:w-20 sm:h-20 bg-[#7D1A30]"
+                    )}
+                  >
                     {member.image ? (
-                      <Image
-                        src={member.image}
-                        alt={name || member.role}
-                        fill
-                        quality={60}
-                        sizes="(max-width: 1024px) 50vw, 33vw"
-                        className="object-cover object-top img-zoom"
-                      />
+                      <Image src={member.image} alt={name || member.role} fill quality={60} sizes="112px" className="object-cover object-top" />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="font-serif-title italic text-6xl sm:text-8xl text-[#101B35]/20">
-                          {name ? initials(name) : member.department.charAt(0)}
-                        </span>
-                      </div>
+                      <span className={cn("font-serif-title text-white", lead ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl")}>
+                        {name ? initials(name) : member.department.charAt(0)}
+                      </span>
                     )}
                   </div>
-                  <p className="mt-4 text-xs text-[#741F3D] font-semibold">{member.department}</p>
-                  <h2 className="font-serif-title font-normal text-xl sm:text-2xl text-[#101B35] mt-1 leading-snug">
-                    {name || <span className="italic text-[#8F9AA0]">{comingSoonLabel}</span>}
-                  </h2>
-                  <p className="text-sm text-[#101B35] mt-0.5">{member.role}</p>
-                  <p className="text-sm text-[#5A6478] leading-relaxed mt-2 hidden sm:block">{member.bio}</p>
+                  <div className={cn("mt-4", lead && "sm:mt-0")}>
+                    <h2 className={cn("leading-tight", lead ? "text-3xl sm:text-5xl" : "text-xl sm:text-2xl")}>
+                      {name || <span className="text-[#8C7A72]">{comingSoonLabel}</span>}
+                    </h2>
+                    <p className={cn("mt-1 font-semibold", lead ? "text-lg text-[#F4EDE2]" : "text-sm sm:text-base text-[#E0647D]")}>
+                      {member.role}
+                    </p>
+                    {member.bio && <p className="mt-2 text-sm text-[#B8A69C]">{member.bio}</p>}
+                  </div>
                 </article>
-              );
-            })}
-          </div>
+              </li>
+            );
+          })}
+        </ul>
 
-          <div className="reveal mt-20 border-t border-[#101B35] pt-8 grid md:grid-cols-12 gap-6 items-end">
-            <div className="md:col-span-8">
-              <h2 className="font-serif-title font-normal text-3xl sm:text-4xl text-[#101B35]">{contactTitle}</h2>
-              <p className="text-base text-[#4B5563] max-w-xl leading-relaxed mt-3">{contactText}</p>
-            </div>
-            <Link href="/contact" className="md:col-span-4 md:justify-self-end">
-              <Button variant="secondary" size="lg">
-                {contactButton} <ArrowRight size={16} />
-              </Button>
-            </Link>
+        <div className="reveal spot glass mt-10 rounded-[28px] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div>
+            <h2 className="text-2xl sm:text-3xl">{contactTitle}</h2>
+            <p className="mt-1 text-base text-[#D6C8BC]">{contactText}</p>
           </div>
+          <Link
+            href="/contact"
+            className="sheen self-start sm:self-auto inline-flex items-center gap-2 rounded-full bg-[#7D1A30] text-white font-semibold px-6 h-12 whitespace-nowrap hover:bg-[#A3304A] transition-colors"
+          >
+            {contactButton} <ChevronRight size={18} aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </div>

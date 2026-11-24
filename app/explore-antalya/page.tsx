@@ -13,7 +13,7 @@ export default function ExploreAntalyaPage() {
   const { hero, ...guide } = content.exploreAntalya;
 
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       {/* ── EDITORIAL TRAVEL MAGAZINE HERO ── */}
       <PageHero
         eyebrow={hero.eyebrow}
