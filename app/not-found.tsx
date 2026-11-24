@@ -1,24 +1,17 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+import { ErrorScreen } from "@/components/common/ErrorScreen";
+
+export const metadata: Metadata = {
+  title: "Page not found",
+  robots: { index: false },
+};
 
 export default function NotFound() {
   return (
-    <div className="min-h-[80vh] bg-black text-[#FBF7F0] pt-32 sm:pt-40 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="kicker mb-4">Page not found</p>
-        <h1 className="font-serif-title font-normal text-5xl sm:text-7xl leading-[1] max-w-3xl">
-          This page seems to have wandered off into Kaleiçi.
-        </h1>
-        <p className="text-[#D6C8BC] text-base sm:text-lg leading-relaxed mt-6 max-w-xl">
-          The link may be old or mistyped. The home page will get you back on track.
-        </p>
-        <Link href="/" className="inline-block mt-8">
-          <Button variant="primary" size="lg">
-            Back to the home page <ArrowRight size={16} />
-          </Button>
-        </Link>
-      </div>
-    </div>
+    <ErrorScreen
+      code="404"
+      title="Lost in Kaleiçi?"
+      text="This page doesn't exist. Let's get you back."
+    />
   );
 }
