@@ -42,6 +42,9 @@ lib/api.js       Accounts, agenda, messages, sync
 lib/kv.js        Upstash Redis (REST); memory when no env vars are set
 lib/translate.js DeepL / LibreTranslate / MyMemory
 lib/mail.js      Sign-up and approval e-mails (Resend or SMTP, no packages)
+lib/security.js  Two-step sign-in codes (TOTP) and the Turnstile bot check
+public/secure.js Two-step set-up, block / report and bot-check screens
+scripts/load-test.mjs  Virtual delegates for load testing
 lib/agenda-seed.js The first agenda (taken from the website's draft programme)
 dev-server.js    Local testing, or running on any Node host
 ```
@@ -66,3 +69,17 @@ To see the live agenda before the congress, add `?now=2027-04-01T10:05` to the U
 - **Approvals league** `/approvals`, big-screen race `/approvals/live`, organizers edit at `/approvals/edit`. Sample numbers until saved.
 - **Store** `/store`: reserve, pay and collect at the venue; organizers see totals and mark collected.
 - **Global Connections** `/connections` (old `/world` link opens it too): our own SVG world map from `public/world-shapes.js` (Natural Earth, no tiles or keys), countries with delegates highlighted, one tap lists a country's delegates, counters for countries, delegates and cross-border matches/chats. Shows labelled sample data until 25 real delegates have a known country (`GC_SAMPLE_BELOW` in app.js; `?data=real` or `?data=sample` to check either). Entity to country matching lives in `public/countries.js`, shared with the API. Also: plenary heat layer, **recap story** `/recap` (shareable 1080×1920 PNG), **sunset theme** 17:00–21:00 Antalya time, confetti on matches, check-ins and rewards.
+
+## Security and traffic (Nov 2026)
+
+- **Two-step sign-in (TOTP):** organizers must turn it on before anything else opens (any authenticator app: Google/Microsoft Authenticator, 1Password, iPhone Passwords). Delegates can turn it on in Profile > Security. A lost phone: another organizer opens the person in /admin and presses "Reset two-step sign-in". If every organizer is locked out, set `ADMIN_2FA=off` on Vercel, redeploy, sign in, then remove it again.
+- **Sign out of all other devices** in Profile > Security. Signing out also ends that session on every server instance at once.
+- **Wrong-password slowdown instead of lockout:** after 5 wrong tries for one e-mail, each further try from an unknown device waits 15 s, 30 s, 1 min ... up to 5 min. A phone that already signed in to that account (cookie `exd`) is never slowed, so nobody can lock a delegate out by knowing their e-mail.
+- **Bot check at sign-up:** a hidden honeypot field always, plus Cloudflare Turnstile once `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are set (free; dash.cloudflare.com > Turnstile > Add widget, hostname `app-mobile-murex.vercel.app`, mode Managed). If Cloudflare is unreachable, sign-up stays open (accounts still wait for approval).
+- **Sign-up e-mails are batched:** the first sign-up e-mails at once, later ones within 15 minutes go out as one summary, so fake sign-ups can't use up the daily e-mail quota that approval e-mails need.
+- **Block / report:** on a person's card, from the "•••" button in a private chat, by tapping a name in the general chat, or by long-pressing someone's message. Blocking hides their messages, removes each other from Meet and stops private messages both ways. Organizers can't be blocked. Reports (with a copy of the message) go to /admin/reports and notify organizers.
+- **Load mode** (/admin > Traffic): phones poll every 10 s in chats and 60 s elsewhere (instead of 4 s / 30 s), the hall refreshes every 60 s, and messages not yet translated arrive in the original language. Takes effect on every phone within one poll.
+- **System status** (/admin/health): checked every 5 minutes while anyone uses the app (database reachable and speed, server errors, rate-limited requests, sign-ups per hour, e-mail quota). A problem sends organizers a push notification and an e-mail, at most once an hour per problem. `.github/workflows/app-health.yml` also calls `/api/health/check` every 3 hours (every 10 minutes in congress week); it answers 503 when the database is down, so the failed run e-mails the repository owner. Uses the same `CRON_SECRET` / `APP_CRON_SECRET` as the reminders.
+- **Per-IP limits** for sign-up (500/hour) and sign-in (500/15 min) can be raised with `RATE_IP_REGISTER` / `RATE_IP_LOGIN` if the whole venue shares one internet address.
+- **Vercel Firewall:** rule "Auth rate limit" answers 429 to more than 300 requests a minute from one IP on `/api/auth/*`, before the function runs. In an emergency (a flood on every route), turn on Attack Challenge Mode in the Firewall tab for a few hours; note it also challenges the app's own API calls from new visitors.
+- **Load test:** `ADMIN_EMAILS=load-admin@test.invalid ADMIN_2FA=off RATE_IP_REGISTER=100000 RATE_IP_LOGIN=100000 node dev-server.js`, then `node scripts/load-test.mjs --users 1000 --minutes 3` (add `--lite` to test load mode). Against a deployed copy add `--url <preview url> --yes-really`; use a preview with its own database, never the live app.

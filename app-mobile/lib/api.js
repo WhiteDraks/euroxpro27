@@ -10,8 +10,9 @@ import seed from "./agenda-seed.js";
 import { countryOf } from "../public/countries.js";
 import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
 import { LANGS, isLang, peekMany, providerName, translate } from "./translate.js";
-import { approvalEnabled, provider as mailProvider, sendApprovedEmail, sendSignupEmail } from "./mail.js";
+import { approvalEnabled, provider as mailProvider, sendApprovedEmail, sendMail, sendSignupDigest, sendSignupEmail, signupRecipients } from "./mail.js";
 import { hasSubscription, publicKey, pushers, removeSubscription, saveSubscription, sendToUser, validSubscription } from "./push.js";
+import { checkTotp, newTotpSecret, otpauthUrl, turnstileSiteKey, verifyTurnstile } from "./security.js";
 
 // Run work after the response is sent. On Vercel the platform's request
 // context keeps the function alive until it is done (same mechanism the
@@ -95,6 +96,10 @@ function clientIp(req) {
     // Vercel sets x-real-ip itself; it is not taken from the client.
     return (req.headers.get("x-real-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0]).trim() || "local";
 }
+// Per-IP limits for sign-up (per hour) and sign-in (per 15 min). Generous
+// because a venue's Wi-Fi puts hundreds of phones behind one address;
+// raise them on Vercel if the whole congress shares one connection.
+const IP_LIMIT = { register: Number(process.env.RATE_IP_REGISTER) || 500, login: Number(process.env.RATE_IP_LOGIN) || 500 };
 async function limited(key, max, windowSec) {
     const n = (await cmd("INCR", "drl:" + key));
     if (n === 1)
@@ -130,6 +135,33 @@ async function mailApproved(users, appUrl) {
     };
     await Promise.all(Array.from({ length: Math.min(4, queue.length) }, worker));
 }
+const DIGEST_SEC = 900;
+async function flushSignupDigest(appUrl) {
+    if ((await cmd("SET", "dsignlock", "1", "EX", DIGEST_SEC, "NX")) !== "OK")
+        return;
+    const [ids] = await pipe(["LRANGE", "dsignq", 0, 199], ["DEL", "dsignq"]);
+    const users = await usersByIds(ids || []);
+    if (!users.length) {
+        await cmd("DEL", "dsignlock"); // nothing sent: the next sign-up may e-mail at once
+        return;
+    }
+    if (!(await mailQuota(1)))
+        return console.warn(`[delegate mail] daily limit reached: sign-up e-mail for ${users.length} skipped`);
+    await (users.length === 1 ? sendSignupEmail(users[0], appUrl) : sendSignupDigest(users, appUrl, ids.length)).catch((e) => console.error("[delegate mail]", e.message));
+}
+// Sign-ups that arrived during the quiet 15 minutes go out from here (called
+// by syncs, at most once a minute per instance, and by the health check).
+let digestCheckedAt = 0;
+function maybeFlushDigest(req) {
+    if (Date.now() - digestCheckedAt < 60000)
+        return;
+    digestCheckedAt = Date.now();
+    const appUrl = appAddress(req);
+    background(async () => {
+        if (Number(await cmd("LLEN", "dsignq")) > 0)
+            await flushSignupDigest(appUrl);
+    });
+}
 async function readJson(req, max = 32 * 1024) {
     const text = await req.text();
     if (text.length > max)
@@ -149,7 +181,7 @@ const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", 
 // Delegate positions, as the 2024 app grouped people and agendas.
 const POSITIONS = ["MCPc", "MCPe", "MCVP", "LCP", "LCVP", "Other"];
 const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "", photo: u.photoV ? `/api/photo/${u.id}?v=${u.photoV}` : "", position: u.position || "", title: u.role === "admin" ? u.title || "" : "" });
-const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false, status: statusOf(u) });
+const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false, status: statusOf(u), twofa: !!u.totp, twofaSetup: needsTwofaSetup(u) });
 // Account status. Accounts made before sign-up approval existed have no
 // status and count as active. Organizers are always active.
 const STATUSES = ["pending", "active", "suspended", "rejected"];
@@ -158,12 +190,22 @@ const isActive = (u) => statusOf(u) === "active";
 // Who other delegates can see in lists, Meet, the hall and the map.
 const listed = (u) => !!u && isActive(u) && !(u.demo && !demoOn());
 const isOwner = (u) => adminEmails().includes(String(u.email || "").toLowerCase());
-const SETTINGS_DEFAULT = { approval: true, signups: true };
+// lite: "load mode" for crowded moments. Phones poll less often, the hall
+// refreshes slower and messages that aren't translated yet arrive in the
+// original language (no wait on the translator).
+const SETTINGS_DEFAULT = { approval: true, signups: true, lite: false };
 // Keep in step with KVKK_VERSION in public/kvkk.js.
 const KVKK_VERSION = "2026-11-22";
 async function loadSettings() {
     return { ...SETTINGS_DEFAULT, ...(parse(await cmd("GET", "dset")) || {}) };
 }
+// Read on every sync, so shared per instance for 5 s.
+const settingsNow = () => cached("settings", 5000, loadSettings);
+const liteNow = async () => (await settingsNow().catch(() => SETTINGS_DEFAULT)).lite === true;
+// Organizer accounts need a 6-digit code from an authenticator app. ADMIN_2FA=off
+// is the escape hatch if every organizer lost their phone.
+const twofaEnforced = () => !/^(off|0|false|no)$/i.test(String(process.env.ADMIN_2FA || "").trim());
+const needsTwofaSetup = (u) => u.role === "admin" && !u.totp && twofaEnforced();
 // True once per install: the first ADMIN_EMAILS sign-up, when no organizer exists yet.
 async function bootstrapOwner(id) {
     if ((await cmd("SET", "downer", id, "NX")) !== "OK")
@@ -205,12 +247,52 @@ async function currentUser(req) {
     // session opened with the old one stops working at once.
     const [id, ver = "0"] = String(v).split(".");
     const u = await getUser(id);
+    // A signed-out session can still sit in another instance's memo for up
+    // to a minute; the user record (read fresh anyway) lists it until then.
+    if (u?.rev?.some((r) => r.k === key.slice(0, 16)))
+        return null;
     return u && String(u.sv || 0) === ver ? u : null;
 }
-async function startSession(u, status = 200) {
+async function startSession(u, status = 200, extraCookies = []) {
     const token = randomBytes(32).toString("base64url");
     await cmd("SET", "ds:" + sha256(token), `${u.id}.${u.sv || 0}`, "EX", SESSION_DAYS * 86400);
-    return json({ user: me(u) }, status, { "set-cookie": sessionCookie(token, SESSION_DAYS * 86400) });
+    const res = json({ user: me(u) }, status, { "set-cookie": sessionCookie(token, SESSION_DAYS * 86400) });
+    for (const c of extraCookies)
+        res.headers.append("set-cookie", c);
+    return res;
+}
+// "Known device": a long-lived random cookie set at each successful sign-in.
+// Wrong-password slowdowns for an e-mail address don't apply to a device
+// that already signed in to that account, so nobody can lock a delegate
+// out just by knowing their e-mail.
+const DEVICE_DAYS = 365;
+function deviceCookie(req, u) {
+    let token = cookie(req, "exd");
+    if (!token || !/^[\w-]{20,64}$/.test(token))
+        token = randomBytes(24).toString("base64url");
+    const hash = sha256(token).slice(0, 32);
+    u.devices = [hash, ...(u.devices || []).filter((x) => x !== hash)].slice(0, 10);
+    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    return `exd=${token}; Path=/api/auth; HttpOnly; SameSite=Lax; Max-Age=${DEVICE_DAYS * 86400}${secure}`;
+}
+function knownDevice(req, u) {
+    const token = cookie(req, "exd");
+    return !!token && !!u?.devices?.includes(sha256(token).slice(0, 32));
+}
+// Wrong passwords (or codes) for one e-mail: the first 5 are free, then each
+// try from an unknown device waits 15 s, 30 s, 1 min ... up to 5 min.
+const FREE_FAILS = 5;
+const failKey = (email) => "dlf:" + sha256(email).slice(0, 32);
+async function loginWait(email) {
+    const f = parse(await cmd("GET", failKey(email)));
+    return f && f.until > Date.now() ? Math.ceil((f.until - Date.now()) / 1000) : 0;
+}
+async function loginFailed(email) {
+    const f = parse(await cmd("GET", failKey(email))) || { n: 0, until: 0 };
+    f.n += 1;
+    if (f.n >= FREE_FAILS)
+        f.until = Date.now() + Math.min(300, 15 * 2 ** (f.n - FREE_FAILS)) * 1000;
+    await cmd("SET", failKey(email), JSON.stringify(f), "EX", 3600);
 }
 // ------------------------------------------------------------ chat
 const dmId = (a, b) => "dm:" + [a, b].sort().join(":");
@@ -236,6 +318,8 @@ async function forReader(u, msgs) {
             return { ...base, text: m.text, translated: false };
         if (cached[i])
             return { ...base, text: cached[i], translated: cached[i] !== m.text };
+        if (await liteNow())
+            return { ...base, text: m.text, translated: false };
         const r = await translate(m.text, m.lang, u.lang);
         return { ...base, text: r.text, translated: r.translated };
     }));
@@ -298,11 +382,19 @@ async function agendaFor(lang) {
 const routes = [];
 const route = (method, pattern, h, open = false) => routes.push({ method, re: new RegExp("^" + pattern + "$"), h, open });
 route("GET", "health", () => json({ ok: true, storage: isConfigured, translator: providerName() }), true);
+// What the sign-up form needs before it is sent (the bot check's public key).
+route("GET", "auth/config", () => json({ turnstile: turnstileSiteKey() || null }, 200, { "cache-control": "public, max-age=300" }), true);
 route("POST", "auth/register", async ({ req }) => {
     // Per IP, generous: a whole venue on one Wi-Fi (or a mobile carrier) shares an address.
-    if (await limited("reg:" + clientIp(req), 500, 3600))
+    if (await limited("reg:" + clientIp(req), IP_LIMIT.register, 3600))
         throw new HttpError(429, "rate_limited");
     const b = await readJson(req);
+    // Bots: a hidden field people never see (bots fill every box), then
+    // Cloudflare Turnstile once its keys are set on Vercel.
+    if (b.website)
+        throw new HttpError(400, "captcha_failed");
+    if (!(await verifyTurnstile(b.captcha, clientIp(req))))
+        throw new HttpError(400, "captcha_failed");
     const name = clean(b.name, 60);
     const email = clean(b.email, 120).toLowerCase();
     const password = String(b.password || "");
@@ -354,6 +446,7 @@ route("POST", "auth/register", async ({ req }) => {
     await pipe(["SET", "du:" + id, JSON.stringify(user)], ["SADD", "dusers", id], ["HSET", "dr:" + id, GENERAL, generalCount] // no backlog of "unread" history
     );
     await pushEvent({ at: Date.now(), type: "signup", pending: user.status === "pending" });
+    countStat("signup");
     if (user.status === "pending") {
         // Tell the organizers someone is waiting for them.
         const subject = pushSubject(req);
@@ -363,41 +456,121 @@ route("POST", "auth/register", async ({ req }) => {
                 await notify("messages", subject, (p) => ({ title: pt(p, "signup"), body: pt(p, "signupBody", { n: user.name + (user.entity ? ` · ${user.entity}` : "") }), url: "/admin", tag: "signup" }), admins);
         });
     }
-    // E-mail the organizers too (lib/mail.js); best-effort, never blocks sign-up.
+    // E-mail the organizers too (lib/mail.js); best-effort, never blocks
+    // sign-up. At most one e-mail per 15 minutes: later sign-ups are
+    // gathered into one summary, so a burst of fake accounts can't use up the
+    // daily e-mail quota that approval e-mails need.
     const appUrl = appAddress(req);
     background(async () => {
-        if (await mailQuota(1))
-            await sendSignupEmail(user, appUrl);
+        await cmd("RPUSH", "dsignq", user.id);
+        await flushSignupDigest(appUrl);
     });
     return startSession(user, 201);
 }, true);
 route("POST", "auth/login", async ({ req }) => {
     const b = await readJson(req);
     const email = clean(b.email, 120).toLowerCase();
-    if ((await limited("login:" + clientIp(req), 500, 900)) || (await limited("login:" + email, 10, 900))) {
+    if (await limited("login:" + clientIp(req), IP_LIMIT.login, 900))
         throw new HttpError(429, "rate_limited");
-    }
     const id = (await cmd("GET", "de:" + email));
     const user = id ? await getUser(id) : null;
+    const known = knownDevice(req, user);
+    if (!known) {
+        const wait = await loginWait(email);
+        if (wait)
+            return json({ error: "login_wait", wait }, 429, { "retry-after": String(wait) });
+    }
     const ok = await checkPassword(String(b.password || ""), user || { passHash: DUMMY.hash, salt: DUMMY.salt });
-    if (!user || !ok)
+    if (!user || !ok) {
+        if (!known)
+            await loginFailed(email);
         throw new HttpError(401, "bad_credentials");
+    }
+    // Two-step sign-in: the password was right, now the 6-digit code.
+    if (user.totp) {
+        if (!b.code)
+            throw new HttpError(401, "code_required");
+        const step = checkTotp(user.totp, b.code, user.totpLast || 0);
+        if (!step) {
+            if (!known)
+                await loginFailed(email);
+            throw new HttpError(401, "bad_code");
+        }
+        user.totpLast = step; // the same code can't be used twice
+    }
+    await cmd("DEL", failKey(email));
     // Only an account an organizer has approved: an unverified sign-up with
     // an ADMIN_EMAILS address must not promote itself.
-    if (adminEmails().includes(user.email) && user.role !== "admin" && isActive(user)) {
+    if (adminEmails().includes(user.email) && user.role !== "admin" && isActive(user))
         user.role = "admin";
-        await saveUser(user);
-    }
-    return startSession(user);
+    const dev = deviceCookie(req, user);
+    await saveUser(user);
+    return startSession(user, 200, [dev]);
 }, true);
 route("POST", "auth/logout", async ({ req }) => {
     const token = cookie(req, "exs");
     if (token) {
-        sessions.delete(sha256(token));
-        await cmd("DEL", "ds:" + sha256(token));
+        const key = sha256(token);
+        sessions.delete(key);
+        const v = await cmd("GET", "ds:" + key);
+        await cmd("DEL", "ds:" + key);
+        // Other instances may still remember this session for a minute.
+        const u = v ? await getUser(String(v).split(".")[0]) : null;
+        if (u) {
+            u.rev = [{ k: key.slice(0, 16), at: Date.now() }, ...(u.rev || []).filter((r) => Date.now() - r.at < 2 * SESSION_MEMO_MS)].slice(0, 20);
+            await saveUser(u);
+        }
     }
     return json({ ok: true }, 200, { "set-cookie": sessionCookie("", 0) });
 }, true);
+// Sign out every other phone and computer; this device gets a fresh session.
+route("POST", "auth/logout-all", async ({ user }) => {
+    user.sv = (user.sv || 0) + 1;
+    user.rev = [];
+    await saveUser(user);
+    return startSession(user);
+}, "any");
+// ------------------------------------------------------------ two-step sign-in (TOTP)
+route("POST", "me/2fa/setup", async ({ user }) => {
+    if (user.totp)
+        throw new HttpError(409, "twofa_on");
+    const secret = newTotpSecret();
+    user.totpPending = { s: secret, at: Date.now() };
+    await saveUser(user);
+    return json({ secret, url: otpauthUrl(secret, user.email) });
+}, "any");
+route("POST", "me/2fa/enable", async ({ req, user }) => {
+    if (await limited("2fa:" + user.id, 10, 300))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req);
+    const p = user.totpPending;
+    if (!p || Date.now() - p.at > 30 * 60000)
+        throw new HttpError(400, "twofa_expired");
+    const step = checkTotp(p.s, b.code);
+    if (!step)
+        throw new HttpError(400, "bad_code");
+    user.totp = p.s;
+    user.totpLast = step;
+    delete user.totpPending;
+    // Anyone else signed in to this account is signed out now.
+    user.sv = (user.sv || 0) + 1;
+    user.rev = [];
+    await saveUser(user);
+    return startSession(user);
+}, "any");
+route("POST", "me/2fa/disable", async ({ req, user }) => {
+    if (user.role === "admin" && twofaEnforced())
+        throw new HttpError(403, "twofa_mandatory");
+    if (await limited("2fa:" + user.id, 10, 300))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req);
+    if (!user.totp || !checkTotp(user.totp, b.code, user.totpLast || 0))
+        throw new HttpError(400, "bad_code");
+    delete user.totp;
+    delete user.totpLast;
+    await saveUser(user);
+    return json({ user: me(user) });
+}, "any");
 route("GET", "me", ({ user }) => json({ user: me(user) }), "any");
 route("PATCH", "me", async ({ req, user }) => {
     const u = user;
@@ -541,6 +714,8 @@ route("POST", "conversations/dm", async ({ req, user }) => {
     const peer = typeof b.userId === "string" ? await getUser(b.userId) : null;
     if (!peer || peer.id === user.id || (!listed(peer) && user.role !== "admin"))
         throw new HttpError(404, "not_found");
+    if (blockedBy(user).has(peer.id))
+        throw new HttpError(403, "blocked");
     return json({ id: dmId(user.id, peer.id), peer: publicUser(peer) });
 });
 async function checkConv(u, conv) {
@@ -556,8 +731,9 @@ async function checkConv(u, conv) {
 route("GET", "conversations/([\\w:-]+)/messages", async ({ user, m }) => {
     const peer = await checkConv(user, m[1]);
     const raw = (await cmd("LRANGE", "dm:" + m[1], -60, -1));
-    const msgs = raw.map((r) => parse(r)).filter((x) => !!x);
-    return json({ messages: await forReader(user, msgs), peer: peer ? publicUser(peer) : null });
+    const blocked = blockedBy(user);
+    const msgs = raw.map((r) => parse(r)).filter((x) => !!x && !blocked.has(x.from));
+    return json({ messages: await forReader(user, msgs), peer: peer ? publicUser(peer) : null, blocked: !peer ? false : (user.blocked || []).includes(peer.id) ? "you" : (user.blockedBy || []).includes(peer.id) ? "them" : false });
 });
 route("POST", "conversations/([\\w:-]+)/messages", async ({ req, user, m }) => {
     const u = user;
@@ -566,6 +742,8 @@ route("POST", "conversations/([\\w:-]+)/messages", async ({ req, user, m }) => {
     // No new messages to waiting, suspended or removed accounts (organizers may).
     if (peer && peer.id !== u.id && !listed(peer) && u.role !== "admin")
         throw new HttpError(404, "not_found");
+    if (peer && blockedBy(u).has(peer.id))
+        throw new HttpError(403, "blocked");
     if (await limited("msg:" + u.id, 30, 60))
         throw new HttpError(429, "rate_limited");
     const b = await readJson(req);
@@ -599,6 +777,9 @@ let lastEvent = { v: 0, at: 0 };
 route("GET", "sync", async ({ req, url, user }) => {
     const u = user;
     remindersSoon(pushSubject(req));
+    maybeMonitor(req);
+    maybeFlushDigest(req);
+    const lite = await liteNow();
     const since = Number(url.searchParams.get("since")) || 0;
     // Presence for the plenary hall rides along with the poll (same round
     // trip). The "last event" time is shared for 2 s per instance, so a
@@ -614,12 +795,13 @@ route("GET", "sync", async ({ req, url, user }) => {
         lastEvent = { v: lastAt, at: Date.now() };
     }
     if (!since || lastAt <= since)
-        return json({ now: Math.max(lastAt, since || Date.now()), messages: [], agenda: false, matches: [], announce: false, request: false });
+        return json({ now: Math.max(lastAt, since || Date.now()), lite, messages: [], agenda: false, matches: [], announce: false, request: false });
     const events = (await cmd("LRANGE", "dev", 0, 99))
         .map((r) => parse(r))
         .filter((e) => !!e && e.at > since)
         .reverse();
-    const msgs = events.filter((e) => e.type === "message" && e.msg && canSee(u, e.msg.conv)).map((e) => e.msg);
+    const blocked = await blockedBy(u);
+    const msgs = events.filter((e) => e.type === "message" && e.msg && canSee(u, e.msg.conv) && !blocked.has(e.msg.from)).map((e) => e.msg);
     const agenda = events.some((e) => e.type === "agenda" && (!e.lang || e.lang === u.lang));
     const agendaChange = events.some((e) => e.type === "agenda" && e.sessionId);
     const matches = events.filter((e) => e.type === "match" && e.users?.includes(u.id)).map((e) => e.users.find((x) => x !== u.id));
@@ -632,7 +814,8 @@ route("GET", "sync", async ({ req, url, user }) => {
     const signup = u.role === "admin" && events.some((e) => e.type === "signup" && e.pending);
     const users = u.role === "admin" && events.some((e) => e.type === "signup" || e.type === "users");
     const removed = events.filter((e) => e.type === "msgdel" && canSee(u, e.conv)).map((e) => ({ conv: e.conv, id: e.id }));
-    return json({ now: lastAt, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest, signup, users, removed });
+    const report = u.role === "admin" && events.some((e) => e.type === "report");
+    return json({ now: lastAt, lite, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest, signup, users, removed, report });
 });
 // ------------------------------------------------------------ meet (swipe to get to know people)
 async function usersByIds(ids) {
@@ -648,14 +831,14 @@ async function withBio(reader, users) {
         const from = x.bioLang || x.lang;
         if (!x.bio || from === reader.lang)
             return out;
-        const tr = bios[i] != null ? { text: bios[i], translated: bios[i] !== x.bio } : await translate(x.bio, from, reader.lang);
+        const tr = bios[i] != null ? { text: bios[i], translated: bios[i] !== x.bio } : (await liteNow()) ? { text: x.bio, translated: false } : await translate(x.bio, from, reader.lang);
         return { ...out, bio: tr.text, bioOriginal: x.bio, bioTranslated: tr.translated };
     }));
 }
 route("GET", "meet/deck", async ({ user }) => {
     const u = user;
     const [all, swiped] = await pipe(["SMEMBERS", "dusers"], ["SMEMBERS", "dsw:" + u.id]);
-    const seen = new Set(swiped);
+    const seen = new Set([...swiped, ...blockedBy(u)]);
     const ids = all.filter((x) => x !== u.id && !seen.has(x));
     // Shuffle, then take a small batch.
     for (let i = ids.length - 1; i > 0; i--) {
@@ -674,7 +857,7 @@ route("POST", "meet/swipe", async ({ req, user }) => {
     const u = user;
     const b = await readJson(req);
     const target = typeof b.userId === "string" ? await getUser(b.userId) : null;
-    if (!target || target.id === u.id || !listed(target))
+    if (!target || target.id === u.id || !listed(target) || blockedBy(u).has(target.id))
         throw new HttpError(404, "not_found");
     if (await limited("swipe:" + u.id, 120, 60))
         throw new HttpError(429, "rate_limited");
@@ -732,7 +915,56 @@ route("GET", "people/([\\w-]+)", async ({ user, m }) => {
     if (!p || (!listed(p) && user.role !== "admin" && p.id !== user.id))
         throw new HttpError(404, "not_found");
     const [out] = await withBio(user, [p]);
-    return json({ person: out });
+    return json({ person: { ...out, blocked: (user.blocked || []).includes(p.id), canBlock: p.role !== "admin" && !p.demo } });
+});
+// ------------------------------------------------------------ block and report
+// Blocking hides the person's messages, keeps them out of each other's Meet
+// cards and stops private messages both ways. Organizers can't be blocked
+// (delegates must be able to reach the team), but they can be reported.
+const blockedBy = (u) => new Set([...(u.blocked || []), ...(u.blockedBy || [])]);
+route("POST", "people/([\\w-]+)/block", async ({ req, user, m }) => {
+    const b = await readJson(req);
+    const target = await getUser(m[1]);
+    if (!target || target.id === user.id)
+        throw new HttpError(404, "not_found");
+    if (target.role === "admin" || target.demo)
+        throw new HttpError(403, "cant_block");
+    if (await limited("blk:" + user.id, 60, 3600))
+        throw new HttpError(429, "rate_limited");
+    const on = b.block !== false;
+    const toggle = (list, id) => (on ? [...new Set([...(list || []), id])] : (list || []).filter((x) => x !== id)).slice(-500);
+    user.blocked = toggle(user.blocked, target.id);
+    target.blockedBy = toggle(target.blockedBy, user.id);
+    await saveUser(user);
+    await saveUser(target);
+    return json({ blocked: on });
+});
+const REPORT_REASONS = ["harassment", "spam", "fake", "inappropriate", "other"];
+route("POST", "people/([\\w-]+)/report", async ({ req, user, m }) => {
+    const target = await getUser(m[1]);
+    if (!target || target.id === user.id)
+        throw new HttpError(404, "not_found");
+    if (await limited("rep:" + user.id, 10, 3600))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req);
+    const reason = REPORT_REASONS.includes(b.reason) ? b.reason : "other";
+    // A copy of the reported message, so organizers see it even if it is deleted later.
+    let msg = null;
+    if (typeof b.msgId === "string" && typeof b.conv === "string" && canSee(user, b.conv)) {
+        const raw = await cmd("LRANGE", "dm:" + b.conv, -300, -1);
+        const hit = raw.map((r) => parse(r)).find((x) => x?.id === b.msgId && x.from === target.id);
+        if (hit)
+            msg = { id: hit.id, conv: hit.conv, text: hit.text, at: hit.at };
+    }
+    const rep = { id: newId(), at: Date.now(), by: user.id, byName: user.name, target: target.id, targetName: target.name, reason, text: clean(b.text, 500), msg, status: "open" };
+    await pipe(["SET", "drep:" + rep.id, JSON.stringify(rep)], ["LPUSH", "dreps", rep.id], ["LTRIM", "dreps", 0, 499]);
+    await pushEvent({ at: Date.now(), type: "report" });
+    const subject = pushSubject(req);
+    background(async () => {
+        const admins = (await allUsers()).filter((x) => x.role === "admin" && !x.demo).map((x) => x.id);
+        await notify("messages", subject, (p) => ({ title: pt(p, "report"), body: pt(p, "reportBody", { n: target.name }), url: "/admin/reports", tag: "report" }), admins);
+    });
+    return json({ ok: true }, 201);
 });
 route("GET", "photo/([\\w-]+)", async ({ m }) => {
     const b64 = await cmd("GET", "dph:" + m[1]);
@@ -1185,9 +1417,9 @@ route("GET", "recap", async ({ user }) => {
 const NOTIFY_KINDS = ["sessions", "changes", "announce", "messages"];
 const notifyPrefs = (u) => Object.fromEntries(NOTIFY_KINDS.map((k) => [k, u.notify?.[k] !== false]));
 const PUSH_TEXT = {
-    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", signup: "Yeni kayıt onay bekliyor", signupBody: "{n} uygulamaya katılmak istiyor.", approved: "Hesabın onaylandı", approvedBody: "EUROXPRO'27'ye hoş geldin! Uygulamayı açabilirsin.", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek." },
-    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", signup: "New sign-up waiting", signupBody: "{n} wants to join the app.", approved: "Your account is approved", approvedBody: "Welcome to EUROXPRO'27! You can open the app now.", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here." },
-    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", signup: "Nowa rejestracja czeka", signupBody: "{n} chce dołączyć do aplikacji.", approved: "Twoje konto zostało zatwierdzone", approvedBody: "Witamy na EUROXPRO'27! Możesz już otworzyć aplikację.", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości." },
+    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", signup: "Yeni kayıt onay bekliyor", signupBody: "{n} uygulamaya katılmak istiyor.", approved: "Hesabın onaylandı", approvedBody: "EUROXPRO'27'ye hoş geldin! Uygulamayı açabilirsin.", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek.", report: "Yeni bildirim (şikayet)", reportBody: "{n} hakkında bir bildirim geldi." },
+    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", signup: "New sign-up waiting", signupBody: "{n} wants to join the app.", approved: "Your account is approved", approvedBody: "Welcome to EUROXPRO'27! You can open the app now.", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here.", report: "New report", reportBody: "Someone reported {n}." },
+    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", signup: "Nowa rejestracja czeka", signupBody: "{n} chce dołączyć do aplikacji.", approved: "Twoje konto zostało zatwierdzone", approvedBody: "Witamy na EUROXPRO'27! Możesz już otworzyć aplikację.", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości.", report: "Nowe zgłoszenie", reportBody: "Ktoś zgłosił użytkownika {n}." },
 };
 const pt = (u, k, vars = {}) => (PUSH_TEXT[u.lang] || PUSH_TEXT.en)[k].replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? "");
 const short = (s, n = 140) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
@@ -1278,6 +1510,131 @@ route("GET", "push/cron", async ({ req, url }) => {
     const sim = !process.env.VERCEL && url.searchParams.get("now") ? Date.parse(url.searchParams.get("now") + ":00+03:00") : NaN;
     return json({ sent: await runReminders(pushSubject(req), Number.isNaN(sim) ? Date.now() : sim) });
 }, true);
+// ------------------------------------------------------------ health watch and alerts
+// Counters per minute (server errors, refused requests, sign-ups), kept per
+// instance and written to storage at most every 10 s.
+const statBuf = {};
+let statFlushAt = 0;
+function countStat(kind, n = 1) {
+    statBuf[kind] = (statBuf[kind] || 0) + n;
+    if (Date.now() - statFlushAt < 10000)
+        return;
+    statFlushAt = Date.now();
+    const minute = Math.floor(Date.now() / 60000);
+    const entries = Object.entries(statBuf);
+    for (const [k] of entries)
+        delete statBuf[k];
+    background(() => pipe(...entries.flatMap(([k, v]) => [["INCRBY", `dstat:${k}:${minute}`, v], ["EXPIRE", `dstat:${k}:${minute}`, 7200]])));
+}
+async function statSum(kind, minutes) {
+    const now = Math.floor(Date.now() / 60000);
+    const keys = Array.from({ length: minutes }, (_, i) => `dstat:${kind}:${now - i}`);
+    return (await cmd("MGET", ...keys)).reduce((a, v) => a + (Number(v) || 0), 0);
+}
+// Thresholds: what counts as "someone should look at this".
+const MON = { errors10: 20, throttled10: 300, signups60: 100, slowMs: 1500, mailPct: 80 };
+const MON_TEXT = {
+    tr: {
+        title: "EUROXPRO'27 uygulama uyarısı",
+        storage: "Veritabanına ulaşılamıyor. Uygulama şu an çalışmıyor olabilir (Upstash kotası dolmuş olabilir).",
+        slow: "Veritabanı yavaş yanıt veriyor ({v} ms). Gerekirse yönetim panelinden yük modunu aç.",
+        errors: "Son 10 dakikada {v} sunucu hatası oldu.",
+        throttled: "Son 10 dakikada {v} istek hız sınırına takıldı. Bir saldırı ya da hatalı bir cihaz olabilir.",
+        signups: "Son 1 saatte {v} kayıt geldi. Bot olabilir, onay bekleyenleri kontrol et.",
+        mail: "Bugünkü e-posta kotasının %{v}'i kullanıldı.",
+        mailOff: "E-posta ayarı yok: kayıt ve onay e-postaları gönderilmiyor.",
+    },
+    en: {
+        title: "EUROXPRO'27 app alert",
+        storage: "The database can't be reached. The app may be down (the Upstash quota may be used up).",
+        slow: "The database is answering slowly ({v} ms). Turn on load mode in the organizer panel if needed.",
+        errors: "{v} server errors in the last 10 minutes.",
+        throttled: "{v} requests hit the rate limit in the last 10 minutes. Possibly an attack or a faulty device.",
+        signups: "{v} sign-ups in the last hour. Possibly bots: check the waiting list.",
+        mail: "{v}% of today's e-mail quota is used.",
+        mailOff: "No e-mail settings: sign-up and approval e-mails are not sent.",
+    },
+};
+const monText = (lang, id, v) => (MON_TEXT[lang] || MON_TEXT.en)[id].replace("{v}", String(v));
+async function runMonitor(subject, appUrl) {
+    const checks = [];
+    const add = (id, level, value) => checks.push({ id, level, value });
+    const t0 = Date.now();
+    try {
+        await cmd("SET", "dmonping", String(t0), "EX", 600);
+        await cmd("GET", "dmonping");
+    }
+    catch (e) {
+        console.error("[monitor] storage", e.message);
+        add("storage", "crit", 0);
+        const result = { at: Date.now(), ok: false, checks };
+        // No storage: no push either (keys live there). E-mail goes out
+        // without the quota counter, at most once per instance per hour.
+        if (Date.now() - lastStorageMail > 3600000 && mailProvider()) {
+            lastStorageMail = Date.now();
+            await sendMail({ to: signupRecipients(), subject: MON_TEXT.tr.title, text: `${MON_TEXT.tr.storage}\n\n${MON_TEXT.en.storage}\n\n${appUrl}` }).catch(() => { });
+        }
+        return result;
+    }
+    const ms = Date.now() - t0;
+    add("slow", ms > MON.slowMs ? "warn" : "ok", ms);
+    const [errors, throttled, signups] = await Promise.all([statSum("500", 10), statSum("429", 10), statSum("signup", 60)]);
+    add("errors", errors >= MON.errors10 ? "warn" : "ok", errors);
+    add("throttled", throttled >= MON.throttled10 ? "warn" : "ok", throttled);
+    add("signups", signups >= MON.signups60 ? "warn" : "ok", signups);
+    const kind = mailProvider();
+    if (!kind)
+        add("mailOff", "info", 0);
+    else {
+        const max = Number(process.env.MAIL_DAILY_MAX) || (kind === "smtp" ? 450 : 95);
+        const used = Number(await cmd("GET", "dmail:" + new Date().toISOString().slice(0, 10))) || 0;
+        const pct = Math.round((used / max) * 100);
+        add("mail", pct >= MON.mailPct ? "warn" : "ok", pct);
+    }
+    const settings = await loadSettings();
+    const result = { at: Date.now(), ok: !checks.some((c) => c.level === "warn" || c.level === "crit"), lite: settings.lite, checks };
+    await cmd("SET", "dmon", JSON.stringify(result), "EX", 86400);
+    // Each problem alerts the organizers at most once an hour.
+    const bad = checks.filter((c) => c.level === "warn");
+    const fresh = [];
+    for (const c of bad)
+        if ((await cmd("SET", "dmonal:" + c.id, "1", "EX", 3600, "NX")) === "OK")
+            fresh.push(c);
+    if (fresh.length) {
+        const admins = (await allUsers()).filter((x) => x.role === "admin" && !x.demo);
+        await notify("messages", subject, (p) => ({ title: monText(p.lang, "title"), body: fresh.map((c) => monText(p.lang, c.id, c.value)).join(" "), url: "/admin/health", tag: "health" }), admins.map((x) => x.id));
+        if (kind && (await mailQuota(1))) {
+            const text = [...fresh.map((c) => "- " + monText("tr", c.id, c.value)), "", ...fresh.map((c) => "- " + monText("en", c.id, c.value)), "", `${appUrl}/admin/health`].join("\n");
+            await sendMail({ to: signupRecipients(), subject: MON_TEXT.tr.title, text }).catch((e) => console.error("[monitor mail]", e.message));
+        }
+    }
+    await flushSignupDigest(appUrl).catch(() => { });
+    return result;
+}
+let lastStorageMail = 0;
+// Any open phone keeps the watch going: every 5 minutes one sync (whichever
+// gets the lock) runs the checks after its answer is sent.
+let monCheckedAt = 0;
+function maybeMonitor(req) {
+    if (Date.now() - monCheckedAt < 60000)
+        return;
+    monCheckedAt = Date.now();
+    const subject = pushSubject(req), appUrl = appAddress(req);
+    background(async () => {
+        if ((await cmd("SET", "dmonlock", "1", "EX", 300, "NX")) === "OK")
+            await runMonitor(subject, appUrl);
+    });
+}
+// For an outside scheduler (GitHub Actions): answers 503 when something is
+// wrong, so the failed run e-mails the repository owner even if the app
+// itself can't send anything.
+route("GET", "health/check", async ({ req, url }) => {
+    if (process.env.CRON_SECRET && url.searchParams.get("key") !== process.env.CRON_SECRET && req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`)
+        throw new HttpError(401, "unauthorized");
+    const r = await runMonitor(pushSubject(req), appAddress(req));
+    const crit = r.checks.some((c) => c.level === "crit");
+    return json({ ok: r.ok, checks: r.checks.map(({ id, level, value }) => ({ id, level, value })) }, crit ? 503 : 200);
+}, true);
 // ------------------------------------------------------------ organizer panel (/admin in the app)
 // Sign-up approval, people management, app settings and chat moderation.
 // Every route checks the organizer role here, not only in the app.
@@ -1296,11 +1653,12 @@ route("GET", "admin/overview", async ({ user }) => {
     const [users, settings, extra] = await Promise.all([
         adminUsers(),
         loadSettings(),
-        pipe(["LLEN", "dm:" + GENERAL], ["SCARD", "dqplayers"], ["LRANGE", "dqids", 0, 499], ["LRANGE", "dresids", 0, 999]),
+        pipe(["LLEN", "dm:" + GENERAL], ["SCARD", "dqplayers"], ["LRANGE", "dqids", 0, 499], ["LRANGE", "dresids", 0, 999], ["LRANGE", "dreps", 0, 199]),
     ]);
-    const [qs, rs] = await Promise.all([
+    const [qs, rs, reps] = await Promise.all([
         extra[2].length ? cmd("MGET", ...extra[2].map((x) => "dq:" + x)) : [],
         extra[3].length ? cmd("MGET", ...extra[3].map((x) => "dres:" + x)) : [],
+        extra[4].length ? cmd("MGET", ...extra[4].map((x) => "drep:" + x)) : [],
     ]);
     const by = (st) => users.filter((u) => u.status === st).length;
     return json({
@@ -1318,7 +1676,9 @@ route("GET", "admin/overview", async ({ user }) => {
             questPlayers: Number(extra[1]) || 0,
             requestsOpen: qs.map((r) => parse(r)).filter((q) => q?.status === "open").length,
             reservations: rs.map((r) => parse(r)).filter((r) => r?.status === "reserved").length,
+            reportsOpen: reps.map((r) => parse(r)).filter((r) => r?.status === "open").length,
         },
+        health: parse(await cmd("GET", "dmon")),
         pending: users.filter((u) => u.status === "pending").sort((a, b) => a.createdAt - b.createdAt),
     });
 });
@@ -1452,6 +1812,51 @@ route("POST", "admin/users/([\\w-]+)/delete", async ({ user, m }) => {
     await pushEvent({ at: Date.now(), type: "users" });
     return json({ ok: true });
 });
+route("GET", "admin/health", async ({ req, user, url }) => {
+    needAdmin(user);
+    let r = parse(await cmd("GET", "dmon"));
+    if (!r || Date.now() - r.at > 5 * 60000 || url.searchParams.get("fresh"))
+        r = await runMonitor(pushSubject(req), appAddress(req));
+    return json({ health: r, thresholds: MON, settings: await loadSettings() });
+});
+route("GET", "admin/reports", async ({ user }) => {
+    needAdmin(user);
+    const ids = await cmd("LRANGE", "dreps", 0, 199);
+    const list = ids.length ? (await cmd("MGET", ...ids.map((x) => "drep:" + x))).map((r) => parse(r)).filter(Boolean) : [];
+    return json({ reports: list });
+});
+route("POST", "admin/reports/([\\w-]+)", async ({ req, user, m }) => {
+    needAdmin(user);
+    const r = parse(await cmd("GET", "drep:" + m[1]));
+    if (!r)
+        throw new HttpError(404, "not_found");
+    const b = await readJson(req);
+    if (["open", "resolved"].includes(b.status)) {
+        r.status = b.status;
+        r.handledBy = user.name;
+        r.handledAt = Date.now();
+    }
+    await cmd("SET", "drep:" + r.id, JSON.stringify(r));
+    return json({ report: r });
+});
+// Lost phone: another organizer turns two-step sign-in off for that account,
+// which signs it out everywhere; it is asked to set it up again at next sign-in.
+route("POST", "admin/users/([\\w-]+)/2fa-reset", async ({ user, m }) => {
+    needAdmin(user);
+    const u = await getUser(m[1]);
+    if (!u || u.demo)
+        throw new HttpError(404, "not_found");
+    if (u.id === user.id)
+        throw new HttpError(403, "self");
+    if (isOwner(u) && u.role === "admin" && !isOwner(user))
+        throw new HttpError(403, "owner");
+    delete u.totp;
+    delete u.totpLast;
+    delete u.totpPending;
+    u.sv = (u.sv || 0) + 1;
+    await saveUser(u);
+    return json({ ok: true });
+});
 route("GET", "admin/settings", async ({ user }) => {
     needAdmin(user);
     return json({ settings: await loadSettings() });
@@ -1464,6 +1869,9 @@ route("POST", "admin/settings", async ({ req, user }) => {
         if (typeof b[k] === "boolean")
             s[k] = b[k];
     await cmd("SET", "dset", JSON.stringify(s));
+    forget("settings");
+    if (typeof b.lite === "boolean")
+        await pushEvent({ at: Date.now(), type: "lite" });
     return json({ settings: s });
 });
 // General chat moderation: the latest messages, and removing one.
@@ -1539,15 +1947,26 @@ export async function handle(req, segments) {
             // Waiting, suspended and rejected accounts can only see who they are.
             if (user && r.open !== "any" && !isActive(user))
                 return json({ error: "not_approved", status: statusOf(user) }, 403);
-            return await r.h({ req, url: new URL(req.url), user, m });
+            // Organizers first turn on two-step sign-in; until then only
+            // their own profile and the set-up calls answer.
+            if (user && r.open !== "any" && needsTwofaSetup(user))
+                return json({ error: "twofa_required" }, 403);
+            const res = await r.h({ req, url: new URL(req.url), user, m });
+            if (res.status === 429)
+                countStat("429");
+            return res;
         }
         return json({ error: "not_found" }, 404);
     }
     catch (err) {
         const e = err;
-        if (e instanceof HttpError || e.status)
+        if (e instanceof HttpError || e.status) {
+            if (e.status === 429)
+                countStat("429");
             return json({ error: e.message }, e.status || 500);
+        }
         console.error("[delegate api]", err);
+        countStat("500");
         return json({ error: "server_error" }, 500);
     }
 }

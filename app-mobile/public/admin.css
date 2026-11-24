@@ -198,3 +198,26 @@ a.adm-stat:active { background: var(--card-press); }
 .admin-entry > .icon:last-child { width: 14px; height: 14px; opacity: 0.8; }
 .admin-entry-title { font-size: 17px; font-weight: 600; }
 .admin-entry-sub { font-size: 13px; opacity: 0.85; }
+
+/* ---------- system status and reports ---------- */
+.adm-health { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; margin: 8px 0 12px; border-radius: var(--radius); background: var(--card); color: var(--label); text-decoration: none; }
+.adm-health .row-text { flex: 1; min-width: 0; }
+.adm-health .row-value { font-weight: 600; }
+.adm-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--label-2); }
+.adm-health.good .adm-dot, .adm-check.lvl-ok .adm-dot { background: #2e9d63; }
+.adm-health.bad .adm-dot, .adm-check.lvl-warn .adm-dot { background: #e0a100; }
+.adm-check.lvl-crit .adm-dot { background: #d93a3a; }
+.adm-health.bad { box-shadow: inset 0 0 0 1.5px #e0a100; }
+.adm-check { align-items: center; gap: 12px; }
+.adm-check .row-text { flex: 1; min-width: 0; }
+.adm-check-val { font-variant-numeric: tabular-nums; font-size: 17px; }
+.admin-screen > div > .btn-tinted { margin-top: 14px; width: 100%; min-height: 44px; border-radius: 22px; border: 0; font-weight: 600; cursor: pointer; }
+.adm-reports { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.adm-report { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: var(--radius); background: var(--card); }
+.adm-report.done { opacity: 0.7; }
+.adm-report-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.adm-report-head strong { font-size: 17px; min-width: 0; overflow-wrap: anywhere; }
+.adm-report-reason { margin: 0; font-weight: 600; color: var(--tint); }
+.adm-report-text { margin: 0; overflow-wrap: anywhere; }
+.adm-report .adm-actions { margin-top: 4px; }
+.adm-report .adm-actions .btn { text-decoration: none; }

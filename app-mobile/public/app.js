@@ -4,6 +4,7 @@ import { PLACES, CENTER } from "./places.js";
 import { COUNTRIES, countryOf, flag } from "./countries.js";
 import { makeAdmin, at as adminText, SHIELD_ICON } from "./admin.js";
 import { KVKK_VERSION, kvkkText } from "./kvkk.js";
+import { makeSecurity, st } from "./secure.js";
 
 const root = document.getElementById("app");
 // Set to e.g. "/app" if the app is ever served from a sub-folder.
@@ -150,14 +151,14 @@ async function api(method, path, body) {
     throw Object.assign(new Error("network"), { code: "network" });
   }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error || "generic"), { code: data.error || "generic", status: res.status });
+  if (!res.ok) throw Object.assign(new Error(data.error || "generic"), { code: data.error || "generic", status: res.status, wait: data.wait });
   return data;
 }
 
 const errText = (e) => {
   const k = "err_" + (e.code || "generic");
   const s = t(k);
-  return s === k ? adminText(k) || t("err_generic") : s;
+  return s === k ? st(k, { s: e.wait || 60 }) || adminText(k) || t("err_generic") : s;
 };
 
 // ------------------------------------------------------------------ time
@@ -261,9 +262,13 @@ const ROUTES = [
   { path: "/admin/users", view: (s) => ADMIN.users(s), tab: "home" },
   { path: "/admin/users/:id", view: (s, p) => ADMIN.user(s, p), tab: "home" },
   { path: "/admin/chat", view: (s) => ADMIN.chat(s), tab: "home" },
+  { path: "/admin/reports", view: (s) => ADMIN.reports(s), tab: "home" },
+  { path: "/admin/health", view: (s) => ADMIN.health(s), tab: "home" },
 ];
 // Signed in but not let in (yet): waiting for approval, suspended or rejected.
 const approved = (u) => !u || !u.status || u.status === "active";
+// Approved, and (for organizers) two-step sign-in is set up.
+const ready = (u) => approved(u) && !u?.twofaSetup;
 
 function match(pathname) {
   for (const r of ROUTES) {
@@ -343,6 +348,14 @@ function render() {
     root.replaceChildren(wait);
     root.dataset.view = "/waiting";
     cleanup = ADMIN.waiting(wait) || null;
+    return;
+  }
+  if (!route.guest && state.user.twofaSetup) {
+    stopStream();
+    const box = h("main", { class: "screen no-tabs" });
+    root.replaceChildren(box);
+    root.dataset.view = "/security/setup";
+    SECURITY.forcedScreen(box);
     return;
   }
 
@@ -524,7 +537,7 @@ async function afterAuth(user) {
     localStorage.setItem("user", JSON.stringify(user));
   } catch {}
   setLang(user.lang);
-  if (approved(user)) {
+  if (ready(user)) {
     startStream();
     pushResync();
   }
@@ -532,23 +545,39 @@ async function afterAuth(user) {
 }
 
 function viewLogin(screen) {
-  authForm(screen, {
+  // Two-step accounts: after a right password the server asks for the code,
+  // and the same form shows a code box (email and password stay filled in).
+  const codeRow = h("label", { class: "field", hidden: true }, h("span", { class: "field-label" }, st("code")), SECURITY.codeInput());
+  const codeHint = h("p", { class: "group-footer", hidden: true }, st("codeAsk"));
+  const form = authForm(screen, {
     title: t("login"),
     submitLabel: t("login"),
     fields: [
       field({ label: t("email"), name: "email", type: "email", autocomplete: "email", placeholder: "name@example.com" }),
       field({ label: t("password"), name: "password", type: "password", autocomplete: "current-password" }),
     ],
+    extra: h("div", { class: "group login-code", hidden: true }, codeRow),
     footer: h("p", { class: "auth-switch" }, t("noAccount") + " ", h("a", { href: "/register", "data-link": true }, t("signup"))),
     onSubmit: async (data) => {
-      const { user } = await api("POST", "/api/auth/login", data);
-      await afterAuth(user);
+      if (codeRow.hidden) delete data.code;
+      try {
+        const { user } = await api("POST", "/api/auth/login", data);
+        await afterAuth(user);
+      } catch (err) {
+        if (err.code !== "code_required") throw err;
+        codeRow.hidden = false;
+        codeHint.hidden = false;
+        form.querySelector(".login-code").hidden = false;
+        codeRow.querySelector("input").focus();
+      }
     },
   });
+  form.querySelector(".login-code").after(codeHint);
 }
 
 function viewRegister(screen) {
   let lang = getLang();
+  const bot = SECURITY.captcha();
   const langField = {
     row: h(
       "div",
@@ -568,14 +597,20 @@ function viewRegister(screen) {
       { row: h("label", { class: "field" }, h("span", { class: "field-label" }, t("position")), positionSelect("", "position")) },
       langField,
     ],
-    extra: consentBlock(),
+    extra: h("div", {}, consentBlock(), bot.el),
     footer: h("p", { class: "auth-switch" }, t("haveAccount") + " ", h("a", { href: "/login", "data-link": true }, t("login"))),
     onSubmit: async (data) => {
       // The server checks this too; this just answers before the round trip.
       if (!data.kvkk) throw Object.assign(new Error("kvkk_required"), { code: "kvkk_required" });
       if (!data.abroad) throw Object.assign(new Error("abroad_required"), { code: "abroad_required" });
-      const { user } = await api("POST", "/api/auth/register", { ...data, lang, kvkk: true, abroad: true, kvkkVersion: KVKK_VERSION });
-      await afterAuth(user);
+      const captcha = await bot.token();
+      try {
+        const { user } = await api("POST", "/api/auth/register", { ...data, captcha, lang, kvkk: true, abroad: true, kvkkVersion: KVKK_VERSION });
+        await afterAuth(user);
+      } catch (err) {
+        bot.reset(); // a Turnstile token works only once
+        throw err;
+      }
     },
   });
   form.querySelector(".group-footer").textContent = `${t("passwordHint")}. ${t("languageHint")}`;
@@ -1175,11 +1210,37 @@ function bubble(m, prev) {
         `${t("translatedFrom")} · ${t("showOriginal")}`
       )
     : null;
+  const bubbleEl = h("div", { class: "bubble", title: fmtClock(m.at) }, text, h("time", { class: "msg-time" }, fmtClock(m.at)));
+  // Long press (phones) or right click (computers) on someone else's message: report it.
+  if (!mine) {
+    let shownAt = 0;
+    const report = () => {
+      if (Date.now() - shownAt < 1500) return; // Android sends both a long press and a context menu
+      shownAt = Date.now();
+      haptic(15);
+      SECURITY.reportSheet({ id: m.from, name: m.fromName }, m);
+    };
+    let timer = null, x = 0, y = 0;
+    const cancel = () => clearTimeout(timer);
+    bubbleEl.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      cancel();
+      report();
+    });
+    bubbleEl.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse") return;
+      x = e.clientX;
+      y = e.clientY;
+      timer = setTimeout(report, 550);
+    });
+    bubbleEl.addEventListener("pointermove", (e) => Math.hypot(e.clientX - x, e.clientY - y) > 10 && cancel());
+    for (const ev of ["pointerup", "pointercancel", "pointerleave"]) bubbleEl.addEventListener(ev, cancel);
+  }
   return h(
     "div",
     { class: "msg" + (mine ? " mine" : ""), "data-id": m.id },
-    showName ? h("span", { class: "msg-name" }, m.fromName) : null,
-    h("div", { class: "bubble", title: fmtClock(m.at) }, text, h("time", { class: "msg-time" }, fmtClock(m.at))),
+    showName ? h("button", { type: "button", class: "msg-name", onclick: () => openPerson(m.from) }, m.fromName) : null,
+    bubbleEl,
     toggle
   );
 }
@@ -1228,6 +1289,11 @@ function viewChat(screen, { id }) {
   api("GET", `/api/conversations/${encodeURIComponent(id)}/messages`)
     .then((d) => {
       const title = isGeneral ? t("general") : d.peer?.name || "";
+      if (d.peer) {
+        // Profile, block and report for the person in this chat.
+        header.lastElementChild.replaceWith(h("button", { type: "button", class: "nav-action", "aria-label": st("more"), onclick: () => openPerson(d.peer.id) }, "•••"));
+      }
+      if (d.blocked) composer.replaceWith(h("p", { class: "fineprint center chat-blocked" }, st(d.blocked === "you" ? "blockedNote" : "blockedThem")));
       header.querySelector(".nav-title").replaceChildren(
         h("span", {}, title),
         h("small", {}, isGeneral ? t("generalSub") : [d.peer?.entity, LANGS.find((l) => l.code === d.peer?.lang)?.label].filter(Boolean).join(" · "))
@@ -1599,7 +1665,9 @@ function viewPlenary(screen) {
       })
       .catch(() => {});
   refresh();
-  const timer = setInterval(() => document.visibilityState === "visible" && refresh(), 15000);
+  // Every 15 s; in load mode every 60 s.
+  let ticks = 0;
+  const timer = setInterval(() => document.visibilityState === "visible" && (!state.lite || ++ticks % 4 === 0) && refresh(), 15000);
   return () => {
     alive = false;
     clearInterval(timer);
@@ -1622,9 +1690,14 @@ const POLL_SLOW_MS = 30000;
 let pollTimer = null;
 let syncSince = 0;
 let pollFails = 0;
+// Load mode (switched on by an organizer when the venue is packed): every
+// phone asks less often until it is switched off again.
+const POLL_LITE = { fast: 10000, list: 30000, slow: 60000 };
 const pollDelay = () => {
   const path = here();
-  const base = path.startsWith("/messages/") && path !== "/messages/new" ? POLL_FAST_MS : path.startsWith("/messages") ? POLL_LIST_MS : POLL_SLOW_MS;
+  const chat = path.startsWith("/messages/") && path !== "/messages/new";
+  const list = !chat && path.startsWith("/messages");
+  const base = state.lite ? (chat ? POLL_LITE.fast : list ? POLL_LITE.list : POLL_LITE.slow) : chat ? POLL_FAST_MS : list ? POLL_LIST_MS : POLL_SLOW_MS;
   const ms = pollFails ? Math.min(60000, base * 2 ** pollFails) : base;
   return Math.round(ms * (0.85 + Math.random() * 0.3));
 };
@@ -1637,6 +1710,10 @@ async function poll() {
       const d = await api("GET", "/api/sync?since=" + syncSince);
       pollFails = 0;
       syncSince = d.now;
+      if (typeof d.lite === "boolean" && d.lite !== !!state.lite) {
+        state.lite = d.lite;
+        window.dispatchEvent(new Event("lite-changed"));
+      }
       // New messages update the cached conversation list in place. Asking
       // the server for the whole list again would mean every open phone
       // calls /api/conversations each time someone writes in General.
@@ -1671,6 +1748,10 @@ async function poll() {
       }
       for (const r of d.removed || []) window.dispatchEvent(new CustomEvent("chat-removed", { detail: r }));
       if (d.users) window.dispatchEvent(new Event("admin-updated"));
+      if (d.report) {
+        window.dispatchEvent(new Event("admin-updated"));
+        if (!here().startsWith("/admin/reports")) toast(adminText("newReportToast"));
+      }
       if (d.signup && !here().startsWith("/admin")) toast(adminText("newSignupToast"));
       if (d.approvals) window.dispatchEvent(new CustomEvent("approvals-updated", { detail: d.approvals }));
       if (d.quest) window.dispatchEvent(new Event("quest-updated"));
@@ -1690,8 +1771,9 @@ async function poll() {
         state.user = null;
         return go("/welcome", { replace: true });
       }
-      // Suspended while using the app: show the status screen.
-      if (e.code === "not_approved") {
+      // Suspended while using the app, or an organizer whose two-step
+      // sign-in was reset: show the status / set-up screen.
+      if (e.code === "not_approved" || e.code === "twofa_required") {
         const me = await api("GET", "/api/me").catch(() => null);
         if (me?.user) state.user = me.user;
         return render();
@@ -1912,6 +1994,7 @@ function viewProfile(screen) {
       )
     ),
     notificationSettings(),
+    ...SECURITY.profileGroup(),
     h("div", { class: "group group-spaced" }, installRow),
     h(
       "div",
@@ -3735,7 +3818,8 @@ function viewHome(screen) {
       hallT.sub.textContent = t("inHall", { n });
     }).catch(() => {});
   hallCount();
-  const hallTimer = setInterval(() => document.visibilityState === "visible" && hallCount(), 15000);
+  let hallTicks = 0;
+  const hallTimer = setInterval(() => document.visibilityState === "visible" && (!state.lite || ++hallTicks % 4 === 0) && hallCount(), 15000);
   cleanups.push(() => clearInterval(hallTimer));
 
   const drawAnn = () =>
@@ -3810,13 +3894,24 @@ async function openPerson(id) {
       avatar(p, "avatar-xl"),
       h("h2", { class: "sheet-name" }, p.name),
       h("p", { class: "sheet-sub" }, [p.title, p.position && posLabel(p.position), p.entity].filter(Boolean).join(" · ")),
-      p.bio ? h("p", { class: "sheet-bio" }, p.bio) : null,
-      p.bioTranslated ? h("p", { class: "fineprint center" }, t("translatedFrom")) : null,
-      h("button", { type: "button", class: "btn btn-filled", onclick: async () => {
-        const { id: conv } = await api("POST", "/api/conversations/dm", { userId: p.id });
+      // replaceChildren() prints null as text, so empty strings here.
+      p.bio ? h("p", { class: "sheet-bio" }, p.bio) : "",
+      p.bioTranslated ? h("p", { class: "fineprint center" }, t("translatedFrom")) : "",
+      p.blocked
+        ? h("p", { class: "fineprint center" }, st("blockedNote"))
+        : h("button", { type: "button", class: "btn btn-filled", onclick: async () => {
+            try {
+              const { id: conv } = await api("POST", "/api/conversations/dm", { userId: p.id });
+              close();
+              go("/messages/" + encodeURIComponent(conv));
+            } catch (err) {
+              toast(errText(err));
+            }
+          } }, icon("messages"), t("sendMessage")),
+      SECURITY.personActions(p, () => {
         close();
-        go("/messages/" + encodeURIComponent(conv));
-      } }, icon("messages"), t("sendMessage"))
+        openPerson(p.id);
+      })
     );
   } catch (e) {
     toast(errText(e));
@@ -4053,15 +4148,22 @@ window.addEventListener("offline", offlineBanner);
 const ADMIN = makeAdmin({
   h, api, toast, errText, navBar, icon, avatar, go, state, render, positionSelect, posLabel, haptic, langSwitch, wordmark,
   onApproved: (user) => afterAuth(user).then(() => refreshConversations().catch(() => {})),
-  onLogout: async () => {
-    await api("POST", "/api/auth/logout").catch(() => {});
-    stopStream();
-    state.user = null;
-    try {
-      localStorage.removeItem("user");
-    } catch {}
-    go("/welcome", { replace: true });
-  },
+  onLogout: () => ADMIN_LOGOUT(),
+});
+async function ADMIN_LOGOUT() {
+  await api("POST", "/api/auth/logout").catch(() => {});
+  stopStream();
+  state.user = null;
+  try {
+    localStorage.removeItem("user");
+  } catch {}
+  go("/welcome", { replace: true });
+}
+
+const SECURITY = makeSecurity({
+  h, api, toast, errText, icon, state, render: () => render(), gcSheet, wordmark, langSwitch, avatar, loadScript, saveUser, haptic,
+  onLogout: () => ADMIN_LOGOUT(),
+  onReady: (user) => afterAuth(user).then(() => refreshConversations().catch(() => {})),
 });
 
 function saveUser(u) {
@@ -4087,7 +4189,7 @@ async function boot() {
   // Signed in before: draw the app at once from the saved profile and check
   // the session in the background, so opening the app never waits for the
   // server (or for a sleeping function to start up).
-  const fast = !!(saved?.id && approved(saved));
+  const fast = !!(saved?.id && ready(saved));
   if (fast) {
     state.user = saved;
     setLang(saved.lang);
@@ -4112,12 +4214,12 @@ async function boot() {
       saveUser(null);
       return go("/welcome", { replace: true });
     }
-    const redraw = user.lang !== saved.lang || user.role !== saved.role || !approved(user);
+    const redraw = user.lang !== saved.lang || user.role !== saved.role || !ready(user);
     state.user = user;
     saveUser(user);
     if (redraw) {
       setLang(user.lang);
-      if (!approved(user)) stopStream();
+      if (!ready(user)) stopStream();
       render();
     }
     return;
@@ -4125,7 +4227,7 @@ async function boot() {
   if (user) {
     state.user = user;
     setLang(user.lang);
-    if (approved(user)) {
+    if (ready(user)) {
       startStream();
       pushResync();
       refreshConversations().catch(() => {});
