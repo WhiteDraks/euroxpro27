@@ -24,7 +24,7 @@ const TABS: { key: keyof SiteContent; label: string; href: string }[] = [
   { key: "exploreAntalya", label: "Explore Antalya", href: "/explore-antalya" },
   { key: "gallery", label: "Galeri (Ana Sayfa)", href: "/" },
   { key: "previousEditions", label: "Önceki Edisyonlar", href: "/congress" },
-  { key: "partners", label: "Partnerler", href: "/" },
+  { key: "partners", label: "Partnerler", href: "/congress" },
   { key: "team", label: "Ekip", href: "/team" },
   { key: "faq", label: "SSS ve Ulaşım", href: "/faq" },
 ];
