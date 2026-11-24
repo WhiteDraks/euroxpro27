@@ -865,58 +865,100 @@
   "team": {
     "hero": {
       "eyebrow": "Organizing Committee",
-      "title": "Our team",
-      "intro": "The AIESEC in Türkiye people getting everything ready."
+      "title": "CC Delight",
+      "intro": "The team getting EUROXPRO'27 ready."
     },
-    "notice": "Names and photos are being added as the team is confirmed.",
+    "notice": "",
     "comingSoonLabel": "Announcing soon",
     "members": [
       {
-        "name": "",
-        "role": "Organizing Committee President",
-        "department": "Leadership",
-        "bio": "Leads the organizing team and is the main point of contact for AIESEC in Europe and the host entity.",
+        "name": "Dilan Duran",
+        "role": "CCP",
+        "department": "President",
+        "bio": "",
         "image": ""
       },
       {
-        "name": "",
-        "role": "VP Logistics",
-        "department": "Logistics",
-        "bio": "Manages Antalya Airport (AYT) arrivals, transfers, accommodation and on-site logistics for all delegates.",
+        "name": "Elif Kurnaz",
+        "role": "CCVP IT",
+        "department": "IT",
+        "bio": "",
         "image": ""
       },
       {
-        "name": "",
-        "role": "VP Programme",
-        "department": "Programme",
-        "bio": "Designs the congress agenda, plenary tracks, workshops and the Mediterranean leadership sessions.",
-        "image": ""
-      },
-      {
-        "name": "",
-        "role": "VP Delegate Experience",
-        "department": "Delegates",
-        "bio": "Looks after registration questions, delegate communication and support during the congress.",
-        "image": ""
-      },
-      {
-        "name": "",
-        "role": "VP Finance",
+        "name": "Egemen Canpolat Kaya",
+        "role": "CCVP Finance",
         "department": "Finance",
-        "bio": "Oversees the congress budget, delegate fees and partner agreements.",
+        "bio": "",
         "image": ""
       },
       {
-        "name": "",
-        "role": "VP Marketing & Communications",
+        "name": "Berfin Türkü Dağlı",
+        "role": "CCVP DXP",
+        "department": "DXP",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Melek Yaren Akman",
+        "role": "CCVP DXP",
+        "department": "DXP",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Yağmur Duman",
+        "role": "CCVP DXP",
+        "department": "DXP",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Çağsel Şentürk",
+        "role": "CCVP Logistics",
+        "department": "Logistics",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Gül Sıla Top",
+        "role": "CCVP Logistics",
+        "department": "Logistics",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Mehmet Ali Daşgın",
+        "role": "CCVP PD",
+        "department": "PD",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Ece Menekşe",
+        "role": "CCVP Sales",
+        "department": "Sales",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Esra Karatepe",
+        "role": "CCVP PR",
+        "department": "PR",
+        "bio": "",
+        "image": ""
+      },
+      {
+        "name": "Emre Sağıroğlu",
+        "role": "CCVP Marketing",
         "department": "Marketing",
-        "bio": "Shapes the EUROXPRO'27 brand, social media and official announcements.",
+        "bio": "",
         "image": ""
       }
     ],
-    "contactTitle": "Want to reach the team?",
-    "contactText": "Questions about delegations, partnerships or logistics go straight to the Organizing Committee.",
-    "contactButton": "Contact the Committee"
+    "contactTitle": "Want to reach us?",
+    "contactText": "We are happy to help.",
+    "contactButton": "Contact us"
   },
   "faq": {
     "hero": {
