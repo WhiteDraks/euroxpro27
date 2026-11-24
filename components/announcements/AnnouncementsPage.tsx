@@ -18,7 +18,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
         </p>
       </div>
       <div>
-        <h3 className="font-serif-title font-normal text-[#FBF7F0] text-2xl sm:text-3xl leading-snug">{ann.title}</h3>
+        <h2 className="font-serif-title font-normal text-[#FBF7F0] text-2xl sm:text-3xl leading-snug">{ann.title}</h2>
         <p className="text-[#D6C8BC] text-base leading-relaxed mt-2">{ann.summary}</p>
         {expanded && (
           <div className="mt-4 text-[#D6C8BC] text-base leading-relaxed whitespace-pre-line">
@@ -91,7 +91,7 @@ export function AnnouncementsPage({
 
         {filtered.length === 0 ? (
           <div className="py-16 border-t border-white/25">
-            <h4 className="font-serif-title text-xl text-[#FBF7F0] mb-2">No Announcements in this Category</h4>
+            <h2 className="font-serif-title text-xl text-[#FBF7F0] mb-2">No Announcements in this Category</h2>
             <p className="text-base text-[#B8A69C] max-w-md leading-relaxed">
               Nothing here yet. Try &ldquo;All&rdquo;, or check back closer to the congress.
             </p>

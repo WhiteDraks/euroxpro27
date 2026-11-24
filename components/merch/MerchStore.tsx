@@ -166,7 +166,7 @@ export function MerchStore({
                       {p.badge && <> · {p.badge}</>} · Sample design
                     </p>
                     <div className="flex items-baseline justify-between gap-4 mt-1">
-                      <h3 className="font-serif-title text-xl text-[#FBF7F0] font-normal">{p.name}</h3>
+                      <h2 className="font-serif-title text-xl text-[#FBF7F0] font-normal">{p.name}</h2>
                       <span className="text-base text-[#FBF7F0] tabular-nums whitespace-nowrap">
                         {formatPrice(p.price)}
                       </span>
@@ -192,7 +192,7 @@ export function MerchStore({
           {/* Cart & Expression of Interest Drawer */}
           <div className="bg-[#141012] border border-white/10 rounded-xl p-6 sticky top-28">
             <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
-              <h3 className="font-serif-title text-xl text-[#FBF7F0]">Pre-Order Cart</h3>
+              <h2 className="font-serif-title text-xl text-[#FBF7F0]">Pre-Order Cart</h2>
               <Badge variant="burgundy">{cart.reduce((n, i) => n + i.quantity, 0)} items</Badge>
             </div>
 
@@ -262,35 +262,47 @@ export function MerchStore({
                 {/* Reservation Form */}
                 <form onSubmit={handleOrderSubmit} className="space-y-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">Your Full Name</label>
+                    <label htmlFor="order-name" className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">Your Full Name</label>
                     <input
                       type="text"
                       required
+                      id="order-name"
+                      name="name"
+                      autoComplete="name"
+                      maxLength={100}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g. Maria Rossi"
-                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">Email Address</label>
+                    <label htmlFor="order-email" className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">Email Address</label>
                     <input
                       type="email"
                       required
+                      id="order-email"
+                      name="email"
+                      autoComplete="email"
+                      maxLength={200}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="maria@aiesec.net"
-                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">AIESEC Entity / LC</label>
+                    <label htmlFor="order-entity" className="block text-[11px] font-semibold text-[#FBF7F0] mb-1">AIESEC Entity / LC</label>
                     <input
                       type="text"
+                      id="order-entity"
+                      name="entity"
+                      autoComplete="organization"
+                      maxLength={100}
                       value={formData.entity}
                       onChange={(e) => setFormData({ ...formData, entity: e.target.value })}
                       placeholder="e.g. AIESEC in Italy"
-                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <Button type="submit" variant="primary" className="w-full text-xs py-2.5 mt-2">

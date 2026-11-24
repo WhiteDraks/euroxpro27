@@ -18,8 +18,12 @@ export function AdminLogin() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
-    });
+    }).catch(() => null);
     setBusy(false);
+    if (!response) {
+      setError("Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin.");
+      return;
+    }
     if (response.ok) {
       router.refresh();
     } else {
@@ -51,10 +55,12 @@ export function AdminLogin() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Şifre"
-          className="w-full border border-[#DCCFBE] rounded-sm px-3 py-2.5 text-sm focus:border-[#7D1A30] outline-none"
+          aria-label="Yönetici şifresi"
+          maxLength={256}
+          className="w-full border border-[#DCCFBE] rounded-sm px-3 py-2.5 text-base sm:text-sm bg-white text-[#140D0E] placeholder:text-[#6B5B55] focus:border-[#7D1A30] outline-none"
           autoFocus
         />
-        {error && <p className="text-xs text-red-700">{error}</p>}
+        {error && <p role="alert" className="text-xs text-red-700">{error}</p>}
         <button
           type="submit"
           disabled={busy || !password}

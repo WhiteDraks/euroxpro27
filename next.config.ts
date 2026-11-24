@@ -1,5 +1,32 @@
 import type { NextConfig } from "next";
 
+// Content Security Policy: the site only loads code, styles, fonts and
+// data from itself, and photos from itself or Unsplash. If a bad link or
+// text ever slipped through, the browser would still refuse to load or
+// send anything to another site. Next.js needs inline scripts and styles
+// for its own page data, so those stay allowed.
+const isDev = process.env.NODE_ENV === "development";
+// Vercel's comment toolbar runs on preview deployments only.
+const isPreview = process.env.VERCEL_ENV === "preview";
+const vercelLive = isPreview ? " https://vercel.live https://*.vercel.live" : "";
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${vercelLive}`,
+  `style-src 'self' 'unsafe-inline'${vercelLive}`,
+  `img-src 'self' data: blob: https://images.unsplash.com${isPreview ? " https://vercel.live https://vercel.com https://*.pusher.com" : ""}`,
+  `font-src 'self' data:${vercelLive}`,
+  `connect-src 'self'${isDev ? " ws:" : ""}${isPreview ? " https://vercel.live https://*.pusher.com wss://*.pusher.com" : ""}`,
+  `frame-src ${isPreview ? "https://vercel.live" : "'none'"}`,
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
+  "media-src 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
 // Sent with every response: blocks framing (clickjacking), MIME sniffing,
 // and plain-HTTP access, and limits what the browser shares with other sites.
 const securityHeaders = [
@@ -8,7 +35,8 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
-  { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
 
 const nextConfig: NextConfig = {
@@ -27,6 +55,10 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
+  },
+  async redirects() {
+    // Old address from an earlier draft; keep it working for shared links.
+    return [{ source: "/explore-istanbul", destination: "/explore-antalya", permanent: true }];
   },
   async headers() {
     return [

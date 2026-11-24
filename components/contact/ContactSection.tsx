@@ -79,7 +79,7 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
 
           {/* Form */}
           <div className="bg-[#141012] p-6 sm:p-8">
-            <h3 className="font-serif-title font-normal text-2xl text-[#FBF7F0] mb-2">Send a Message</h3>
+            <h2 className="font-serif-title font-normal text-2xl text-[#FBF7F0] mb-2">Send a Message</h2>
             <p className="text-xs text-[#B8A69C] mb-6">
               Select the appropriate department so your inquiry is routed directly to the responsible team lead.
             </p>
@@ -89,7 +89,7 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
                 <div className="w-12 h-12 bg-green-500/15 text-green-400 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check size={24} />
                 </div>
-                <h4 className="font-serif-title font-normal text-lg text-[#FBF7F0] mb-2">Almost done</h4>
+                <h3 role="status" className="font-serif-title font-normal text-lg text-[#FBF7F0] mb-2">Almost done</h3>
                 <p className="text-xs text-[#B8A69C] leading-relaxed mb-6">
                   Thank you, {formData.name}. Your email app should have opened with your message ready to send. Press send there to reach the Organizing Committee, or write to{" "}
                   <a href={`mailto:${config.contactEmail}`} className="text-[#E0647D] font-semibold">{config.contactEmail}</a> directly.
@@ -102,36 +102,46 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#FBF7F0] mb-1">Your Name</label>
+                    <label htmlFor="contact-name" className="block text-xs font-semibold text-[#FBF7F0] mb-1">Your Name</label>
                     <input
                       type="text"
                       required
+                      id="contact-name"
+                      name="name"
+                      autoComplete="name"
+                      maxLength={100}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="Jane Doe"
-                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#FBF7F0] mb-1">Your Email</label>
+                    <label htmlFor="contact-email" className="block text-xs font-semibold text-[#FBF7F0] mb-1">Your Email</label>
                     <input
                       type="email"
                       required
+                      id="contact-email"
+                      name="email"
+                      autoComplete="email"
+                      maxLength={200}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="jane@example.com"
-                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#FBF7F0] mb-1">Department</label>
+                    <label htmlFor="contact-department" className="block text-xs font-semibold text-[#FBF7F0] mb-1">Department</label>
                     <select
+                      id="contact-department"
+                      name="department"
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30] bg-[#141012]"
+                      className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30] bg-[#141012]"
                     >
                       <option value="general">General Inquiries</option>
                       <option value="logistics">Logistics &amp; Travel</option>
@@ -140,27 +150,34 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#FBF7F0] mb-1">Subject</label>
+                    <label htmlFor="contact-subject" className="block text-xs font-semibold text-[#FBF7F0] mb-1">Subject</label>
                     <input
                       type="text"
                       required
+                      id="contact-subject"
+                      name="subject"
+                      autoComplete="off"
+                      maxLength={150}
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       placeholder="e.g. Visa Support Request"
-                      className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
+                      className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#FBF7F0] mb-1">Message</label>
+                  <label htmlFor="contact-message" className="block text-xs font-semibold text-[#FBF7F0] mb-1">Message</label>
                   <textarea
                     rows={4}
                     required
-                    value={formData.message}
+                    id="contact-message"
+                      name="message"
+                      maxLength={1500}
+                      value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="Provide details about your query..."
-                    className="w-full text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
+                    className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30]"
                   />
                 </div>
 
