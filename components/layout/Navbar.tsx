@@ -108,7 +108,11 @@ export function Navbar() {
 
       {/* ── Phone tab bar ── */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-bar border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
+        className={cn(
+          "lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-bar border-t border-white/10 pb-[env(safe-area-inset-bottom)]",
+          // The content editor has its own save bar at the bottom.
+          pathname.startsWith("/admin") && "hidden"
+        )}
         aria-label="Tabs"
       >
         <ul className="grid grid-cols-5 h-[64px]">

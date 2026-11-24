@@ -6,6 +6,7 @@ import {
   AlertCircle, ArrowDown, ArrowUp, CheckCircle2, ExternalLink, ImageUp, Loader2, LogOut, Plus, RotateCcw, Save, Trash2,
 } from "lucide-react";
 import type { SiteContent } from "@/lib/content";
+import { TEAM_CONTACT_KEYS, teamContactError, type TeamContactKey } from "@/lib/team-contact";
 import { cn } from "@/lib/utils";
 
 // ============================================================
@@ -164,6 +165,10 @@ const FIELD_LABELS: Record<string, string> = {
   role: "Görev",
   department: "Birim",
   bio: "Kısa tanıtım",
+  email: "E-posta",
+  phone: "Telefon",
+  linkedin: "LinkedIn",
+  instagram: "Instagram",
   contactTitle: "İletişim kutusu başlığı",
   contactText: "İletişim kutusu metni",
   contactButton: "İletişim butonu",
@@ -198,6 +203,20 @@ const HIDDEN_KEYS = new Set(["id"]);
 // Lists whose photo may stay empty (a placeholder is shown on the site).
 const OPTIONAL_IMAGE_LISTS = new Set(["team.members"]);
 const MAX_IMAGE_SIDE = 2000;
+// Profile photos are cropped to a square; the site shows them in a circle.
+const PROFILE_PHOTO_SIDE = 800;
+
+// Hints for the contact fields of a team member (all optional).
+const CONTACT_FIELDS: Record<TeamContactKey, { type: string; placeholder: string; hint: string }> = {
+  email: { type: "email", placeholder: "ad.soyad@aiesec.net", hint: "" },
+  phone: { type: "tel", placeholder: "+90 555 123 45 67", hint: "Ülke koduyla yazın." },
+  linkedin: { type: "url", placeholder: "https://www.linkedin.com/in/kullanici-adi", hint: "" },
+  instagram: { type: "text", placeholder: "@kullaniciadi", hint: "Kullanıcı adı veya profil adresi." },
+};
+
+function isTeamMemberPath(path: Path) {
+  return schemaPath(path.slice(0, -1)) === "team.members[]";
+}
 
 function isImageKey(key: string | number | undefined) {
   return typeof key === "string" && /image$/i.test(key);
@@ -266,13 +285,24 @@ function countChanges(a: Json, b: Json): number {
   return 1;
 }
 
-async function compressImage(file: File): Promise<Blob> {
+async function compressImage(file: File, square = false): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  if (square) {
+    // Centre crop, a little above the middle so faces in portrait photos stay in.
+    const side = Math.min(bitmap.width, bitmap.height);
+    const sx = (bitmap.width - side) / 2;
+    const sy = (bitmap.height - side) * 0.3;
+    const out = Math.min(PROFILE_PHOTO_SIDE, side);
+    canvas.width = out;
+    canvas.height = out;
+    canvas.getContext("2d")!.drawImage(bitmap, sx, sy, side, side, 0, 0, out, out);
+  } else {
+    const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(bitmap.width, bitmap.height));
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  }
   bitmap.close();
   const encode = (type: string) =>
     new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.82));
@@ -656,10 +686,44 @@ function Field({ name, value, path, ctx }: { name: string | number; value: Json;
   }
 
   if (isImageKey(name)) {
-    return <ImageField label={label} value={value ?? ""} path={path} ctx={ctx} />;
+    return isTeamMemberPath(path)
+      ? <ImageField label="Profil fotoğrafı" value={value ?? ""} path={path} ctx={ctx} profile />
+      : <ImageField label={label} value={value ?? ""} path={path} ctx={ctx} />;
   }
 
   const text = value ?? "";
+  if (typeof name === "string" && isTeamMemberPath(path) && (TEAM_CONTACT_KEYS as string[]).includes(name)) {
+    const key = name as TeamContactKey;
+    const field = CONTACT_FIELDS[key];
+    const problem = teamContactError(key, text);
+    return (
+      <label className="block">
+        <span className="block text-xs font-semibold text-[#140D0E] mb-1">
+          {label} <span className="font-normal text-[#8C7A72]">(isteğe bağlı)</span>
+        </span>
+        <input
+          type={field.type}
+          inputMode={key === "phone" ? "tel" : key === "email" ? "email" : undefined}
+          autoComplete="off"
+          spellCheck={false}
+          maxLength={200}
+          value={text}
+          placeholder={field.placeholder}
+          aria-invalid={problem ? true : undefined}
+          onChange={(e) => ctx.update(path, e.target.value)}
+          className={cn(
+            "w-full border rounded-sm px-3 py-2 text-sm bg-white text-[#140D0E] placeholder:text-[#A8978E] outline-none",
+            problem ? "border-red-600 focus:border-red-700" : "border-[#DCCFBE] focus:border-[#7D1A30]"
+          )}
+        />
+        {problem ? (
+          <span className="block mt-1 text-xs text-red-700">{problem.charAt(0).toUpperCase() + problem.slice(1)}.</span>
+        ) : field.hint ? (
+          <span className="block mt-1 text-[11px] text-[#8C7A72]">{field.hint}</span>
+        ) : null}
+      </label>
+    );
+  }
   const options = ENUM_OPTIONS[schemaPath(path)];
   if (options) {
     return (
@@ -797,7 +861,9 @@ function IconButton({
   );
 }
 
-function ImageField({ label, value, path, ctx }: { label: string; value: string; path: Path; ctx: EditorContext }) {
+function ImageField({
+  label, value, path, ctx, profile = false,
+}: { label: string; value: string; path: Path; ctx: EditorContext; profile?: boolean }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -807,7 +873,7 @@ function ImageField({ label, value, path, ctx }: { label: string; value: string;
     setBusy(true);
     setError("");
     try {
-      const compressed = await compressImage(file);
+      const compressed = await compressImage(file, profile);
       const form = new FormData();
       form.append("file", compressed, file.name);
       const response = await fetch("/api/admin/upload", { method: "POST", body: form });
@@ -827,7 +893,12 @@ function ImageField({ label, value, path, ctx }: { label: string; value: string;
     <div>
       <span className="block text-xs font-semibold text-[#140D0E] mb-1">{label}</span>
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="w-full sm:w-48 aspect-[16/10] bg-[#140D0E] rounded-sm overflow-hidden flex-shrink-0">
+        <div
+          className={cn(
+            "bg-[#140D0E] overflow-hidden flex-shrink-0",
+            profile ? "w-28 h-28 rounded-full" : "w-full sm:w-48 aspect-[16/10] rounded-sm"
+          )}
+        >
           {preview && (
             // A plain <img> previews new uploads before they are published.
             // eslint-disable-next-line @next/next/no-img-element
@@ -843,6 +914,15 @@ function ImageField({ label, value, path, ctx }: { label: string; value: string;
           >
             <ImageUp size={14} /> {busy ? "Yükleniyor…" : "Yeni fotoğraf yükle"}
           </button>
+          {profile && value && (
+            <button
+              type="button"
+              onClick={() => ctx.update(path, "")}
+              className="ml-2 inline-flex items-center gap-2 border border-[#DCCFBE] bg-white text-red-700 text-xs font-semibold px-3 py-2 rounded-sm hover:bg-red-50"
+            >
+              <Trash2 size={14} /> Fotoğrafı kaldır
+            </button>
+          )}
           <input
             ref={input}
             type="file"
@@ -858,7 +938,9 @@ function ImageField({ label, value, path, ctx }: { label: string; value: string;
             className="w-full border border-[#DCCFBE] rounded-sm px-3 py-1.5 text-xs font-mono text-[#6B5B55] focus:border-[#7D1A30] outline-none"
           />
           <p className="text-[11px] text-[#8C7A72]">
-            Bilgisayarınızdan veya telefonunuzdan yükleyin ya da bir Unsplash adresi yapıştırın.
+            {profile
+              ? "JPG, PNG veya WebP. Fotoğraf kare kırpılır ve sitede yuvarlak gösterilir. Boş kalırsa baş harfler görünür."
+              : "Bilgisayarınızdan veya telefonunuzdan yükleyin ya da bir Unsplash adresi yapıştırın."}
           </p>
           {error && <p className="text-xs text-red-700">{error}</p>}
         </div>

@@ -1,4 +1,5 @@
 import { content as bundledContent } from "@/lib/content";
+import { TEAM_CONTACT_KEYS, teamContactError, type TeamContactKey } from "@/lib/team-contact";
 import type { PendingUpload } from "./store";
 
 // ============================================================
@@ -63,7 +64,12 @@ function check(value: unknown, template: unknown, at: string, errors: string[], 
     }
     for (const [key, child] of Object.entries(value)) {
       // Team members may have no photo yet; the site shows a placeholder.
-      const optional = child === "" && /^content\.team\.members\[\d+\]$/.test(at);
+      const isMember = /^content\.team\.members\[\d+\]$/.test(at);
+      const optional = child === "" && isMember;
+      if (isMember && (TEAM_CONTACT_KEYS as string[]).includes(key)) {
+        const problem = teamContactError(key as TeamContactKey, child);
+        if (problem) errors.push(`${at}.${key}: ${problem}`);
+      }
       if (/image$/i.test(key) && typeof child === "string" && !optional && !isAllowedImageSrc(child)) {
         errors.push(`${at}.${key}: unsupported image address "${child.slice(0, 80)}"`);
       }
