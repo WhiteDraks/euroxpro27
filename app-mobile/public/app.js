@@ -5,6 +5,7 @@ import { COUNTRIES, countryOf, flag } from "./countries.js";
 import { makeAdmin, at as adminText, SHIELD_ICON } from "./admin.js";
 import { KVKK_VERSION, kvkkText } from "./kvkk.js";
 import { makeSecurity, st } from "./secure.js";
+import { makeCard, ct } from "./card.js";
 
 const root = document.getElementById("app");
 // Set to e.g. "/app" if the app is ever served from a sub-folder.
@@ -18,6 +19,7 @@ const state = {
   unread: 0,
   installPrompt: null,
   announcements: null,
+  plan: null, // ids of the sessions in "my programme"
 };
 let cleanup = null; // teardown of the current view (timers, map, listeners)
 
@@ -82,6 +84,13 @@ const ICON = {
   compass: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
   sparkle: '<svg viewBox="0 0 24 24"><path d="M12 3.5c.6 4.2 2.3 5.9 6.5 6.5-4.2.6-5.9 2.3-6.5 6.5-.6-4.2-2.3-5.9-6.5-6.5 4.2-.6 5.9-2.3 6.5-6.5zM18.5 15.5c.3 1.8 1 2.5 2.8 2.8-1.8.3-2.5 1-2.8 2.8-.3-1.8-1-2.5-2.8-2.8 1.8-.3 2.5-1 2.8-2.8z"/></svg>',
   shield: SHIELD_ICON,
+  star: '<svg viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
+  starFill: '<svg viewBox="0 0 24 24" class="filled"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
+  scan: '<svg viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M4 12h16"/></svg>',
+  phone: '<svg viewBox="0 0 24 24"><path d="M6.6 3.5h2.6l1.4 4-2 1.4a12 12 0 0 0 6.5 6.5l1.4-2 4 1.4v2.6a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z"/></svg>',
+  mail: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="m4.5 7 7.5 6 7.5-6"/></svg>',
+  link: '<svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  card: '<svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><circle cx="8.5" cy="11" r="2"/><path d="M5.8 15.6a3 3 0 0 1 5.4 0M14 10h4M14 13.5h3"/></svg>',
   bell: '<svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
 };
 const icon = (name, cls = "") => h("span", { class: "icon " + cls, "aria-hidden": "true", html: ICON[name] });
@@ -158,7 +167,7 @@ async function api(method, path, body) {
 const errText = (e) => {
   const k = "err_" + (e.code || "generic");
   const s = t(k);
-  return s === k ? st(k, { s: e.wait || 60 }) || adminText(k) || t("err_generic") : s;
+  return s === k ? st(k, { s: e.wait || 60 }) || adminText(k) || ct(k) || t("err_generic") : s;
 };
 
 // ------------------------------------------------------------------ time
@@ -259,6 +268,9 @@ const ROUTES = [
   { path: "/connections", view: viewConnections, tab: "home" },
   { path: "/world", view: viewConnections, tab: "home" }, // older link, same page
   { path: "/recap", view: viewRecap, tab: "home" },
+  { path: "/card", view: (s) => CARD.viewCard(s), tab: "home" },
+  { path: "/contacts", view: (s) => CARD.viewContacts(s), tab: "home" },
+  { path: "/c/:token", view: (s, p) => CARD.viewCardLink(s, p), tab: "home" },
   { path: "/admin", view: (s) => ADMIN.panel(s), tab: "home" },
   { path: "/admin/users", view: (s) => ADMIN.users(s), tab: "home" },
   { path: "/admin/users/:id", view: (s, p) => ADMIN.user(s, p), tab: "home" },
@@ -341,6 +353,7 @@ function render() {
   if (route.guest && state.user) return go("/home", { replace: true });
   if (!route.guest && !state.user) {
     if (route.path === "/q/:code") sessionStorage.setItem("questCode", params.code);
+    if (route.path === "/c/:token") sessionStorage.setItem("cardToken", params.token);
     return go("/welcome", { replace: true });
   }
   if (!route.guest && !approved(state.user)) {
@@ -525,6 +538,7 @@ function authForm(screen, { title, fields, submitLabel, footer, extra = null, on
 
 async function afterAuth(user) {
   state.user = user;
+  Object.assign(state, { plan: null, contacts: null, agenda: null, announcements: null });
   try {
     localStorage.setItem("user", JSON.stringify(user));
   } catch {}
@@ -649,12 +663,61 @@ function openKvkk() {
 
 async function loadAgenda(force) {
   if (state.agenda && !force) return state.agenda;
-  const { agenda } = await api("GET", "/api/agenda");
+  const { agenda, plan } = await api("GET", "/api/agenda");
   state.agenda = agenda;
+  if (Array.isArray(plan)) setPlan(plan);
   try {
     localStorage.setItem("agenda:" + getLang(), JSON.stringify(agenda));
   } catch {}
   return agenda;
+}
+
+// ------------------------------------------------------------------ my programme
+// Starred sessions. Kept on the server (reminders go out from there) and in
+// localStorage, so the list shows offline too.
+function getPlan() {
+  if (!state.plan) {
+    let saved = [];
+    try {
+      saved = JSON.parse(localStorage.getItem("plan:" + state.user?.id)) || [];
+    } catch {}
+    state.plan = new Set(saved);
+  }
+  return state.plan;
+}
+function setPlan(ids) {
+  state.plan = new Set(ids);
+  try {
+    localStorage.setItem("plan:" + state.user?.id, JSON.stringify(ids));
+  } catch {}
+}
+async function togglePlan(id) {
+  const on = !getPlan().has(id);
+  const before = [...getPlan()];
+  const next = new Set(before);
+  on ? next.add(id) : next.delete(id);
+  setPlan([...next]); // show it at once, undo if the server says no
+  window.dispatchEvent(new Event("plan-updated"));
+  haptic(on ? 12 : 6);
+  try {
+    const { plan } = await api("POST", "/api/plan", { id, on });
+    setPlan(plan);
+    toast(on ? t("planAdded") : t("planRemoved"));
+  } catch (err) {
+    setPlan(before);
+    toast(errText(err));
+  }
+  window.dispatchEvent(new Event("plan-updated"));
+  return on;
+}
+function planStar(s) {
+  const on = getPlan().has(s.id);
+  const label = on ? t("planRemove") : t("planAdd");
+  return h("button", { type: "button", class: "plan-star" + (on ? " on" : ""), "aria-pressed": String(on), "aria-label": `${label}: ${s.title}`, title: label, onclick: (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    togglePlan(s.id);
+  } }, icon(on ? "starFill" : "star"));
 }
 
 function cachedAgenda() {
@@ -738,7 +801,8 @@ function sessionRow(day, s, now) {
   const { start, end } = sessionTimes(day, s);
   const live = start <= now && now < end && s.status !== "cancelled";
   const past = now >= end;
-  return h(
+  // The star sits beside the link (a button can't go inside a link).
+  return h("div", { class: "session-wrap" + (getPlan().has(s.id) ? " planned" : "") }, h(
     "a",
     {
       href: "/agenda/" + s.id,
@@ -755,9 +819,8 @@ function sessionRow(day, s, now) {
       s.audience?.length ? h("span", { class: "session-aud" }, s.audience.map(posLabel).join(" · ")) : null,
       statusBadge(s),
       s.note ? h("span", { class: "session-note" }, s.note) : null
-    ),
-    icon("chevron", "row-chevron")
-  );
+    )
+  ), planStar(s));
 }
 
 function viewAgenda(screen) {
@@ -769,7 +832,9 @@ function viewAgenda(screen) {
   let selected = sessionStorage.getItem("agendaDay");
   let timer;
   const pos = state.user.position;
-  let mine = pos && sessionStorage.getItem("agendaMine") === "1";
+  // all | plan (starred) | pos (sessions for my position)
+  let filter = sessionStorage.getItem("agendaFilter") || "all";
+  if (filter === "pos" && !pos) filter = "all";
   const banner = h("div");
   latestAnnouncement().then((a) => a && banner.replaceChildren(announcementBanner(a))).catch(() => {});
 
@@ -780,7 +845,8 @@ function viewAgenda(screen) {
     }
     const day = agenda.days.find((d) => d.date === selected);
     const now = nowMs();
-    const shown = day.sessions.filter((s) => !mine || forPosition(s, pos));
+    const plan = getPlan();
+    const shown = day.sessions.filter((s) => filter === "all" || (filter === "plan" ? plan.has(s.id) : forPosition(s, pos)));
     const days = h(
       "div",
       { class: "day-picker", role: "tablist" },
@@ -791,7 +857,7 @@ function viewAgenda(screen) {
             type: "button",
             role: "tab",
             "aria-selected": String(d.date === selected),
-            class: "day" + (d.date === selected ? " on" : "") + (d.date === today ? " today" : ""),
+            class: "day" + (d.date === selected ? " on" : "") + (d.date === today ? " today" : "") + (d.sessions.some((x) => getPlan().has(x.id)) ? " has-plan" : ""),
             onclick: () => {
               selected = d.date;
               sessionStorage.setItem("agendaDay", selected);
@@ -808,20 +874,21 @@ function viewAgenda(screen) {
       banner,
       liveCard(agenda),
       days,
-      pos
-        ? h("div", { class: "pad-x" }, segmented([["all", t("all")], ["mine", `${t("myProgram")} · ${posLabel(pos)}`]], mine ? "mine" : "all", (v) => {
-            mine = v === "mine";
-            sessionStorage.setItem("agendaMine", mine ? "1" : "0");
-            draw(agenda);
-          }, t("myProgram")))
-        : null,
+      h("div", { class: "pad-x" }, segmented([["all", t("all")], ["plan", plan.size ? `${t("planTab")} · ${plan.size}` : t("planTab")], ...(pos ? [["pos", posLabel(pos)]] : [])], filter, (v) => {
+        filter = v;
+        sessionStorage.setItem("agendaFilter", v);
+        draw(agenda);
+      }, t("tabAgenda"))),
+      filter === "plan" ? planHint() : null,
       h(
         "div",
         { class: "section-head" },
         h("h2", {}, day.label),
         h("span", {}, `${fmtDay(day.date, { weekday: "long", day: "numeric", month: "long" })} · ${t("sessions", { n: shown.length })}`)
       ),
-      h("div", { class: "group sessions" }, shown.map((s) => sessionRow(day, s, now))),
+      shown.length
+        ? h("div", { class: "group sessions" }, shown.map((s) => sessionRow(day, s, now)))
+        : h("p", { class: "empty" }, filter === "plan" ? t("planEmpty") : t("sessions", { n: 0 })),
       h("p", { class: "fineprint" }, (agenda.draft ? t("draft") + " " : "") + t("localTime")),
     ].filter(Boolean));
   };
@@ -835,10 +902,31 @@ function viewAgenda(screen) {
   timer = setInterval(() => state.agenda && draw(state.agenda), 30000);
   const onUpdate = () => state.agenda && draw(state.agenda);
   window.addEventListener("agenda-updated", onUpdate);
+  window.addEventListener("plan-updated", onUpdate);
   return () => {
     clearInterval(timer);
     window.removeEventListener("agenda-updated", onUpdate);
+    window.removeEventListener("plan-updated", onUpdate);
   };
+}
+
+// Under "My programme": reminders come 10 minutes before; a button if
+// notifications are off on this phone.
+function planHint() {
+  const box = h("div", { class: "plan-hint" }, icon("bell", "plan-hint-ic"), h("span", {}, t("planRemind")));
+  pushStatus().then((st) => {
+    if (st !== "off") return;
+    box.append(h("button", { type: "button", class: "btn btn-small", onclick: async () => {
+      try {
+        await pushSubscribe();
+        toast(t("pushOn"));
+        box.querySelector(".btn")?.remove();
+      } catch (err) {
+        toast(pushErrText(err));
+      }
+    } }, t("pushTurnOn")));
+  }).catch(() => {});
+  return box;
 }
 
 function viewSession(screen, { id }) {
@@ -866,6 +954,7 @@ function viewSession(screen, { id }) {
         h("p", { class: "session-type type-" + s.type + (live ? " live" : "") }, live ? t("now") : t("type_" + s.type)),
         h("h1", { class: "detail-title" }, s.title),
         statusBadge(s),
+        planButton(s),
         s.note ? h("p", { class: "detail-note" }, s.note) : null,
         live ? h("p", { class: "detail-live" }, t("endsIn", { t: fmtDuration(end - now) })) : null,
         h(
@@ -886,7 +975,19 @@ function viewSession(screen, { id }) {
   loadAgenda(true).then(draw).catch(() => {});
   const onUpdate = () => state.agenda && draw(state.agenda);
   window.addEventListener("agenda-updated", onUpdate);
-  return () => window.removeEventListener("agenda-updated", onUpdate);
+  window.addEventListener("plan-updated", onUpdate);
+  return () => {
+    window.removeEventListener("agenda-updated", onUpdate);
+    window.removeEventListener("plan-updated", onUpdate);
+  };
+}
+
+function planButton(s) {
+  const on = getPlan().has(s.id);
+  return h("div", { class: "plan-cta" },
+    h("button", { type: "button", class: "btn " + (on ? "btn-tinted" : "btn-filled"), "aria-pressed": String(on), onclick: () => togglePlan(s.id) },
+      icon(on ? "starFill" : "star"), on ? t("planIn") : t("planAdd")),
+    on ? h("p", { class: "fineprint" }, t("planRemind")) : "");
 }
 
 // Organizers (ADMIN_EMAILS on the server) can push live changes.
@@ -1933,6 +2034,9 @@ function viewProfile(screen) {
       ),
       saveBtn
     ),
+    h("div", { class: "group group-spaced" },
+      h("a", { href: "/card", "data-link": true, class: "row" }, icon("qr", "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, ct("myCard")), h("span", { class: "row-label" }, ct("cardTile"))), icon("chevron", "row-chevron")),
+      h("a", { href: "/contacts", "data-link": true, class: "row" }, icon("people", "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, ct("contacts"))), icon("chevron", "row-chevron"))),
     meetProfile(u),
     h("h2", { class: "group-header" }, t("language")),
     h(
@@ -1986,7 +2090,7 @@ function viewProfile(screen) {
           onclick: async () => {
             await api("POST", "/api/auth/logout").catch(() => {});
             stopStream();
-            Object.assign(state, { user: null, agenda: null, conversations: null, unread: 0, announcements: null });
+            Object.assign(state, { user: null, agenda: null, conversations: null, unread: 0, announcements: null, plan: null, contacts: null });
             go("/welcome", { replace: true });
           },
         },
@@ -2291,9 +2395,9 @@ async function questCheckin(code) {
 
 // Camera scanner: the browser's own detector where there is one (Android
 // Chrome), otherwise the bundled jsQR (iPhone).
-function openScanner(onCode) {
+function openScanner(onCode, pick = stationCodeFrom, hint = t("scanHint"), noCamera = t("scanNoCamera")) {
   const video = h("video", { playsinline: true, muted: true, autoplay: true });
-  const status = h("p", { class: "scan-status" }, t("scanHint"));
+  const status = h("p", { class: "scan-status" }, hint);
   let stream = null, raf = 0, done = false;
   const close = () => {
     done = true;
@@ -2314,7 +2418,7 @@ function openScanner(onCode) {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
     } catch {
-      status.textContent = t("scanNoCamera");
+      status.textContent = noCamera;
       return;
     }
     if (done) return close();
@@ -2348,9 +2452,10 @@ function openScanner(onCode) {
       if (now - last > 180) {
         last = now;
         const v = await detect().catch(() => null);
-        if (v && stationCodeFrom(v)) {
+        const code = v ? pick(v) : null;
+        if (code) {
           close();
-          return onCode(stationCodeFrom(v));
+          return onCode(code);
         }
       }
       raf = requestAnimationFrame(loop);
@@ -3682,6 +3787,7 @@ function viewHome(screen) {
   const storeT = tile("/store", "bag", t("store"));
   const recapT = tile("/recap", "sparkle", t("recapTitle"), "wide recap-tile");
   const gcT = tile("/connections", "globe", t("gcTitle"), "wide gc-tile");
+  const cardT = tile("/contacts", "card", ct("myCard"), "wide card-tile");
   const adminT = u.role === "admin" ? tile("/admin", "shield", adminText("adminTitle"), "wide dark admin-tile") : null;
   if (adminT) {
     adminT.sub.textContent = adminText("adminTile");
@@ -3704,6 +3810,7 @@ function viewHome(screen) {
   teamT.sub.textContent = t("teamHint");
   reqT.sub.textContent = t("requestsHint");
   mapT.sub.textContent = t("mapTile");
+  cardT.sub.textContent = ct("cardTile");
 
   const nudge = h("div", { class: "push-nudge-slot" });
   pushStatus().then((st) => {
@@ -3761,7 +3868,7 @@ function viewHome(screen) {
   screen.append(
     hero,
     nudge,
-    h("div", { class: "bento" + (homeSeen ? " seen" : ""), onpointermove: spot, onpointerdown: spot, onpointerout: unspot }, [...(adminT ? [adminT] : []), ...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
+    h("div", { class: "bento" + (homeSeen ? " seen" : ""), onpointermove: spot, onpointerdown: spot, onpointerout: unspot }, [...(adminT ? [adminT] : []), ...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, cardT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
       x.el.style.setProperty("--i", i);
       return x.el;
     }))
@@ -3772,9 +3879,12 @@ function viewHome(screen) {
   // Next session for the agenda tile.
   const nextSession = (agenda) => {
     const now = nowMs();
-    const up = allSessions(agenda).filter((x) => x.s.status !== "cancelled" && x.end > now).sort((a, b) => a.start - b.start)[0];
+    const open = allSessions(agenda).filter((x) => x.s.status !== "cancelled" && x.end > now).sort((a, b) => a.start - b.start);
+    const plan = getPlan();
+    const mine = open.find((x) => plan.has(x.s.id));
+    const up = mine || open[0];
     if (!up) return;
-    agendaT.extra.replaceChildren(h("span", { class: "tile-big" }, up.s.title), h("span", { class: "tile-meta" }, `${fmtDay(up.day.date, { weekday: "short", day: "numeric", month: "short" })} · ${up.s.start} · ${up.s.location}`));
+    agendaT.extra.replaceChildren(mine ? h("span", { class: "tile-pill" }, icon("starFill"), t("planNext")) : "", h("span", { class: "tile-big" }, up.s.title), h("span", { class: "tile-meta" }, `${fmtDay(up.day.date, { weekday: "short", day: "numeric", month: "short" })} · ${up.s.start} · ${up.s.location}`));
     agendaT.sub.textContent = "";
   };
   const cachedA = state.agenda || cachedAgenda();
@@ -3792,6 +3902,13 @@ function viewHome(screen) {
     peopleT.extra.replaceChildren(h("span", { class: "faces" }, faces), numSpan("tile-num", people.length + 1));
     const cs = gcCountries(gcPick({ delegates: [...people, state.user] }).delegates);
     gcT.extra.replaceChildren(h("span", { class: "gc-flags", "aria-hidden": "true" }, cs.slice(0, 9).map((c) => h("span", {}, flag(c.code)))), h("span", { class: "tile-num" }, t("gcCountriesN", { n: cs.length })));
+  }).catch(() => {});
+
+  // Saved contacts for the card tile.
+  api("GET", "/api/contacts").then(({ contacts }) => {
+    state.contacts = contacts;
+    if (!contacts.length) return;
+    cardT.extra.replaceChildren(h("span", { class: "faces" }, contacts.slice(0, 4).map((p) => avatar(p, "face"))), numSpan("tile-num", contacts.length));
   }).catch(() => {});
 
   // Matches so far for the Meet tile.
@@ -3840,6 +3957,12 @@ function viewHome(screen) {
     );
   }).catch(() => {});
 
+  // Opened someone's card QR before signing in: save them now.
+  const pendingCard = sessionStorage.getItem("cardToken");
+  if (pendingCard) {
+    sessionStorage.removeItem("cardToken");
+    setTimeout(() => go("/c/" + pendingCard), 0);
+  }
   // Opened a station QR before signing in: check in now.
   const pendingCode = sessionStorage.getItem("questCode");
   if (pendingCode) {
@@ -4114,15 +4237,50 @@ function viewInfo(screen) {
     const body = h("textarea", { rows: 3, maxlength: 1000, "aria-label": t("annBody") });
     const deadline = h("input", { type: "datetime-local", "aria-label": t("deadline") });
     const btn = h("button", { type: "submit", class: "btn btn-filled" }, t("post"));
+    // Everyone, or only delegates from the countries picked here (countries
+    // come from the committees in delegates' profiles).
+    let target = "all";
+    const picked = new Set();
+    const countryBox = h("div", { class: "ann-countries", hidden: true }, h("div", { class: "loading" }));
+    const drawCountries = (people) => {
+      const counts = new Map();
+      for (const p of people) {
+        if (p.role === "admin" || String(p.id).startsWith("demo-")) continue;
+        const c = countryOf(p.entity)?.code;
+        if (c) counts.set(c, (counts.get(c) || 0) + 1);
+      }
+      const names = regionNames();
+      const list = [...counts].map(([code, n]) => ({ code, n, name: names.of(code) || code })).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name, locale()));
+      if (!list.length) return countryBox.replaceChildren(h("p", { class: "row-label" }, t("annNoCountries")));
+      countryBox.replaceChildren(h("div", { class: "chips", role: "group", "aria-label": t("annCountries") }, list.map((c) => {
+        const b = h("button", { type: "button", class: "chip" + (picked.has(c.code) ? " on" : ""), "aria-pressed": String(picked.has(c.code)) }, `${flag(c.code)} ${c.name}`, h("span", { class: "chip-n" }, c.n));
+        b.addEventListener("click", () => {
+          picked.has(c.code) ? picked.delete(c.code) : picked.add(c.code);
+          b.classList.toggle("on", picked.has(c.code));
+          b.setAttribute("aria-pressed", String(picked.has(c.code)));
+        });
+        return b;
+      })));
+    };
+    let peopleLoaded = false;
+    const audience = segmented([["all", t("annEveryone")], ["some", t("annCountries")]], target, (v) => {
+      target = v;
+      countryBox.hidden = v !== "some";
+      if (v === "some" && !peopleLoaded) {
+        peopleLoaded = true;
+        api("GET", "/api/people").then((d) => drawCountries(d.people)).catch((err) => countryBox.replaceChildren(h("p", { class: "row-label" }, errText(err))));
+      }
+    }, t("annAudience"));
     screen.append(h("form", { class: "admin", onsubmit: async (e) => {
       e.preventDefault();
+      if (target === "some" && !picked.size) return toast(t("annNoCountry"));
       btn.disabled = true;
       try {
-        await api("POST", "/api/announcements", { title: title.value, body: body.value, deadline: deadline.value });
+        const r = await api("POST", "/api/announcements", { title: title.value, body: body.value, deadline: deadline.value, countries: target === "some" ? [...picked] : [] });
         e.target.reset();
         state.announcements = null;
         draw();
-        toast(t("saved"));
+        toast(t("annReach", { n: r.reach ?? 0 }));
       } catch (err) {
         toast(errText(err));
       } finally {
@@ -4133,7 +4291,10 @@ function viewInfo(screen) {
       h("div", { class: "group" },
         h("label", { class: "field" }, h("span", { class: "field-label" }, t("annTitle")), title),
         h("label", { class: "field field-stack" }, h("span", { class: "field-label" }, t("annBody")), body),
-        h("label", { class: "field" }, h("span", { class: "field-label" }, t("deadline")), deadline)),
+        h("label", { class: "field" }, h("span", { class: "field-label" }, t("deadline")), deadline),
+        h("div", { class: "field field-stack" }, h("span", { class: "field-label" }, t("annAudience")), audience),
+        countryBox),
+      h("p", { class: "group-footer" }, t("annPushNote")),
       btn));
   }
   screen.append(list);
@@ -4144,6 +4305,7 @@ function viewInfo(screen) {
         ...items.map((a) => {
           const closed = a.deadline && deadlineMs(a.deadline) <= Date.now();
           return h("article", { class: "ann" + (a.deadline ? " has-deadline" : "") + (closed ? " closed" : "") },
+            a.countries?.length ? h("p", { class: "ann-target" }, icon("globe"), t("annOnlyFor", { c: a.countries.map((c) => `${flag(c)} ${regionNames().of(c) || c}`).join(", ") })) : null,
             a.deadline ? h("p", { class: "ann-deadline" }, icon("clock"), deadlineText(a)) : null,
             h("h2", { class: "ann-title" }, a.title),
             a.body ? h("p", { class: "ann-body" }, a.body) : null,
@@ -4261,6 +4423,10 @@ async function ADMIN_LOGOUT() {
   } catch {}
   go("/welcome", { replace: true });
 }
+
+const CARD = makeCard({
+  h, api, toast, errText, icon, state, navBar, avatar, loadScript, go, openScanner, gcSheet, haptic, celebrate, posLabel, locale,
+});
 
 const SECURITY = makeSecurity({
   h, api, toast, errText, icon, state, render: () => render(), gcSheet, wordmark, langSwitch, avatar, loadScript, saveUser, haptic,
