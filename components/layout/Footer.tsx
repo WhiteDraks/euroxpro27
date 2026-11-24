@@ -87,9 +87,9 @@ export function Footer() {
           {/* Nav Columns */}
           {footerLinks.map((col) => (
             <div key={col.title}>
-              <h3 className="text-white font-sans-body text-sm font-semibold tracking-normal mb-4">
+              <h2 className="text-white font-sans-body text-sm font-semibold tracking-normal mb-4">
                 {col.title}
-              </h3>
+              </h2>
               <ul className="space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.href}>

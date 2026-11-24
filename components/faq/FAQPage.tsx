@@ -53,7 +53,7 @@ export function FAQPage({ text }: { text: FAQText }) {
   return (
     <section className="py-16 sm:py-24 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 lg:gap-16">
-        <aside className="min-w-0 lg:col-span-4 lg:sticky lg:top-28 self-start">
+        <div className="min-w-0 lg:col-span-4 lg:sticky lg:top-28 self-start">
           {/* Search */}
           <div className="relative mb-6">
             <Search size={18} className="absolute left-0 top-1/2 -translate-y-1/2 text-[#B8A69C]" />
@@ -72,7 +72,7 @@ export function FAQPage({ text }: { text: FAQText }) {
             {filterButton("all", text.allLabel)}
             {categories.map((cat) => filterButton(cat.id, cat.label))}
           </div>
-        </aside>
+        </div>
 
         <div className="min-w-0 lg:col-span-8">
           {/* Results */}
