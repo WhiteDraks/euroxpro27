@@ -1875,6 +1875,23 @@ html[data-nav="tab"]::view-transition-new(root) { animation: vt-fade-in 0.26s cu
   text-transform: uppercase;
   color: var(--tint);
 }
+.team-initials.avatar-xl { font-size: 30px; font-weight: 700; letter-spacing: 0.02em; }
+.team-initials.avatar-sm { font-size: 12px; }
+.avatar-sm { width: 32px; height: 32px; }
+.team-card.lead { grid-column: 1 / -1; background: linear-gradient(140deg, #a3304a 0%, #7d1a30 55%, #4a0f1f 100%); color: #fff; }
+.team-card.lead .team-title { color: #f4ede2; }
+.team-card.lead .team-initials { background: rgba(255, 255, 255, 0.16); }
+.team-sheet .team-links { width: 100%; text-align: left; }
+.team-sheet .team-links .row { text-decoration: none; color: inherit; }
+.team-sheet .row-label { overflow-wrap: anywhere; }
+.team-edit { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+.team-edit-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid var(--sep); }
+.team-edit-head strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.team-edit-tools { display: flex; gap: 6px; flex: none; }
+.team-edit-tools .btn { min-width: 36px; padding-left: 10px; padding-right: 10px; }
+.team-edit-tools .btn.destructive { color: var(--danger); }
+.team-edit-save { position: sticky; bottom: calc(var(--tabbar-h) + 8px); margin-top: 16px; z-index: 2; }
+.team-edit-save .btn { width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); }
 
 /* announcements */
 .ann-banner {
