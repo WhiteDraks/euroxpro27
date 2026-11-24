@@ -1631,7 +1631,14 @@ function maybeMonitor(req) {
 route("GET", "health/check", async ({ req, url }) => {
     if (process.env.CRON_SECRET && url.searchParams.get("key") !== process.env.CRON_SECRET && req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`)
         throw new HttpError(401, "unauthorized");
-    const r = await runMonitor(pushSubject(req), appAddress(req));
+    // At most one real check a minute, however often this is called.
+    let r = null;
+    try {
+        if ((await cmd("SET", "dmoncheck", "1", "EX", 60, "NX")) !== "OK")
+            r = parse(await cmd("GET", "dmon"));
+    }
+    catch { }
+    r ??= await runMonitor(pushSubject(req), appAddress(req));
     const crit = r.checks.some((c) => c.level === "crit");
     return json({ ok: r.ok, checks: r.checks.map(({ id, level, value }) => ({ id, level, value })) }, crit ? 503 : 200);
 }, true);
