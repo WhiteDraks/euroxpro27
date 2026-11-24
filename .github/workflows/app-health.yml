@@ -1,0 +1,17 @@
+# Delegate app: outside health check. The app also checks itself every
+# 5 minutes while people use it and alerts organizers; this run catches the
+# case where the app is down completely: a failed run e-mails the repo owner.
+# Every 3 hours normally, every 10 minutes in congress week.
+name: App health check
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+    - cron: "*/10 5-20 30,31 3 *"
+    - cron: "*/10 5-20 1-5 4 *"
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: curl -fsS --max-time 60 -H "authorization: Bearer ${{ secrets.APP_CRON_SECRET }}" "${{ vars.APP_URL || 'https://app-mobile-murex.vercel.app' }}/api/health/check"

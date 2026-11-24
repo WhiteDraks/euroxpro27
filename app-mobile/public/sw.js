@@ -3,7 +3,7 @@
 // Bump VERSION with every release so installed apps pick up the new files
 // (fetched past the browser's HTTP cache).
 // API calls always go to the network; map tiles are kept in a small cache.
-const VERSION = "v24";
+const VERSION = "v25";
 const SHELL = `app-shell-${VERSION}`;
 const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
@@ -14,6 +14,7 @@ const SHELL_FILES = [
   "/app.css",
   "/app.js",
   "/admin.js",
+  "/secure.js",
   "/admin.css",
   "/i18n.js",
   "/places.js",

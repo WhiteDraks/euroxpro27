@@ -3,6 +3,7 @@
 // The server checks the organizer role on every admin call, so hiding these
 // screens from delegates is only for tidiness, not for safety.
 import { getLang, locale } from "./i18n.js";
+import { st } from "./secure.js";
 
 const S = {
   tr: {
@@ -56,6 +57,47 @@ const S = {
     toolStoreSub: "Teslim et, iptal et, ürün çıkar",
     toolProducts: "Mağaza ürünleri",
     toolProductsSub: "Ürünleri aç / kapat",
+    traffic: "Trafik",
+    setLite: "Yük modu",
+    setLiteHint: "Kongrede salon çok kalabalıksa aç: telefonlar daha seyrek güncellenir (mesajlarda 10 sn, diğer yerlerde 60 sn), henüz çevrilmemiş mesajlar orijinal dilinde gelir. Açılıp kapandığı anda herkese geçer.",
+    cReports: "Açık bildirim",
+    toolReports: "Bildirimler (şikayetler)",
+    toolReportsSub: "Engelle / bildir ile gelenler",
+    toolHealth: "Sistem durumu",
+    toolHealthSub: "Hatalar, hız sınırı, e-posta kotası",
+    healthOk: "Sistem durumu: her şey yolunda",
+    healthWarn: "Sistem durumu: {n} uyarı",
+    healthNone: "Sistem durumu: henüz kontrol edilmedi",
+    healthTitle: "Sistem durumu",
+    healthHint: "Uygulama açık olduğu sürece her 5 dakikada bir kontrol edilir. Bir sorun çıkarsa organizatörlere bildirim ve e-posta gider (her sorun için saatte en fazla bir kez).",
+    healthCheck: "Şimdi kontrol et",
+    healthAt: "Son kontrol: {d}",
+    chk_storage: "Veritabanı bağlantısı",
+    chk_slow: "Veritabanı hızı",
+    chk_errors: "Sunucu hataları (son 10 dk)",
+    chk_throttled: "Hız sınırına takılan istek (son 10 dk)",
+    chk_signups: "Yeni kayıt (son 1 saat)",
+    chk_mail: "Bugünkü e-posta kotası",
+    chk_mailOff: "E-posta ayarı yapılmamış",
+    lvl_ok: "İyi",
+    lvl_warn: "Uyarı",
+    lvl_crit: "Kritik",
+    lvl_info: "Bilgi",
+    reportsTitle: "Bildirimler",
+    reportsNone: "Bildirim yok.",
+    reportBy: "Bildiren: {n}",
+    reportOpen: "Açık",
+    reportResolved: "Çözüldü",
+    markResolved: "Çözüldü olarak işaretle",
+    reopen: "Yeniden aç",
+    viewUser: "Kişiyi aç",
+    newReportToast: "Yeni bir bildirim (şikayet) geldi",
+    twofa: "2 adımlı giriş",
+    twofaOnShort: "Açık",
+    twofaOffShort: "Kapalı",
+    twofaReset: "2 adımlı girişi sıfırla",
+    twofaResetConfirm: "Sıfırlansın mı?",
+    twofaResetDone: "Sıfırlandı. Kişi bir sonraki girişte yeniden kuracak.",
     usersTitle: "Kullanıcılar",
     search: "İsim, e-posta veya ülke ara",
     fAll: "Tümü",
@@ -176,6 +218,47 @@ const S = {
     toolStoreSub: "Hand over, cancel, remove items",
     toolProducts: "Store products",
     toolProductsSub: "Turn products on or off",
+    traffic: "Traffic",
+    setLite: "Load mode",
+    setLiteHint: "Turn on when the venue is packed: phones update less often (10 s in chats, 60 s elsewhere) and messages that aren't translated yet arrive in the original language. Applies to everyone as soon as you switch it.",
+    cReports: "Open reports",
+    toolReports: "Reports",
+    toolReportsSub: "From block / report",
+    toolHealth: "System status",
+    toolHealthSub: "Errors, rate limits, e-mail quota",
+    healthOk: "System status: all good",
+    healthWarn: "System status: {n} warnings",
+    healthNone: "System status: not checked yet",
+    healthTitle: "System status",
+    healthHint: "Checked every 5 minutes while the app is in use. If something is wrong, organizers get a notification and an e-mail (at most once an hour per problem).",
+    healthCheck: "Check now",
+    healthAt: "Last check: {d}",
+    chk_storage: "Database connection",
+    chk_slow: "Database speed",
+    chk_errors: "Server errors (last 10 min)",
+    chk_throttled: "Rate-limited requests (last 10 min)",
+    chk_signups: "Sign-ups (last hour)",
+    chk_mail: "Today's e-mail quota",
+    chk_mailOff: "E-mail is not set up",
+    lvl_ok: "OK",
+    lvl_warn: "Warning",
+    lvl_crit: "Critical",
+    lvl_info: "Info",
+    reportsTitle: "Reports",
+    reportsNone: "No reports.",
+    reportBy: "Reported by {n}",
+    reportOpen: "Open",
+    reportResolved: "Resolved",
+    markResolved: "Mark resolved",
+    reopen: "Reopen",
+    viewUser: "Open person",
+    newReportToast: "A new report came in",
+    twofa: "Two-step sign-in",
+    twofaOnShort: "On",
+    twofaOffShort: "Off",
+    twofaReset: "Reset two-step sign-in",
+    twofaResetConfirm: "Reset it?",
+    twofaResetDone: "Reset. They will set it up again at next sign-in.",
     usersTitle: "People",
     search: "Search name, e-mail or country",
     fAll: "All",
@@ -296,6 +379,47 @@ const S = {
     toolStoreSub: "Wydaj, anuluj, usuń pozycje",
     toolProducts: "Produkty w sklepie",
     toolProductsSub: "Włącz lub wyłącz produkty",
+    traffic: "Ruch",
+    setLite: "Tryb obciążenia",
+    setLiteHint: "Włącz, gdy sala jest pełna: telefony odświeżają się rzadziej (10 s w czatach, 60 s gdzie indziej), a nieprzetłumaczone wiadomości przychodzą w oryginale. Działa u wszystkich od razu.",
+    cReports: "Otwarte zgłoszenia",
+    toolReports: "Zgłoszenia",
+    toolReportsSub: "Z blokowania / zgłaszania",
+    toolHealth: "Stan systemu",
+    toolHealthSub: "Błędy, limity, limit e-maili",
+    healthOk: "Stan systemu: wszystko w porządku",
+    healthWarn: "Stan systemu: ostrzeżenia ({n})",
+    healthNone: "Stan systemu: jeszcze nie sprawdzono",
+    healthTitle: "Stan systemu",
+    healthHint: "Sprawdzane co 5 minut, gdy aplikacja jest używana. Przy problemie organizatorzy dostają powiadomienie i e-mail (najwyżej raz na godzinę).",
+    healthCheck: "Sprawdź teraz",
+    healthAt: "Ostatnio: {d}",
+    chk_storage: "Połączenie z bazą",
+    chk_slow: "Szybkość bazy",
+    chk_errors: "Błędy serwera (10 min)",
+    chk_throttled: "Zablokowane żądania (10 min)",
+    chk_signups: "Rejestracje (1 godz.)",
+    chk_mail: "Dzisiejszy limit e-maili",
+    chk_mailOff: "E-mail nie jest skonfigurowany",
+    lvl_ok: "OK",
+    lvl_warn: "Ostrzeżenie",
+    lvl_crit: "Krytyczne",
+    lvl_info: "Info",
+    reportsTitle: "Zgłoszenia",
+    reportsNone: "Brak zgłoszeń.",
+    reportBy: "Zgłasza: {n}",
+    reportOpen: "Otwarte",
+    reportResolved: "Rozwiązane",
+    markResolved: "Oznacz jako rozwiązane",
+    reopen: "Otwórz ponownie",
+    viewUser: "Otwórz osobę",
+    newReportToast: "Nowe zgłoszenie",
+    twofa: "Logowanie dwuetapowe",
+    twofaOnShort: "Włączone",
+    twofaOffShort: "Wyłączone",
+    twofaReset: "Resetuj logowanie dwuetapowe",
+    twofaResetConfirm: "Zresetować?",
+    twofaResetDone: "Zresetowano. Osoba skonfiguruje je przy następnym logowaniu.",
     usersTitle: "Osoby",
     search: "Szukaj imienia, e-maila lub kraju",
     fAll: "Wszyscy",
@@ -431,6 +555,35 @@ export function makeAdmin(ctx) {
     window.dispatchEvent(new Event("admin-updated"));
   };
 
+  const settingToggle = (key, label, hint, settings) => {
+    const sw = h("input", { type: "checkbox", class: "switch", role: "switch", "aria-label": label });
+    sw.checked = !!settings[key];
+    sw.addEventListener("change", async () => {
+      sw.disabled = true;
+      try {
+        const r = await api("POST", "/api/admin/settings", { [key]: sw.checked });
+        sw.checked = !!r.settings[key];
+        if (key === "lite") {
+          state.lite = r.settings.lite;
+          window.dispatchEvent(new Event("lite-changed"));
+        }
+        toast(a("saved"));
+      } catch (e) {
+        sw.checked = !sw.checked;
+        toast(errText(e));
+      }
+      sw.disabled = false;
+    });
+    return h("label", { class: "row adm-switch" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, label), h("span", { class: "row-label" }, hint)), sw);
+  };
+  const healthLine = (hl) => {
+    const bad = hl ? hl.checks.filter((c) => c.level === "warn" || c.level === "crit").length : 0;
+    return h("a", { href: "/admin/health", "data-link": true, class: "adm-health " + (!hl ? "" : bad ? "bad" : "good") },
+      h("span", { class: "adm-dot", "aria-hidden": "true" }),
+      h("span", { class: "row-text" }, h("span", { class: "row-value" }, !hl ? a("healthNone") : bad ? a("healthWarn", { n: bad }) : a("healthOk"))),
+      icon("chevron", "row-chevron"));
+  };
+
   // ---------------------------------------------------------------- panel
   function panel(screen) {
     if (guard(screen)) return;
@@ -441,23 +594,7 @@ export function makeAdmin(ctx) {
       h(href ? "a" : "div", { class: "adm-stat " + cls, ...(href ? { href, "data-link": true } : {}) }, h("strong", {}, String(n)), h("span", {}, label));
     const tool = (href, ic, title, subtext) =>
       h("a", { href, "data-link": true, class: "row adm-tool" }, typeof ic === "string" && ic.startsWith("<svg") ? h("span", { class: "icon row-icon", "aria-hidden": "true", html: ic }) : icon(ic, "row-icon"), h("span", { class: "row-text" }, h("span", { class: "row-value" }, title), h("span", { class: "row-label" }, subtext)), icon("chevron", "row-chevron"));
-    const toggle = (key, label, hint, settings) => {
-      const sw = h("input", { type: "checkbox", class: "switch", role: "switch", "aria-label": label });
-      sw.checked = !!settings[key];
-      sw.addEventListener("change", async () => {
-        sw.disabled = true;
-        try {
-          const r = await api("POST", "/api/admin/settings", { [key]: sw.checked });
-          sw.checked = !!r.settings[key];
-          toast(a("saved"));
-        } catch (e) {
-          sw.checked = !sw.checked;
-          toast(errText(e));
-        }
-        sw.disabled = false;
-      });
-      return h("label", { class: "row adm-switch" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, label), h("span", { class: "row-label" }, hint)), sw);
-    };
+    const toggle = settingToggle;
     const pendingCard = (u) =>
       h("article", { class: "adm-pending" },
         h("a", { href: "/admin/users/" + u.id, "data-link": true, class: "adm-who" },
@@ -485,6 +622,7 @@ export function makeAdmin(ctx) {
         state.adminPending = c.pending;
         window.dispatchEvent(new Event("admin-pending"));
         body.replaceChildren(
+          healthLine(d.health),
           h("div", { class: "adm-stats" },
             stat(c.pending, a("cPending"), null, c.pending ? "hot" : ""),
             stat(c.active, a("cActive"), "/admin/users"),
@@ -493,7 +631,8 @@ export function makeAdmin(ctx) {
             stat(c.requestsOpen, a("cRequests"), "/requests"),
             stat(c.reservations, a("cReservations"), "/store/admin"),
             stat(c.messages, a("cMessages"), "/admin/chat"),
-            stat(c.questPlayers, a("cQuest"), "/quest/admin")),
+            stat(c.questPlayers, a("cQuest"), "/quest/admin"),
+            stat(c.reportsOpen || 0, a("cReports"), "/admin/reports", c.reportsOpen ? "hot" : "")),
           h("h2", { class: "group-header" }, `${a("pendingTitle")} · ${d.pending.length}`),
           d.pending.length
             ? h("div", { class: "adm-pending-list" },
@@ -513,10 +652,14 @@ export function makeAdmin(ctx) {
             : h("p", { class: "empty adm-empty" }, a("pendingNone")),
           h("h2", { class: "group-header" }, a("settings")),
           h("div", { class: "group" }, toggle("approval", a("setApproval"), a("setApprovalHint"), d.settings), toggle("signups", a("setSignups"), a("setSignupsHint"), d.settings)),
+          h("h2", { class: "group-header" }, a("traffic")),
+          h("div", { class: "group" }, toggle("lite", a("setLite"), a("setLiteHint"), d.settings)),
           h("h2", { class: "group-header" }, a("tools")),
           h("div", { class: "group" },
             tool("/admin/users", "team", a("toolUsers"), a("toolUsersSub")),
             tool("/admin/chat", "messages", a("toolChat"), a("toolChatSub")),
+            tool("/admin/reports", "shield", a("toolReports"), a("toolReportsSub")),
+            tool("/admin/health", "tv", a("toolHealth"), a("toolHealthSub")),
             tool("/info", "megaphone", a("toolAnn"), a("toolAnnSub")),
             tool("/requests", "inbox", a("toolReq"), a("toolReqSub")),
             tool("/agenda", "agenda", a("toolAgenda"), a("toolAgendaSub"))),
@@ -643,6 +786,30 @@ export function makeAdmin(ctx) {
           btn.disabled = false;
         }));
       if (u.photo) actions.push(action(a("removePhoto"), "profile", run(() => post({ photo: "" }))));
+      if (!self && u.twofa && !u.demo) {
+        let armed = false;
+        const btn = action(a("twofaReset"), "shield", async () => {
+          if (!armed) {
+            armed = true;
+            btn.querySelector(".row-value").textContent = a("twofaResetConfirm");
+            btn.classList.add("armed");
+            setTimeout(() => {
+              armed = false;
+              btn.querySelector(".row-value").textContent = a("twofaReset");
+              btn.classList.remove("armed");
+            }, 4000);
+            return;
+          }
+          try {
+            await api("POST", `/api/admin/users/${u.id}/2fa-reset`);
+            toast(a("twofaResetDone"));
+          } catch (err) {
+            toast(errText(err));
+          }
+          load();
+        });
+        actions.push(btn);
+      }
 
       // Profile fields an organizer can correct.
       const nameIn = h("input", { type: "text", value: u.name, maxlength: 60, "aria-label": a("name") });
@@ -679,6 +846,7 @@ export function makeAdmin(ctx) {
           info(a("joined"), dateTime(u.createdAt)),
           info(a("kvkk"), u.consentAt ? `${dateTime(u.consentAt)} · v${u.consentV}` : a("kvkkNone")),
           info(a("lastSeen"), ago(u.lastSeen)),
+          u.demo ? null : info(a("twofa"), u.twofa ? a("twofaOnShort") : a("twofaOffShort")),
           u.approvedBy ? info(a("approvedBy"), `${u.approvedBy} · ${dateTime(u.approvedAt)}`) : null,
           info(a("language"), String(u.lang || "").toUpperCase()),
           info(a("questPts"), `${u.points} · ${u.stations}/12`),
@@ -732,6 +900,91 @@ export function makeAdmin(ctx) {
   }
 
   // ---------------------------------------------------------------- waiting screen
+  // ---------------------------------------------------------------- system status
+  function health(screen) {
+    if (guard(screen)) return;
+    screen.classList.add("admin-screen");
+    const box = h("div", {}, h("div", { class: "loading" }));
+    screen.append(navBar({ title: a("healthTitle"), back: "/admin" }), box);
+    const fmt = (c) => (c.id === "slow" ? `${c.value} ms` : c.id === "mail" ? `%${c.value}` : c.id === "storage" || c.id === "mailOff" ? "" : String(c.value));
+    const load = async (fresh) => {
+      try {
+        const d = await api("GET", "/api/admin/health" + (fresh ? "?fresh=1" : ""));
+        const hl = d.health;
+        box.replaceChildren(
+          healthLine(hl),
+          h("p", { class: "fineprint" }, a("healthAt", { d: dateTime(hl.at) })),
+          h("div", { class: "group" }, hl.checks.map((c) =>
+            h("div", { class: "row adm-check lvl-" + c.level },
+              h("span", { class: "adm-dot", "aria-hidden": "true" }),
+              h("span", { class: "row-text" }, h("span", { class: "row-value" }, a("chk_" + c.id)), h("span", { class: "row-label" }, a("lvl_" + c.level))),
+              h("strong", { class: "adm-check-val" }, fmt(c))))),
+          h("button", { type: "button", class: "btn btn-tinted", onclick: (e) => {
+            e.currentTarget.disabled = true;
+            load(true);
+          } }, a("healthCheck")),
+          h("h2", { class: "group-header" }, a("traffic")),
+          h("div", { class: "group" }, settingToggle("lite", a("setLite"), a("setLiteHint"), d.settings)),
+          h("p", { class: "fineprint" }, a("healthHint"))
+        );
+      } catch (e) {
+        box.replaceChildren(h("p", { class: "empty" }, errText(e)));
+      }
+    };
+    load(false);
+  }
+
+  // ---------------------------------------------------------------- reports
+  function reports(screen) {
+    if (guard(screen)) return;
+    screen.classList.add("admin-screen");
+    const box = h("div", {}, h("div", { class: "loading" }));
+    screen.append(navBar({ title: a("reportsTitle"), back: "/admin" }), box);
+    let filter = "open";
+    const reasons = st("reasons");
+    const load = async () => {
+      try {
+        const { reports: list } = await api("GET", "/api/admin/reports");
+        const shown = list.filter((r) => filter === "all" || r.status === filter);
+        const chips = h("div", { class: "chips", role: "radiogroup" }, [["open", a("reportOpen")], ["resolved", a("reportResolved")], ["all", a("fAll")]].map(([k, label]) =>
+          h("button", { type: "button", class: "chip" + (k === filter ? " on" : ""), role: "radio", "aria-checked": String(k === filter), onclick: () => {
+            filter = k;
+            load();
+          } }, `${label} · ${k === "all" ? list.length : list.filter((r) => r.status === k).length}`)));
+        box.replaceChildren(
+          chips,
+          shown.length
+            ? h("div", { class: "adm-reports" }, shown.map((r) =>
+                h("article", { class: "adm-report" + (r.status === "resolved" ? " done" : "") },
+                  h("div", { class: "adm-report-head" },
+                    h("strong", {}, r.targetName),
+                    h("span", { class: "status " + (r.status === "open" ? "status-wait" : "status-ok") }, r.status === "open" ? a("reportOpen") : a("reportResolved"))),
+                  h("p", { class: "adm-report-reason" }, reasons[r.reason] || r.reason),
+                  r.text ? h("p", { class: "adm-report-text" }, r.text) : null,
+                  r.msg ? h("blockquote", { class: "report-quote" }, h("p", {}, r.msg.text), h("span", { class: "row-label" }, dateTime(r.msg.at))) : null,
+                  h("p", { class: "row-label" }, `${a("reportBy", { n: r.byName })} · ${dateTime(r.at)}${r.handledBy ? ` · ${r.handledBy}` : ""}`),
+                  h("div", { class: "adm-actions" },
+                    h("a", { href: "/admin/users/" + r.target, "data-link": true, class: "btn btn-small btn-muted" }, a("viewUser")),
+                    h("button", { type: "button", class: "btn btn-small " + (r.status === "open" ? "adm-approve" : "btn-muted"), onclick: async (e) => {
+                      e.currentTarget.disabled = true;
+                      try {
+                        await api("POST", "/api/admin/reports/" + r.id, { status: r.status === "open" ? "resolved" : "open" });
+                      } catch (err) {
+                        toast(errText(err));
+                      }
+                      load();
+                    } }, r.status === "open" ? a("markResolved") : a("reopen"))))))
+            : h("p", { class: "empty adm-empty" }, a("reportsNone"))
+        );
+      } catch (e) {
+        box.replaceChildren(h("p", { class: "empty" }, errText(e)));
+      }
+    };
+    load();
+    window.addEventListener("admin-updated", load);
+    return () => window.removeEventListener("admin-updated", load);
+  }
+
   function waiting(screen) {
     const u = state.user;
     const st = u.status;
@@ -775,5 +1028,5 @@ export function makeAdmin(ctx) {
     };
   }
 
-  return { panel, users, user, chat, waiting };
+  return { panel, users, user, chat, waiting, health, reports };
 }

@@ -233,3 +233,26 @@ function sendSmtp(msg, env) {
 
 export const sendSignupEmail = (user, appUrl, opts) => sendMail({ to: signupRecipients(opts?.env), ...signupEmail(user, appUrl) }, opts);
 export const sendApprovedEmail = (user, appUrl, opts) => sendMail({ to: user.email, ...approvedEmail(user, appUrl) }, opts);
+
+// Several sign-ups in one e-mail (at most one e-mail per 15 minutes).
+export function signupDigestEmail(users, appUrl, total = users.length) {
+    const adminUrl = `${baseUrl(appUrl)}/admin`;
+    const shown = users.slice(0, 50);
+    const rows = shown.map((u) => [u.name, [u.entity, u.position, u.email].filter(Boolean).join(" · ")]);
+    const subject = `${total} yeni kayıt onay bekliyor`;
+    const more = total > shown.length ? `\n... ve ${total - shown.length} kişi daha` : "";
+    const text = [
+        `EUROXPRO'27 uygulamasına son 15 dakikada ${total} yeni kayıt geldi.`,
+        "",
+        ...rows.map(([n, d]) => `- ${oneLine(n, 60)}: ${oneLine(d, 200)}`),
+        more,
+        "",
+        `Yönetim paneli: ${adminUrl}`,
+    ].join("\n");
+    const list = `<table role="presentation" style="width:100%;border-collapse:collapse;font-size:15px">
+${rows.map(([n, d]) => `<tr><td style="padding:6px 12px 6px 0;font-weight:600;vertical-align:top">${escapeHtml(n)}</td><td style="padding:6px 0;color:#6e6e73;word-break:break-word">${escapeHtml(d)}</td></tr>`).join("\n")}
+</table>${more ? `<p style="font-size:14px;color:#6e6e73">${escapeHtml(more.trim())}</p>` : ""}`;
+    const html = layout(`${total} yeni kayıt`, list + button(adminUrl, "Yönetim panelinde aç"), "Çok kayıt geldiğinde e-postalar 15 dakikada bir özet olarak gönderilir.");
+    return { subject, text, html };
+}
+export const sendSignupDigest = (users, appUrl, total, opts) => sendMail({ to: signupRecipients(opts?.env), ...signupDigestEmail(users, appUrl, total) }, opts);
