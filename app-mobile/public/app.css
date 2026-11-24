@@ -1411,13 +1411,17 @@ html[data-nav="tab"]::view-transition-new(root) { animation: vt-fade-in 0.26s cu
 .card.behind { transform: scale(0.95) translateY(14px); filter: brightness(0.8); }
 .card.leaving { transition: transform 0.35s ease-in, opacity 0.35s ease-in; }
 .card.snap { transition: transform 0.25s ease-out; }
+/* The photo takes the space the text leaves, so a long bio on a short
+   phone shrinks the photo instead of covering the name. */
 .card-face {
-  position: absolute;
-  top: 12%;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 12px;
 }
-.card-face .avatar { width: 150px; height: 150px; font-size: 54px; }
+.card-face .avatar { flex: none; height: min(150px, 100%); width: auto; aspect-ratio: 1; font-size: 54px; }
 .card-face .avatar.has-emoji { font-size: 84px; }
 .card-name { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.1; }
 .card-sub { margin: 4px 0 0; color: rgba(255, 255, 255, 0.72); font-size: 16px; }

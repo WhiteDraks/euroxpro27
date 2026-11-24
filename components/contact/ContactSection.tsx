@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Send, AlertCircle, Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { siteConfig } from "@/lib/config";
+
+const DEPARTMENTS = [
+  { value: "general", label: "General Inquiries" },
+  { value: "logistics", label: "Logistics & Travel" },
+  { value: "programme", label: "Agenda & Programme" },
+  { value: "partnerships", label: "Partnerships & Media" },
+];
 
 export function ContactSection({ config }: { config: typeof siteConfig }) {
   const [formData, setFormData] = useState({
@@ -15,6 +22,17 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
     message: "",
   });
   const [status, setStatus] = useState<"idle" | "submitted">("idle");
+
+  // Links like /contact?topic=partnerships (the partner card) open the form
+  // with the right department already picked.
+  useEffect(() => {
+    const topic = new URLSearchParams(window.location.search).get("topic");
+    if (topic && DEPARTMENTS.some((d) => d.value === topic)) {
+      // Read after hydration so the static page and the first render match.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData((f) => ({ ...f, department: topic }));
+    }
+  }, []);
 
   // There is no mail backend yet, so the form opens the visitor's email
   // app with the message filled in instead of silently dropping it.
@@ -143,10 +161,9 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                       className="w-full text-base sm:text-xs px-3 py-2 border border-white/10 rounded-xl focus:outline-none focus:border-[#7D1A30] bg-[#141012]"
                     >
-                      <option value="general">General Inquiries</option>
-                      <option value="logistics">Logistics &amp; Travel</option>
-                      <option value="programme">Agenda &amp; Programme</option>
-                      <option value="partnerships">Partnerships &amp; Media</option>
+                      {DEPARTMENTS.map((d) => (
+                        <option key={d.value} value={d.value}>{d.label}</option>
+                      ))}
                     </select>
                   </div>
                   <div>

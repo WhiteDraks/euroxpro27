@@ -1846,7 +1846,7 @@ function viewProfile(screen) {
     ),
     u.role === "admin"
       ? h("a", { href: "/admin", "data-link": true, class: "admin-entry" }, icon("shield"), h("span", { class: "row-text" }, h("span", { class: "admin-entry-title" }, adminText("adminTitle")), h("span", { class: "admin-entry-sub" }, adminText("adminTile"))), icon("chevron"))
-      : null,
+      : "", // screen.append() would print null as text
     h(
       "form",
       {
