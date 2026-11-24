@@ -9,7 +9,16 @@ function segments(request) {
   return p.split("/").filter(Boolean).map(decodeURIComponent);
 }
 
-const run = (request) => handle(request, segments(request));
+const run = (request) => {
+  let segs;
+  try {
+    segs = segments(request);
+  } catch {
+    // A broken %-escape in the path: answer 400 instead of crashing the function.
+    return Response.json({ error: "bad_path" }, { status: 400 });
+  }
+  return handle(request, segs);
+};
 
 export const GET = run;
 export const POST = run;

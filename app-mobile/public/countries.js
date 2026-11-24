@@ -17,7 +17,7 @@ export const COUNTRIES = [
   ["BE", "Belgium", 50.6, 4.6, "belgium|belçika|belgia|brussels|antwerp|ghent|leuven"],
   ["AT", "Austria", 47.6, 14.1, "austria|avusturya|österreich|vienna|wien|graz|linz|innsbruck|salzburg"],
   ["CH", "Switzerland", 46.8, 8.2, "switzerland|isviçre|szwajcaria|zurich|zürich|geneva|bern|lausanne"],
-  ["CZ", "Czechia", 49.8, 15.5, "czech|çekya|czechy|prague|praha|brno"],
+  ["CZ", "Czechia", 49.8, 15.5, "czechia|czech republic|czech|çekya|czechy|česko|prague|praha|brno"],
   ["SK", "Slovakia", 48.7, 19.7, "slovakia|slovakya|słowacja|bratislava|kosice"],
   ["HU", "Hungary", 47.2, 19.4, "hungary|macaristan|węgry|budapest|szeged|debrecen"],
   ["RO", "Romania", 45.9, 24.9, "romania|romanya|rumunia|bucharest|bucuresti|cluj|iasi|iași|timisoara|timișoara"],

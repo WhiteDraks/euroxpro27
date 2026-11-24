@@ -220,7 +220,11 @@ async function getUser(id) {
     return parse(await cmd("GET", "du:" + id));
 }
 async function saveUser(u) {
-    await cmd("SET", "du:" + u.id, JSON.stringify(u));
+    // Block lists live in their own sets (dblk:/dblkby:), never in the record:
+    // blocking someone must not rewrite that person's record, where a parallel
+    // save could undo their password change or "sign out everywhere".
+    const { blocked: _b, blockedBy: _bb, ...rec } = u;
+    await cmd("SET", "du:" + u.id, JSON.stringify(rec));
     forget("listed", "hall", "world", "qboard");
 }
 // Session token -> "<id>.<version>", kept per instance for a minute so each
@@ -246,7 +250,19 @@ async function currentUser(req) {
     // "<id>.<session version>": a new password bumps the version, so every
     // session opened with the old one stops working at once.
     const [id, ver = "0"] = String(v).split(".");
-    const u = await getUser(id);
+    const [raw, blk, blkBy] = await pipe(["GET", "du:" + id], ["SMEMBERS", "dblk:" + id], ["SMEMBERS", "dblkby:" + id]);
+    const u = parse(raw);
+    if (u) {
+        // Older records kept the lists inline: move them to the sets once.
+        if (u.blocked?.length || u.blockedBy?.length) {
+            await pipe(...(u.blocked || []).flatMap((x) => [["SADD", "dblk:" + id, x], ["SADD", "dblkby:" + x, id]]), ...(u.blockedBy || []).flatMap((x) => [["SADD", "dblkby:" + id, x], ["SADD", "dblk:" + x, id]]));
+            blk.push(...(u.blocked || []));
+            blkBy.push(...(u.blockedBy || []));
+            await saveUser(u);
+        }
+        u.blocked = [...new Set(blk || [])];
+        u.blockedBy = [...new Set(blkBy || [])];
+    }
     // A signed-out session can still sit in another instance's memo for up
     // to a minute; the user record (read fresh anyway) lists it until then.
     if (u?.rev?.some((r) => r.k === key.slice(0, 16)))
@@ -850,7 +866,8 @@ route("GET", "meet/deck", async ({ user }) => {
 });
 route("GET", "meet/matches", async ({ user }) => {
     const ids = await cmd("SMEMBERS", "dmatch:" + user.id);
-    const users = (await usersByIds(ids)).map(publicUser);
+    const hidden = blockedBy(user);
+    const users = (await usersByIds(ids)).filter((x) => listed(x) && !hidden.has(x.id)).map(publicUser);
     return json({ matches: users.map((p) => ({ ...p, conv: dmId(user.id, p.id) })) });
 });
 route("POST", "meet/swipe", async ({ req, user }) => {
@@ -932,11 +949,10 @@ route("POST", "people/([\\w-]+)/block", async ({ req, user, m }) => {
     if (await limited("blk:" + user.id, 60, 3600))
         throw new HttpError(429, "rate_limited");
     const on = b.block !== false;
-    const toggle = (list, id) => (on ? [...new Set([...(list || []), id])] : (list || []).filter((x) => x !== id)).slice(-500);
-    user.blocked = toggle(user.blocked, target.id);
-    target.blockedBy = toggle(target.blockedBy, user.id);
-    await saveUser(user);
-    await saveUser(target);
+    if (on && (user.blocked || []).length >= 500)
+        throw new HttpError(400, "too_many");
+    const op = on ? "SADD" : "SREM";
+    await pipe([op, "dblk:" + user.id, target.id], [op, "dblkby:" + target.id, user.id]);
     return json({ blocked: on });
 });
 const REPORT_REASONS = ["harassment", "spam", "fake", "inappropriate", "other"];
@@ -966,7 +982,11 @@ route("POST", "people/([\\w-]+)/report", async ({ req, user, m }) => {
     });
     return json({ ok: true }, 201);
 });
-route("GET", "photo/([\\w-]+)", async ({ m }) => {
+route("GET", "photo/([\\w-]+)", async ({ user, m }) => {
+    // Suspended, rejected and waiting accounts are hidden everywhere else, so their photo is too.
+    const owner = m[1] === user.id ? user : await getUser(m[1]);
+    if (!owner || (!listed(owner) && user.role !== "admin" && owner.id !== user.id))
+        throw new HttpError(404, "not_found");
     const b64 = await cmd("GET", "dph:" + m[1]);
     if (!b64)
         throw new HttpError(404, "not_found");
@@ -1815,7 +1835,7 @@ route("POST", "admin/users/([\\w-]+)/delete", async ({ user, m }) => {
         throw new HttpError(403, "self");
     if (isOwner(u) && u.role === "admin")
         throw new HttpError(403, "owner");
-    await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id], ["SREM", "dusers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
+    await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id, "dblk:" + u.id, "dblkby:" + u.id, "dpush:" + u.id], ["SREM", "dusers", u.id], ["SREM", "dpushers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
     await pushEvent({ at: Date.now(), type: "users" });
     return json({ ok: true });
 });
@@ -1923,6 +1943,10 @@ function ensureDemo() {
 }
 // ------------------------------------------------------------ dispatcher
 function sameOrigin(req) {
+    // Browsers mark every request with where it came from; only the app's own pages may change things.
+    const site = req.headers.get("sec-fetch-site");
+    if (site && site !== "same-origin" && site !== "none")
+        return false;
     const origin = req.headers.get("origin");
     if (!origin)
         return true;

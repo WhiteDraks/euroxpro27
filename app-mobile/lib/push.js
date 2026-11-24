@@ -102,8 +102,15 @@ export function validSubscription(s) {
         return false;
     }
 }
+// A person has a phone and maybe a laptop or two; more than this many
+// devices is a script, and every notification would fan out to all of them.
+const MAX_DEVICES = 8;
 export async function saveSubscription(uid, s) {
     const sub = { endpoint: String(s.endpoint), keys: { p256dh: String(s.keys.p256dh), auth: String(s.keys.auth) }, at: Date.now() };
+    const old = (await subscriptionsOf(uid)).filter((x) => x.endpoint !== sub.endpoint).sort((a, b) => (a.at || 0) - (b.at || 0));
+    const drop = old.slice(0, Math.max(0, old.length - (MAX_DEVICES - 1)));
+    if (drop.length)
+        await cmd("HDEL", "dpush:" + uid, ...drop.map((x) => subId(x.endpoint)));
     await pipe(["HSET", "dpush:" + uid, subId(sub.endpoint), JSON.stringify(sub)], ["SADD", "dpushers", uid]);
 }
 export async function removeSubscription(uid, endpoint) {

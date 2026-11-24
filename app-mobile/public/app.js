@@ -1,5 +1,5 @@
 // EUROXPRO'27 delegate app. Plain JavaScript modules, no framework.
-import { t, setLang, getLang, detectLang, LANGS, locale } from "./i18n.js";
+import { t, setLang, getLang, detectLang, LANGS, locale, dataText } from "./i18n.js";
 import { PLACES, CENTER } from "./places.js";
 import { COUNTRIES, countryOf, flag } from "./countries.js";
 import { makeAdmin, at as adminText, SHIELD_ICON } from "./admin.js";
@@ -1841,6 +1841,7 @@ function meetProfile(u) {
     try {
       const { user } = await api("PATCH", "/api/me", patch);
       state.user = user;
+      saveUser(user);
       const big = document.querySelector(".profile-head .avatar");
       if (big) big.replaceWith(avatar(user, "avatar-lg"));
       drawPhoto();
@@ -1937,6 +1938,7 @@ function viewProfile(screen) {
           try {
             const { user } = await api("PATCH", "/api/me", { name: nameIn.value, entity: entityIn.value, position: posIn.value, ...(titleIn ? { title: titleIn.value } : {}) });
             state.user = user;
+            saveUser(user);
             toast(t("saved"));
             render();
           } catch (err) {
@@ -1967,6 +1969,7 @@ function viewProfile(screen) {
           try {
             const { user } = await api("PATCH", "/api/me", { lang });
             state.user = user;
+            saveUser(user);
             setLang(lang);
             state.agenda = null;
             state.conversations = null;
@@ -2427,13 +2430,13 @@ function viewQuest(screen) {
       h("ol", { class: "trail" }, d.stations.map((s, i) =>
         h("li", { class: "trail-stop" + (s.done ? " done" : "") },
           h("span", { class: "trail-dot" }, s.done ? icon("check") : String(i + 1)),
-          h("span", { class: "trail-name" }, s.name),
+          h("span", { class: "trail-name" }, dataText(s.name)),
           h("span", { class: "trail-pts" }, `+${s.pts}`)))),
       h("h2", { class: "group-header" }, `${t("questRewards")} · ${t("questBalance", { n: d.balance })}`),
       h("div", { class: "group" }, d.rewards.map((r) => {
         const can = !r.claimed && d.balance >= r.cost;
         return h("div", { class: "row reward" },
-          h("span", { class: "row-text" }, h("span", { class: "row-value" }, r.name), h("span", { class: "row-label" }, `${r.cost} ${t("pts")}`)),
+          h("span", { class: "row-text" }, h("span", { class: "row-value" }, dataText(r.name)), h("span", { class: "row-label" }, `${r.cost} ${t("pts")}`)),
           r.claimed
             ? h("span", { class: "status " + (r.claimed === "given" ? "status-ok" : "status-wait") }, r.claimed === "given" ? t("questGiven") : t("questPending"))
             : h("button", { type: "button", class: "btn btn-small" + (can ? "" : " btn-muted"), disabled: !can, onclick: async () => {
@@ -2491,7 +2494,7 @@ function viewQuestAdmin(screen) {
       h("div", { class: "qr-grid" }, stations.map((s) =>
         h("figure", { class: "qr-card" },
           h("span", { class: "qr-img", html: qrSvg(`${location.origin}/q/${s.code}`) }),
-          h("figcaption", {}, h("strong", {}, s.name), h("span", {}, `${s.code} · +${s.pts} ${t("pts")}`))))),
+          h("figcaption", {}, h("strong", {}, dataText(s.name)), h("span", {}, `${s.code} · +${s.pts} ${t("pts")}`))))),
       h("h2", { class: "group-header no-print" }, t("questClaims")),
       claims.length
         ? h("div", { class: "group no-print" }, claims.map((c) => {
@@ -2503,7 +2506,7 @@ function viewQuestAdmin(screen) {
               btn.textContent = r.status === "given" ? t("questGiven") : t("questMarkGiven");
               btn.classList.toggle("btn-muted", r.status === "given");
             });
-            return h("div", { class: "row" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, c.reward), h("span", { class: "row-label" }, [c.name, c.entity].filter(Boolean).join(" · "))), btn);
+            return h("div", { class: "row" }, h("span", { class: "row-text" }, h("span", { class: "row-value" }, dataText(c.reward)), h("span", { class: "row-label" }, [c.name, c.entity].filter(Boolean).join(" · "))), btn);
           }))
         : h("p", { class: "empty no-print" }, t("questNoClaims"))
     );
@@ -2603,13 +2606,13 @@ function viewApprovals(screen) {
     );
     countUp(totalNum, T);
     chipRow(prodChips, ["all", ...PRODUCTS], prod, (v) => (v === "all" ? t("allProducts") : v), (v) => (prod = v));
-    const mcs = [...new Set(all.map((x) => x.mc))].sort();
+    const mcs = [...new Set(all.map((x) => x.mc))].sort((a, b) => mcName(a).localeCompare(mcName(b), locale()));
     mcChips.hidden = mode !== "lc";
-    chipRow(mcChips, ["all", ...mcs], mc, (v) => (v === "all" ? t("all") : v), (v) => (mc = v));
+    chipRow(mcChips, ["all", ...mcs], mc, (v) => (v === "all" ? t("all") : mcName(v)), (v) => (mc = v));
     const items = mode === "mc" ? groupByMc(all) : all.filter((x) => mc === "all" || x.mc === mc);
     const rows = ranked(items, val);
     const top = Math.max(1, rows[0]?.v || 0);
-    const sub = (x) => (mode === "mc" ? t("apprLcs", { n: x.n }) : x.mc);
+    const sub = (x) => (mode === "mc" ? t("apprLcs", { n: x.n }) : mcName(x.mc));
     // Podium: 2nd, 1st, 3rd.
     const podiumRows = rows.slice(0, 3);
     podium.replaceChildren(
@@ -2617,7 +2620,7 @@ function viewApprovals(screen) {
         ? [h("div", { class: "lbpod" }, [podiumRows[1], podiumRows[0], podiumRows[2]].map((r, i) => {
             const step = h("span", { class: "podium-step" }, h("span", { class: "podium-place" }, String(r.place)));
             return h("div", { class: "podium-col p" + r.place + (i === 1 ? " first" : "") },
-              h("span", { class: "podium-name" }, mode === "mc" ? r.x.name : shortLc(r.x.name)),
+              h("span", { class: "podium-name" }, mode === "mc" ? mcName(r.x.name) : shortLc(r.x.name)),
               h("span", { class: "podium-sub" }, sub(r.x)),
               h("span", { class: "podium-val" }, fmtNum(r.v)),
               step);
@@ -2633,7 +2636,7 @@ function viewApprovals(screen) {
       return h("li", { class: "league-row" },
         h("span", { class: "league-rank" }, String(r.place)),
         h("span", { class: "league-main" },
-          h("span", { class: "league-name" }, mode === "mc" ? x.name : shortLc(x.name), h("span", { class: "league-mc" }, sub(x))),
+          h("span", { class: "league-name" }, mode === "mc" ? mcName(x.name) : shortLc(x.name), h("span", { class: "league-mc" }, sub(x))),
           h("span", { class: "league-track" }, fill),
           h("span", { class: "league-nums" },
             showGoal ? `${fmtNum(x.approved)} / ${fmtNum(x.goal)}` : h("strong", { class: "league-val" }, fmtNum(r.v)),
@@ -2716,7 +2719,7 @@ function viewApprovalsLive(screen) {
         const num = h("span", { class: "race-num" }, "0");
         const el = h("div", { class: "race-row" },
           h("span", { class: "race-rank" }),
-          h("span", { class: "race-name" }, mode === "mc" ? x.name : shortLc(x.name), h("span", { class: "race-mc" }, mode === "mc" ? "" : x.mc)),
+          h("span", { class: "race-name" }, mode === "mc" ? mcName(x.name) : shortLc(x.name), h("span", { class: "race-mc" }, mode === "mc" ? "" : mcName(x.mc))),
           h("span", { class: "race-track" }, fill, goalMark),
           num);
         r = { el, fill, goalMark, num };
@@ -2918,7 +2921,7 @@ function viewStore(screen) {
       } }, p.on ? t("storeOn") : t("storeOff")) : null;
       return h("article", { class: "product" + (p.on ? "" : " off") }, productArt(p),
         h("span", { class: "product-cat" }, t("cat_" + p.cat)),
-        h("h3", {}, p.name),
+        h("h3", {}, dataText(p.name)),
         h("span", { class: "product-foot" }, h("span", { class: "price" }, `€${p.price}`), size, add),
         toggle);
     }));
@@ -2936,7 +2939,7 @@ function viewStore(screen) {
   load();
 }
 
-const itemText = (i) => `${i.qty}× ${i.name}${i.size ? " " + i.size : ""}`;
+const itemText = (i) => `${i.qty}× ${dataText(i.name)}${i.size ? " " + i.size : ""}`;
 const resStatus = (r) => h("span", { class: "status " + (r.status === "collected" ? "status-ok" : r.status === "cancelled" ? "status-off" : "status-wait") }, t("res_" + r.status));
 const resDate = (r) => new Date(r.at).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
 
@@ -2993,7 +2996,7 @@ function viewStoreAdmin(screen) {
     chips.replaceChildren(...["reserved", "collected", "cancelled", "all"].map((st) => h("button", { type: "button", class: "chip" + (st === filter ? " on" : ""), onclick: () => ((filter = st), draw()) }, `${st === "all" ? t("all") : t("res_" + st)} · ${count(st)}`)));
     const sum = new Map();
     for (const r of all) if (r.status === "reserved") for (const i of r.items) {
-      const k = i.name + (i.size ? ` (${i.size})` : "");
+      const k = dataText(i.name) + (i.size ? ` (${i.size})` : "");
       sum.set(k, (sum.get(k) || 0) + i.qty);
     }
     const money = all.filter((r) => r.status === "reserved").reduce((a, r) => a + r.total, 0);
@@ -3065,6 +3068,13 @@ function gcPick(real, force) {
   const known = (real.delegates || []).filter((d) => countryOf(d.entity)).length;
   if (force === "real") return real;
   return force === "sample" || known < GC_SAMPLE_BELOW ? gcSampleData() : real;
+}
+
+// An MC is typed as a country ("Italy", "AIESEC in Türkiye"); show the
+// country in the reader's language when we recognise it.
+function mcName(mc) {
+  const code = countryOf(mc)?.code;
+  return code && !/aiesec/i.test(mc) && mc.trim().split(/\s+/).length <= 3 ? regionNames().of(code) || mc : mc;
 }
 
 function regionNames() {
@@ -3793,7 +3803,12 @@ function viewHome(screen) {
   };
   const cachedA = state.agenda || cachedAgenda();
   if (cachedA) nextSession(cachedA);
-  loadAgenda().then(nextSession).catch(() => {});
+  loadAgenda(!!cachedA).then(nextSession).catch(() => {});
+  // Translations of the agenda arrive a moment after the first load (and
+  // organizers edit it live): redraw the tile, the hero card follows each second.
+  const onAgenda = () => state.agenda && nextSession(state.agenda);
+  window.addEventListener("agenda-updated", onAgenda);
+  cleanups.push(() => window.removeEventListener("agenda-updated", onAgenda));
 
   // Faces of a few delegates and how many there are.
   api("GET", "/api/people").then(({ people }) => {
