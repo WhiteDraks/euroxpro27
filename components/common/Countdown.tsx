@@ -26,7 +26,7 @@ export function Countdown({ start, end, labels }: { start: string; end: string; 
 
   if (now !== null && now >= startAt) {
     return (
-      <p className="text-sm font-semibold text-[#E0647D]">
+      <p className="text-lg font-semibold text-[#E0647D]">
         {now < endAt ? labels.liveText : labels.endedText}
       </p>
     );
@@ -41,17 +41,20 @@ export function Countdown({ start, end, labels }: { start: string; end: string; 
   ];
 
   return (
-    <div role="timer" aria-label={labels.label} className="sm:text-right">
-      <p className="text-xs text-[#A8968D] mb-1">{labels.label}</p>
-      <div className="flex items-baseline gap-3 sm:justify-end">
-        {units.map(({ label, value }, i) => (
-          <div key={i} className="flex items-baseline gap-1">
-            <span className="text-lg sm:text-xl font-semibold text-white tabular-nums leading-none">
-              {value === null ? "--" : i === 0 ? value : String(value).padStart(2, "0")}
-            </span>
-            <span className="text-[11px] text-[#A8968D]">{label}</span>
-          </div>
-        ))}
+    <div role="timer" aria-label={labels.label}>
+      <p className="text-sm text-[#D6C8BC] mb-2">{labels.label}</p>
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-md">
+        {units.map(({ label, value }, i) => {
+          const shown = value === null ? "--" : i === 0 ? String(value) : String(value).padStart(2, "0");
+          return (
+            <div key={i} className="rounded-xl bg-[#F4EDE2] text-[#140D0E] text-center py-2.5 sm:py-3 overflow-hidden">
+              <span key={shown} className="tick block font-serif-title text-2xl sm:text-4xl leading-none tabular-nums">
+                {shown}
+              </span>
+              <span className="block text-[11px] sm:text-xs text-[#6B5B55] mt-1">{label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

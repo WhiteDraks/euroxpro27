@@ -53,10 +53,7 @@ export function Footer() {
                 />
               </div>
             </Link>
-            <p className="font-serif-title text-4xl sm:text-5xl text-white leading-[0.95] mb-6 max-w-xs">
-              See you in Antalya.
-            </p>
-            <p className="text-[#D6C8BC] text-sm mb-5">{siteConfig.datesLabel}</p>
+            <p className="font-serif-title text-2xl text-[#F4EDE2] mb-5">{siteConfig.datesLabel}</p>
             <div className="flex items-center gap-2 text-[#B8A69C] text-sm mb-3">
               <MapPin size={14} className="text-[#E0647D] flex-shrink-0" />
               <span>Antalya, Türkiye</span>

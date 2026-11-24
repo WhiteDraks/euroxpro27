@@ -35,6 +35,8 @@ const SECTIONED_TABS = new Set<keyof SiteContent>(["home", "congress", "exploreA
 const SECTION_LABELS: Record<string, string> = {
   hero: "Giriş bölümü (büyük fotoğraf ve başlık)",
   news: "Duyurular bölümü",
+  tiles: "Ne arıyorsun? kutuları",
+  city: "Antalya fotoğrafları",
   dimensions: "Üç boyut kartları",
   pillars: "Dört sütun",
   destination: "Antalya tanıtım kartları",

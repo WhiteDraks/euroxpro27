@@ -14,8 +14,8 @@ export default function Announcements() {
     <div className="pt-16 lg:pt-20">
       <PageHero
         eyebrow="News from the committee"
-        title="Announcements"
-        intro="Travel advisories, registration news and updates from the EUROXPRO'27 Organizing Committee, newest first."
+        title="News"
+        intro="Updates from the organizing team. Newest first."
       />
       <AnnouncementsPage announcements={announcements} categories={categories} />
     </div>

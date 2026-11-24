@@ -30,8 +30,8 @@ export default function DelegateGuidePage() {
     <div className="pt-16 lg:pt-20">
       <PageHero
         eyebrow="Before you travel"
-        title="Delegate Handbook"
-        intro="Everything you need for the trip to Antalya: entry rules and e-Visa, getting in from the airport, money, phones, health, and a packing list you can tick off."
+        title="Travel guide"
+        intro="Visa, airport, money, phone and a packing list."
       >
         <nav aria-label="Guide contents">
           <p className="kicker text-[#140D0E] mb-3">Contents</p>
@@ -53,8 +53,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Delegation Process"
-            title="Registration &amp; Participation Criteria"
-            description="Guidelines on who attends EUROXPRO'27, national allocation procedures, and pre-conference accreditation."
+            title="Who can come"
+            description="Who comes and how places are shared."
           />
 
           <div className="grid lg:grid-cols-3 gap-8">
@@ -144,8 +144,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Entry Formalities"
-            title="Passport, Immigration & Official e-Visa"
-            description="Verified official guidance for entering the Republic of Türkiye. Check your national requirements well in advance."
+            title="Passport and visa"
+            description="Check this early. Some countries need an e-Visa."
           />
 
           <div className="grid lg:grid-cols-3 gap-8">
@@ -227,8 +227,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Arrival Logistics"
-            title="Navigating Antalya Airport & Ground Transit"
-            description="Antalya Airport (AYT) is the primary international gateway to the Turkish Riviera. Here is how to plan your arrival and transfers."
+            title="Airport and getting around"
+            description="Fly to Antalya Airport (AYT). Here is how to get to town."
           />
 
           <div className="grid lg:grid-cols-2 gap-8 mb-12">
@@ -315,8 +315,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Lodging & Venue"
-            title="Accommodation & Location Status"
-            description="What is already fixed, and what we are still confirming."
+            title="Hotel"
+            description="What we know so far."
           />
 
           <p className="mb-10 pl-4 border-l-2 border-[#7D1A30] text-base text-[#374151] leading-relaxed max-w-3xl">
@@ -347,8 +347,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Meteorology & Planning"
-            title="Antalya Mediterranean Climate Guide (31 March – 4 April)"
-            description="What the weather is like in Antalya, so you know what to pack."
+            title="Weather"
+            description="Mild and sunny. Bring a jacket for the evening."
           />
 
           <div className="pl-4 border-l-2 border-[#7D1A30] mb-10 text-base text-[#374151] max-w-3xl">
@@ -400,8 +400,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Financial Practicalities"
-            title="Currency, Cards, Cash & Tipping in Türkiye"
-            description="Clear guidance on using foreign cards, ATMs, and local currency in Antalya."
+            title="Money"
+            description="Cards, cash and tips."
           />
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -434,8 +434,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Technical Readiness"
-            title="Staying Connected & Device Compatibility"
-            description="Mobile data connectivity, international eSIM suggestions, and power specifications."
+            title="Phone and internet"
+            description="SIM, eSIM and plugs."
           />
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -481,8 +481,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Delegate Welfare"
-            title="Health, Safety & Critical Emergency Numbers"
-            description="24/7 emergency dispatch services in Türkiye and healthcare protocols for congress participants."
+            title="Health and safety"
+            description="Emergency number: 112."
             light
           />
 
@@ -525,8 +525,8 @@ export default function DelegateGuidePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Interactive Preparation"
-            title="Delegate Packing & Readiness Checklist"
-            description="Interactive progress tracker stored safely in your device browser storage. Check off requirements as you pack."
+            title="Packing list"
+            description="Tick things off as you pack."
           />
           <DelegateChecklist />
         </div>
@@ -538,7 +538,7 @@ export default function DelegateGuidePage() {
           <SectionHeader
             eyebrow="Support & Updates"
             title="Official Bulletins & Knowledge Base"
-            description="Stay informed with real-time communiqués and find answers to all delegate operations questions."
+            description="News and answers."
           />
 
           <div className="grid sm:grid-cols-2 gap-8">
