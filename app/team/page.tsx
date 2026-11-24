@@ -26,7 +26,7 @@ export default function TeamPage() {
   const hasPlaceholders = members.some((m) => !m.name.trim() || !m.image);
 
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero eyebrow={hero.eyebrow} title={hero.title} intro={hero.intro} />
 
       <section className="pb-20 sm:pb-28 bg-[#F4EDE2]">

@@ -27,7 +27,7 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
   };
 
   return (
-    <div className="pb-20 sm:pb-28 bg-[#F4EDE2]">
+    <div className="pt-10 sm:pt-14 pb-20 sm:pb-28 bg-[#F4EDE2]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           {/* Contact Details */}

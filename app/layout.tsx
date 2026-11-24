@@ -5,16 +5,15 @@ import { Footer } from "@/components/layout/Footer";
 import { OfflineSupport } from "@/components/common/OfflineSupport";
 import { siteConfig } from "@/lib/config";
 import { Analytics } from "@vercel/analytics/next";
-import { Archivo } from "next/font/google";
+import { Inter } from "next/font/google";
 
 // Fonts are downloaded at build time and served with the site, so they
 // keep working offline and never call Google from the visitor's browser.
-// One family, two widths: condensed for headings (airport-signage feel),
-// normal width for reading.
-const archivo = Archivo({
+// Apple devices use the system face (SF Pro); everyone else gets Inter,
+// which is drawn in the same spirit.
+const inter = Inter({
   subsets: ["latin", "latin-ext"],
-  axes: ["wdth"],
-  variable: "--font-archivo",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -52,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={archivo.variable}>
+    <html lang="en" className={inter.variable}>
       <body className="min-h-screen flex flex-col antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>

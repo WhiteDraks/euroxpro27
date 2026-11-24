@@ -1,25 +1,30 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-  --font-serif: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+  --font-serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-inter), "Helvetica Neue", Arial, sans-serif;
 }
 
 /* ============================================================
-   EUROXPRO'27 — burgundy, black and cream (same tokens as the
-   delegate app). Simple on purpose: big type, short words, big
-   targets, one accent colour.
+   EUROXPRO'27 — burgundy first, then black, with cream text.
+   Follows Apple's Human Interface Guidelines: system type with
+   large bold titles, translucent materials, rounded continuous
+   corners, big touch targets (44pt+), tab bar on phones.
    ============================================================ */
 :root {
   --color-ink: #140D0E;
-  --color-black: #0E0909;
+  --color-black: #000000;
+  --color-elevated: #141012;     /* raised surface on black */
   --color-bordeaux: #7D1A30;
+  --color-bordeaux-bright: #A3304A;
   --color-bordeaux-deep: #64142A;
   --color-rose: #E0647D;
   --color-cream: #F4EDE2;
   --color-cream-hi: #FBF7F0;
   --color-cream-deep: #E8D5B5;
   --color-border: #DCCFBE;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), "Helvetica Neue", Arial, sans-serif;
 }
 
 @layer base {
@@ -33,23 +38,24 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
-    font-family: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-text);
     background-color: var(--color-cream);
     color: var(--color-ink);
-    line-height: 1.6;
+    line-height: 1.5;
+    letter-spacing: -0.011em;
     overflow-x: hidden;
   }
 
+  /* HIG "Large Title": heavy, tight, no decoration. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-    font-stretch: 85%;
-    font-variation-settings: "wdth" 85;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.02;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
     text-wrap: balance;
   }
 
@@ -68,33 +74,27 @@
   }
 
   :focus-visible {
-    outline: 3px solid var(--color-bordeaux);
+    outline: 3px solid var(--color-rose);
     outline-offset: 3px;
   }
 }
 
-/* Older class name kept so every page picks up the heading face. */
+/* Older class name kept so every page picks up the title face. */
 .font-serif-title {
-  font-family: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-  font-stretch: 85%;
-  font-variation-settings: "wdth" 85;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 .font-serif-title.italic,
 .font-serif-title .italic,
 .font-serif-title em {
   font-style: normal;
 }
-
 .font-sans-body {
-  font-family: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-  font-stretch: 100%;
-  font-variation-settings: "wdth" 100;
+  font-family: var(--font-text);
 }
 
 @layer components {
-  /* Small context line above a heading. Kept quiet. */
   .kicker {
     font-size: 0.875rem;
     font-weight: 600;
@@ -103,36 +103,66 @@
 
   .link-underline {
     text-decoration: underline;
-    text-decoration-thickness: 2px;
+    text-decoration-thickness: 1.5px;
     text-underline-offset: 0.25em;
     transition: text-decoration-color 0.2s, color 0.2s;
   }
+
+  /* Translucent "material" used for bars and cards on dark surfaces. */
+  .glass {
+    background: rgba(28, 20, 22, 0.55);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+  }
+  .glass-bar {
+    background: rgba(10, 6, 7, 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* Burgundy text that glows slightly, for the one big headline. */
+  .title-gradient {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F4EDE2 45%, #E0647D 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
 
-/* Accent text inside black sections switches to rose so it stays
+/* Accent text inside dark sections switches to rose so it stays
    readable. Light cards nested inside keep the darker accent. */
-@scope ([class~="bg-[#0E0909]"], [class~="bg-[#140D0E]"], [class*="bg-[#140D0E]/"], [class~="bg-[#1F1415]"], [class*="bg-[#1F1415]/"], [class~="bg-[#2A1D1E]"]) to ([class~="bg-[#FBF7F0]"], [class~="bg-[#F4EDE2]"], [class~="bg-[#ECE1D1]"]) {
+@scope ([class~="bg-black"], [class~="bg-[#0E0909]"], [class~="bg-[#140D0E]"], [class*="bg-[#140D0E]/"], [class~="bg-[#1F1415]"], [class*="bg-[#1F1415]/"], [class~="bg-[#2A1D1E]"]) to ([class~="bg-[#FBF7F0]"], [class~="bg-[#F4EDE2]"], [class~="bg-[#ECE1D1]"]) {
   .text-\[\#7D1A30\], .kicker {
     color: #E0647D;
   }
 }
-
-/* On burgundy surfaces the burgundy accent becomes warm cream. */
 @scope ([class~="bg-[#7D1A30]"], [class~="bg-[#64142A]"]) to ([class~="bg-[#FBF7F0]"], [class~="bg-[#F4EDE2]"], [class~="bg-[#ECE1D1]"]) {
   .text-\[\#7D1A30\], .kicker {
     color: #E8D5B5;
   }
 }
 
-/* The countdown digits tick over with a small drop when they change. */
+/* Countdown digits drop in when they change. */
 @keyframes tick {
   from { transform: translateY(-30%); opacity: 0; }
   to { transform: none; opacity: 1; }
 }
+/* The burgundy light behind the home title breathes very slowly. */
+@keyframes glow {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
 @media (prefers-reduced-motion: no-preference) {
   .tick { animation: tick 0.35s ease-out; }
+  .glow { animation: glow 9s ease-in-out infinite; }
 }
 
-/* `.reveal` used to fade every section in; kept as a no-op. */
+/* Room for the phone tab bar so it never covers content. The
+   footer is always last, so it carries the space in its own colour. */
+@media (max-width: 1023px) {
+  footer.site-footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+
 .reveal {}
 .img-zoom {}

@@ -27,7 +27,7 @@ const guideSections = [
 
 export default function DelegateGuidePage() {
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow="Before you travel"
         title="Travel guide"

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function MerchPage() {
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow="Pre-order preview"
         title="Merch"

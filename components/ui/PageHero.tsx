@@ -20,10 +20,14 @@ type PageHeroProps = {
 export function PageHero({ title, intro, image, imageAlt, children, className }: PageHeroProps) {
   return (
     <section className={cn("text-[#140D0E]", className)}>
-      <div className="bg-[#7D1A30] text-[#FBF7F0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-10 sm:pb-14">
-          <h1 className="text-[3rem] leading-[0.92] sm:text-7xl lg:text-[6rem] lg:leading-[0.9] max-w-4xl">{title}</h1>
-          {intro && <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-[#F4EDE2] max-w-2xl">{intro}</p>}
+      <div className="relative overflow-hidden bg-black text-[#FBF7F0]">
+        <div
+          aria-hidden="true"
+          className="glow pointer-events-none absolute -top-1/2 -left-[10%] h-[200%] w-[90%] max-w-none rounded-full bg-[radial-gradient(closest-side,#A3304A_0%,#7D1A30_40%,rgba(125,26,48,0.3)_65%,transparent_100%)]"
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[6.5rem] sm:pt-[8.5rem] lg:pt-36 pb-12 sm:pb-16">
+          <h1 className="title-gradient text-[3.2rem] leading-[0.92] sm:text-7xl lg:text-[6.5rem] lg:leading-[0.9] tracking-[-0.045em] max-w-4xl pb-1">{title}</h1>
+          {intro && <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-[#F4EDE2]/85 max-w-2xl">{intro}</p>}
         </div>
       </div>
       {children && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-2">{children}</div>}

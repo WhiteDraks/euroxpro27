@@ -36,7 +36,7 @@ const footerLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-[#0E0909] text-[#F4EDE2] border-t border-white/10">
+    <footer className="site-footer bg-[#0E0909] text-[#F4EDE2] border-t border-white/10">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
@@ -75,7 +75,7 @@ export function Footer() {
                   href={siteConfig.social.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 bg-[#1F1415] hover:bg-[#7D1A30] rounded-md flex items-center justify-center transition-colors text-white"
+                  className="w-9 h-9 bg-[#1F1415] hover:bg-[#7D1A30] rounded-full flex items-center justify-center transition-colors text-white"
                   aria-label="Follow on Instagram"
                 >
                   <Share2 size={16} />

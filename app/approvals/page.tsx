@@ -15,7 +15,7 @@ export const revalidate = 30;
 export default async function ApprovalsPage() {
   const league = await getLeague();
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow="Live during the congress"
         title="Approvals League"

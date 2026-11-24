@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow="Get in touch"
         title="Contact us"

@@ -16,7 +16,7 @@ export default function FAQ() {
   const { hero, travel, ...faqText } = content.faq;
 
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero eyebrow={hero.eyebrow} title={hero.title} intro={hero.intro} />
 
       {/* ── TRAVEL ESSENTIALS: AIRPORT, HOTEL, VISA ── */}

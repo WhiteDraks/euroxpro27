@@ -22,7 +22,7 @@ export default function CongressPage() {
   const { hero, about, schedule: scheduleText, evenings } = content.congress;
 
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       <PageHero
         eyebrow={hero.eyebrow}
         title={hero.title}
