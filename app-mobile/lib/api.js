@@ -12,7 +12,7 @@ import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
 import { LANGS, isLang, peekMany, providerName, translate } from "./translate.js";
 import { approvalEnabled, provider as mailProvider, sendApprovedEmail, sendMail, sendSignupDigest, sendSignupEmail, signupRecipients } from "./mail.js";
 import { hasSubscription, publicKey, pushers, removeSubscription, saveSubscription, sendToUser, validSubscription } from "./push.js";
-import { checkTotp, newTotpSecret, otpauthUrl, turnstileSiteKey, verifyTurnstile } from "./security.js";
+import { turnstileSiteKey, verifyTurnstile } from "./security.js";
 
 // Run work after the response is sent. On Vercel the platform's request
 // context keeps the function alive until it is done (same mechanism the
@@ -181,7 +181,7 @@ const EMOJIS = ["😀", "😎", "🤓", "🥳", "🤩", "😇", "🦊", "🐼", 
 // Delegate positions, as the 2024 app grouped people and agendas.
 const POSITIONS = ["MCPc", "MCPe", "MCVP", "LCP", "LCVP", "Other"];
 const publicUser = (u) => ({ id: u.id, name: u.name, entity: u.entity || "", lang: u.lang, role: u.role, emoji: u.emoji || "", photo: u.photoV ? `/api/photo/${u.id}?v=${u.photoV}` : "", position: u.position || "", title: u.role === "admin" ? u.title || "" : "" });
-const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false, status: statusOf(u), twofa: !!u.totp, twofaSetup: needsTwofaSetup(u) });
+const me = (u) => ({ ...publicUser(u), email: u.email, bio: u.bio || "", meet: u.meet !== false, status: statusOf(u) });
 // Account status. Accounts made before sign-up approval existed have no
 // status and count as active. Organizers are always active.
 const STATUSES = ["pending", "active", "suspended", "rejected"];
@@ -202,10 +202,6 @@ async function loadSettings() {
 // Read on every sync, so shared per instance for 5 s.
 const settingsNow = () => cached("settings", 5000, loadSettings);
 const liteNow = async () => (await settingsNow().catch(() => SETTINGS_DEFAULT)).lite === true;
-// Organizer accounts need a 6-digit code from an authenticator app. ADMIN_2FA=off
-// is the escape hatch if every organizer lost their phone.
-const twofaEnforced = () => !/^(off|0|false|no)$/i.test(String(process.env.ADMIN_2FA || "").trim());
-const needsTwofaSetup = (u) => u.role === "admin" && !u.totp && twofaEnforced();
 // True once per install: the first ADMIN_EMAILS sign-up, when no organizer exists yet.
 async function bootstrapOwner(id) {
     if ((await cmd("SET", "downer", id, "NX")) !== "OK")
@@ -502,18 +498,11 @@ route("POST", "auth/login", async ({ req }) => {
             await loginFailed(email);
         throw new HttpError(401, "bad_credentials");
     }
-    // Two-step sign-in: the password was right, now the 6-digit code.
-    if (user.totp) {
-        if (!b.code)
-            throw new HttpError(401, "code_required");
-        const step = checkTotp(user.totp, b.code, user.totpLast || 0);
-        if (!step) {
-            if (!known)
-                await loginFailed(email);
-            throw new HttpError(401, "bad_code");
-        }
-        user.totpLast = step; // the same code can't be used twice
-    }
+    // Two-step sign-in (authenticator codes) was removed on 2026-11-24:
+    // drop what older accounts still carry.
+    delete user.totp;
+    delete user.totpLast;
+    delete user.totpPending;
     await cmd("DEL", failKey(email));
     // Only an account an organizer has approved: an unverified sign-up with
     // an ADMIN_EMAILS address must not promote itself.
@@ -545,47 +534,6 @@ route("POST", "auth/logout-all", async ({ user }) => {
     user.rev = [];
     await saveUser(user);
     return startSession(user);
-}, "any");
-// ------------------------------------------------------------ two-step sign-in (TOTP)
-route("POST", "me/2fa/setup", async ({ user }) => {
-    if (user.totp)
-        throw new HttpError(409, "twofa_on");
-    const secret = newTotpSecret();
-    user.totpPending = { s: secret, at: Date.now() };
-    await saveUser(user);
-    return json({ secret, url: otpauthUrl(secret, user.email) });
-}, "any");
-route("POST", "me/2fa/enable", async ({ req, user }) => {
-    if (await limited("2fa:" + user.id, 10, 300))
-        throw new HttpError(429, "rate_limited");
-    const b = await readJson(req);
-    const p = user.totpPending;
-    if (!p || Date.now() - p.at > 30 * 60000)
-        throw new HttpError(400, "twofa_expired");
-    const step = checkTotp(p.s, b.code);
-    if (!step)
-        throw new HttpError(400, "bad_code");
-    user.totp = p.s;
-    user.totpLast = step;
-    delete user.totpPending;
-    // Anyone else signed in to this account is signed out now.
-    user.sv = (user.sv || 0) + 1;
-    user.rev = [];
-    await saveUser(user);
-    return startSession(user);
-}, "any");
-route("POST", "me/2fa/disable", async ({ req, user }) => {
-    if (user.role === "admin" && twofaEnforced())
-        throw new HttpError(403, "twofa_mandatory");
-    if (await limited("2fa:" + user.id, 10, 300))
-        throw new HttpError(429, "rate_limited");
-    const b = await readJson(req);
-    if (!user.totp || !checkTotp(user.totp, b.code, user.totpLast || 0))
-        throw new HttpError(400, "bad_code");
-    delete user.totp;
-    delete user.totpLast;
-    await saveUser(user);
-    return json({ user: me(user) });
 }, "any");
 route("GET", "me", ({ user }) => json({ user: me(user) }), "any");
 route("PATCH", "me", async ({ req, user }) => {
@@ -1866,24 +1814,6 @@ route("POST", "admin/reports/([\\w-]+)", async ({ req, user, m }) => {
     await cmd("SET", "drep:" + r.id, JSON.stringify(r));
     return json({ report: r });
 });
-// Lost phone: another organizer turns two-step sign-in off for that account,
-// which signs it out everywhere; it is asked to set it up again at next sign-in.
-route("POST", "admin/users/([\\w-]+)/2fa-reset", async ({ user, m }) => {
-    needAdmin(user);
-    const u = await getUser(m[1]);
-    if (!u || u.demo)
-        throw new HttpError(404, "not_found");
-    if (u.id === user.id)
-        throw new HttpError(403, "self");
-    if (isOwner(u) && u.role === "admin" && !isOwner(user))
-        throw new HttpError(403, "owner");
-    delete u.totp;
-    delete u.totpLast;
-    delete u.totpPending;
-    u.sv = (u.sv || 0) + 1;
-    await saveUser(u);
-    return json({ ok: true });
-});
 route("GET", "admin/settings", async ({ user }) => {
     needAdmin(user);
     return json({ settings: await loadSettings() });
@@ -1978,10 +1908,6 @@ export async function handle(req, segments) {
             // Waiting, suspended and rejected accounts can only see who they are.
             if (user && r.open !== "any" && !isActive(user))
                 return json({ error: "not_approved", status: statusOf(user) }, 403);
-            // Organizers first turn on two-step sign-in; until then only
-            // their own profile and the set-up calls answer.
-            if (user && r.open !== "any" && needsTwofaSetup(user))
-                return json({ error: "twofa_required" }, 403);
             const res = await r.h({ req, url: new URL(req.url), user, m });
             if (res.status === 429)
                 countStat("429");

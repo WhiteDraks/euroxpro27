@@ -5,7 +5,7 @@
 // latency and error numbers at the end. No packages, Node 20+.
 //
 // Local run (safe, in-memory storage):
-//   ADMIN_EMAILS=load-admin@test.invalid ADMIN_2FA=off node dev-server.js
+//   ADMIN_EMAILS=load-admin@test.invalid node dev-server.js
 //   node scripts/load-test.mjs --users 1000 --minutes 3
 //
 // Against a deployed copy (creates real accounts, costs requests):
@@ -91,7 +91,7 @@ async function prepare() {
   const admin = new Phone(-1);
   let r = await admin.call("setup", "POST", "auth/register", { name: "Load Admin", email: ADMIN_EMAIL, password: PASSWORD, kvkk: true, abroad: true });
   if (r.status === 409) r = await admin.call("setup", "POST", "auth/login", { email: ADMIN_EMAIL, password: PASSWORD });
-  if (r.status >= 400) throw new Error(`admin sign-in failed (${r.status} ${r.data?.error}). Start the server with ADMIN_EMAILS=${ADMIN_EMAIL} ADMIN_2FA=off.`);
+  if (r.status >= 400) throw new Error(`admin sign-in failed (${r.status} ${r.data?.error}). Start the server with ADMIN_EMAILS=${ADMIN_EMAIL}.`);
   r = await admin.call("setup", "POST", "admin/settings", { approval: false, lite: !!args.lite });
   if (r.status >= 400) throw new Error(`can't turn approval off (${r.status} ${r.data?.error})`);
   return admin;

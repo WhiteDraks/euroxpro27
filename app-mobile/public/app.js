@@ -267,8 +267,7 @@ const ROUTES = [
 ];
 // Signed in but not let in (yet): waiting for approval, suspended or rejected.
 const approved = (u) => !u || !u.status || u.status === "active";
-// Approved, and (for organizers) two-step sign-in is set up.
-const ready = (u) => approved(u) && !u?.twofaSetup;
+const ready = (u) => approved(u);
 
 function match(pathname) {
   for (const r of ROUTES) {
@@ -348,14 +347,6 @@ function render() {
     root.replaceChildren(wait);
     root.dataset.view = "/waiting";
     cleanup = ADMIN.waiting(wait) || null;
-    return;
-  }
-  if (!route.guest && state.user.twofaSetup) {
-    stopStream();
-    const box = h("main", { class: "screen no-tabs" });
-    root.replaceChildren(box);
-    root.dataset.view = "/security/setup";
-    SECURITY.forcedScreen(box);
     return;
   }
 
@@ -545,34 +536,19 @@ async function afterAuth(user) {
 }
 
 function viewLogin(screen) {
-  // Two-step accounts: after a right password the server asks for the code,
-  // and the same form shows a code box (email and password stay filled in).
-  const codeRow = h("label", { class: "field", hidden: true }, h("span", { class: "field-label" }, st("code")), SECURITY.codeInput());
-  const codeHint = h("p", { class: "group-footer", hidden: true }, st("codeAsk"));
-  const form = authForm(screen, {
+  authForm(screen, {
     title: t("login"),
     submitLabel: t("login"),
     fields: [
       field({ label: t("email"), name: "email", type: "email", autocomplete: "email", placeholder: "name@example.com" }),
       field({ label: t("password"), name: "password", type: "password", autocomplete: "current-password" }),
     ],
-    extra: h("div", { class: "group login-code", hidden: true }, codeRow),
     footer: h("p", { class: "auth-switch" }, t("noAccount") + " ", h("a", { href: "/register", "data-link": true }, t("signup"))),
     onSubmit: async (data) => {
-      if (codeRow.hidden) delete data.code;
-      try {
-        const { user } = await api("POST", "/api/auth/login", data);
-        await afterAuth(user);
-      } catch (err) {
-        if (err.code !== "code_required") throw err;
-        codeRow.hidden = false;
-        codeHint.hidden = false;
-        form.querySelector(".login-code").hidden = false;
-        codeRow.querySelector("input").focus();
-      }
+      const { user } = await api("POST", "/api/auth/login", data);
+      await afterAuth(user);
     },
   });
-  form.querySelector(".login-code").after(codeHint);
 }
 
 function viewRegister(screen) {
@@ -1771,9 +1747,8 @@ async function poll() {
         state.user = null;
         return go("/welcome", { replace: true });
       }
-      // Suspended while using the app, or an organizer whose two-step
-      // sign-in was reset: show the status / set-up screen.
-      if (e.code === "not_approved" || e.code === "twofa_required") {
+      // Suspended while using the app: show the status screen.
+      if (e.code === "not_approved") {
         const me = await api("GET", "/api/me").catch(() => null);
         if (me?.user) state.user = me.user;
         return render();

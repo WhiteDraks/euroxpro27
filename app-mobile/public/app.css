@@ -2678,35 +2678,16 @@ ol.group { list-style: none; margin: 0; padding: 0; }
 .kvkk-doc ul { margin: 0 0 8px; padding-left: 20px; }
 .kvkk-doc li { margin-bottom: 4px; }
 
-/* ---------- security: two-step sign-in, block / report, bot check ---------- */
+/* ---------- security: block / report, bot check ---------- */
 .hp { position: absolute !important; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .captcha:empty { display: none; }
 .captcha { display: flex; justify-content: center; margin: 12px 0 0; min-height: 0; }
-.code-input { font-variant-numeric: tabular-nums; letter-spacing: 0.2em; font-size: 20px !important; }
-.login-code { margin-top: 14px; }
-.tfa-flow { display: flex; flex-direction: column; gap: 10px; width: 100%; text-align: left; }
-.tfa-flow > .btn, .tfa-verify .btn { width: 100%; }
-.tfa-flow .group-header { margin: 14px 0 0; }
-.tfa-flow .fineprint { margin: 0; }
-.tfa-flow a.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
-.tfa-flow a.btn .icon { width: 20px; height: 20px; }
-.tfa-qr { display: flex; align-items: center; gap: 12px; }
-.tfa-qr .qr-img { flex: none; width: 132px; border-radius: 10px; overflow: hidden; }
-.tfa-key { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--fill); }
-.tfa-key code { flex: 1; min-width: 0; font-size: 15px; letter-spacing: 0.04em; overflow-wrap: anywhere; }
-.tfa-key .btn-small { flex: none; }
-.tfa-verify { display: flex; flex-direction: column; gap: 10px; }
-.tfa-verify .field { border-radius: 12px; background: var(--card); }
-.tfa-screen .wait-card { max-width: 440px; }
-.tfa-sheet-body { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.tfa-sheet-body form { display: flex; flex-direction: column; gap: 10px; }
-.tfa-sheet-body .field { border-radius: 12px; background: var(--fill); }
 .btn-danger-text { color: #d93a3a !important; }
 .person-actions { display: flex; justify-content: center; gap: 8px; margin-top: 4px; width: 100%; }
 .person-actions .btn { flex: 1; max-width: 160px; }
 button.msg-name { align-self: flex-start; border: 0; background: none; padding: 0; font-family: inherit; cursor: pointer; text-align: left; }
 .chat-blocked { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); margin: 0; }
-.report-sheet, .tfa-sheet { gap: 10px; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; }
+.report-sheet { gap: 10px; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; }
 .report-reasons { width: 100%; }
 .report-reason { gap: 12px; align-items: center; cursor: pointer; min-height: 48px; }
 .report-reason input { width: 20px; height: 20px; accent-color: var(--bordeaux); flex: none; }
@@ -2714,5 +2695,5 @@ button.msg-name { align-self: flex-start; border: 0; background: none; padding: 
 .report-block { width: 100%; box-sizing: border-box; border-radius: 12px; background: var(--card); justify-content: space-between; }
 .report-quote { margin: 0; padding: 10px 12px; border-left: 3px solid var(--bordeaux); border-radius: 8px; background: var(--fill); width: 100%; box-sizing: border-box; }
 .report-quote p { margin: 4px 0 0; overflow-wrap: anywhere; }
-.report-sheet .btn, .tfa-sheet .btn { width: 100%; }
+.report-sheet .btn { width: 100%; }
 .msg:not(.mine) .bubble { -webkit-touch-callout: none; }
