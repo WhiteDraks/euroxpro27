@@ -13,7 +13,7 @@ export const products: Product[] = [
     id: "hoodie-navy",
     name: "EUROXPRO'27 Congress Hoodie",
     description:
-      "Premium heavyweight hoodie in deep navy. Features embroidered EUROXPRO'27 wordmark on the chest and Antalya Mediterranean Riviera graphic on the back. Made from 80% organic cotton, 20% recycled polyester.",
+      "Warm hoodie with the EUROXPRO'27 logo.",
     price: 45,
     currency: CURRENCY,
     category: "hoodies",
@@ -31,7 +31,7 @@ export const products: Product[] = [
     id: "tshirt-white",
     name: "EUROXPRO'27 Graphic T-Shirt",
     description:
-      "100% organic cotton tee with the EUROXPRO'27 typographic crest. Soft, sustainable, and perfect for casual wear or as a congress souvenir.",
+      "Soft cotton tee with the EUROXPRO'27 logo.",
     price: 25,
     currency: CURRENCY,
     category: "tshirts",
@@ -49,7 +49,7 @@ export const products: Product[] = [
     id: "tote-bag",
     name: "Congress Canvas Tote Bag",
     description:
-      "Heavy-duty raw canvas tote bag with the EUROXPRO'27 wordmark and tagline. Spacious enough for your congress materials, laptop, and coastal exploration essentials.",
+      "Strong canvas bag for your laptop and notes.",
     price: 18,
     currency: CURRENCY,
     category: "tote-bags",
@@ -65,7 +65,7 @@ export const products: Product[] = [
     id: "notebook",
     name: "EUROXPRO'27 Delegate Hardcover Journal",
     description:
-      "Hardcover A5 notebook with ivory lined pages and the embossed EUROXPRO'27 cover motif. Elastic closure, ribbon bookmark, and pen loop. Perfect for congress notes and reflections.",
+      "A5 notebook for congress notes.",
     price: 15,
     currency: CURRENCY,
     category: "notebooks",
@@ -78,7 +78,7 @@ export const products: Product[] = [
     id: "pin-set",
     name: "Antalya Enamel Pin Set",
     description:
-      "A set of 3 collectible enamel pins featuring iconic Antalya motifs: a Mediterranean wave, orange blossoms, and the EUROXPRO'27 crest. Gold-plated with hard enamel finish.",
+      "Three pins with Antalya designs.",
     price: 12,
     currency: CURRENCY,
     category: "pins",
@@ -91,7 +91,7 @@ export const products: Product[] = [
     id: "sticker-pack",
     name: "EUROXPRO'27 Holographic Sticker Pack",
     description:
-      "A pack of 6 weather-resistant vinyl stickers featuring the EUROXPRO'27 wordmark, Antalya architectural illustrations, and congress graphic tokens.",
+      "Six stickers with Antalya designs.",
     price: 6,
     currency: CURRENCY,
     category: "stickers",
@@ -103,7 +103,7 @@ export const products: Product[] = [
     id: "keychain",
     name: "Antalya Metal Silhouette Keychain",
     description:
-      "Premium brushed metal keychain with the EUROXPRO'27 logo and Antalya Kaleiçi harbor silhouette. A durable, elegant memento of your Mediterranean congress experience.",
+      "Metal keychain with the Antalya harbour.",
     price: 8,
     currency: CURRENCY,
     category: "accessories",
@@ -115,7 +115,7 @@ export const products: Product[] = [
     id: "cap-navy",
     name: "EUROXPRO'27 Structured Twill Cap",
     description:
-      "Classic 6-panel structured cotton twill cap in deep navy with tonal embroidered EUROXPRO'27 logo. Brass buckle adjustable strap.",
+      "Cotton cap with the EUROXPRO'27 logo.",
     price: 22,
     currency: CURRENCY,
     category: "accessories",

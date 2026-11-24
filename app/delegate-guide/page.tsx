@@ -1,585 +1,173 @@
 import type { Metadata } from "next";
-import { SectionHeader } from "@/components/ui/SectionHeader";
+import Link from "next/link";
+import {
+  BedDouble, ChevronRight, CloudSun, ExternalLink, Phone, Plane, ShieldPlus, Smartphone, Ticket, Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { PageHero } from "@/components/ui/PageHero";
 import { DelegateChecklist } from "@/components/delegate/DelegateChecklist";
-import { Badge } from "@/components/ui/Badge";
-import { siteConfig } from "@/lib/config";
-import { ExternalLink, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Delegate Guide & Travel Hub — Antalya",
-  description: "Comprehensive guide for international EUROXPRO'27 delegates: Antalya Airport (AYT), e-Visa links, AntRay transit, currency, healthcare, emergency contacts, and packing checklist.",
+  title: "Delegate Travel Guide",
+  description: "Everything EUROXPRO'27 delegates need before travelling to Antalya: visa, airport, hotel, weather, money, phone, health and a packing list.",
   alternates: { canonical: "/delegate-guide" },
 };
 
-const guideSections = [
-  { id: "registration-info", label: "Registration & Profile" },
-  { id: "travel-visa", label: "Travel & e-Visa" },
-  { id: "airports-transit", label: "Airports & Transit" },
-  { id: "accommodation", label: "Accommodation Status" },
-  { id: "weather-seasons", label: "Seasonal Climate" },
-  { id: "money-banking", label: "Currency & Banking" },
-  { id: "connectivity", label: "SIM, eSIM & Power" },
-  { id: "health-safety", label: "Health & Emergency" },
-  { id: "checklist", label: "Packing Checklist" },
-  { id: "announcements-faq", label: "Bulletins & FAQ" },
+// ============================================================
+// The travel guide, kept to the essentials: one card per topic,
+// three short lines each. Longer answers live on /faq.
+// ============================================================
+
+type Topic = {
+  id: string;
+  icon: LucideIcon;
+  title: string;
+  points: string[];
+  link?: { href: string; label: string; external?: boolean };
+};
+
+const topics: Topic[] = [
+  {
+    id: "registration-info",
+    icon: Ticket,
+    title: "Who can come",
+    points: [
+      "AIESEC leaders from across Europe.",
+      "You apply through your national team (MC).",
+      "Fees and places will be announced soon.",
+    ],
+  },
+  {
+    id: "travel-visa",
+    icon: Plane,
+    title: "Passport and visa",
+    points: [
+      "Your passport must be valid for 6 more months.",
+      "Some countries need an e-Visa. It takes a few minutes online.",
+      "Need a visa letter? Write to us 10 days before.",
+    ],
+    link: { href: "https://www.evisa.gov.tr/en/", label: "Official e-Visa site", external: true },
+  },
+  {
+    id: "airports-transit",
+    icon: Plane,
+    title: "Airport",
+    points: [
+      "Fly to Antalya Airport (AYT).",
+      "We meet you at arrivals on 31 March.",
+      "Shuttles take you to the hotel.",
+    ],
+  },
+  {
+    id: "accommodation",
+    icon: BedDouble,
+    title: "Hotel",
+    points: [
+      "Still being confirmed.",
+      "We will email the details to every delegate.",
+      "Check-in 14:00, check-out 12:00.",
+    ],
+  },
+  {
+    id: "weather-seasons",
+    icon: CloudSun,
+    title: "Weather",
+    points: [
+      "Sunny, about 18–23°C.",
+      "Bring a light jacket for the evening.",
+      "Don't forget sunglasses and sunscreen.",
+    ],
+  },
+  {
+    id: "money-banking",
+    icon: Wallet,
+    title: "Money",
+    points: [
+      "Turkish Lira (₺).",
+      "Cards work almost everywhere.",
+      "Always choose “pay in TRY”.",
+    ],
+  },
+  {
+    id: "connectivity",
+    icon: Smartphone,
+    title: "Phone and plugs",
+    points: [
+      "Get an eSIM before you fly. EU roaming doesn't apply.",
+      "European two-pin plugs, 220V.",
+      "Bring a power bank.",
+    ],
+  },
+  {
+    id: "health-safety",
+    icon: ShieldPlus,
+    title: "Health and safety",
+    points: [
+      "Emergency number: 112.",
+      "Pharmacies have a red “E” sign.",
+      "Tell us about allergies when you register.",
+    ],
+  },
 ];
 
 export default function DelegateGuidePage() {
   return (
     <div>
-      <PageHero
-        eyebrow="Before you travel"
-        title="Travel guide"
-        intro="Visa, airport, money, phone and a packing list."
-      >
-        <nav aria-label="Guide contents">
-          <p className="kicker text-[#FBF7F0] mb-3">Contents</p>
-          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-8 text-sm">
-            {guideSections.map(({ id, label }, i) => (
-              <li key={id} className="border-t border-white/10">
-                <a href={`#${id}`} className="flex items-baseline gap-3 py-2.5 text-[#FBF7F0] hover:text-[#E0647D] transition-colors">
-                  <span className="font-serif-title italic text-[#E0647D] tabular-nums">{String(i + 1).padStart(2, "0")}</span>
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      </PageHero>
+      <PageHero eyebrow="Before you travel" title="Travel guide" intro="Everything you need before you fly." />
 
-      {/* ── 0. REGISTRATION & PARTICIPATION INFORMATION ── */}
-      <section id="registration-info" className="py-20 bg-[#141012] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Delegation Process"
-            title="Who can come"
-            description="Who comes and how places are shared."
-          />
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <span className="text-[11px] text-[#E0647D] block">
-                Delegate Profile
-              </span>
-              <h3 className="font-serif-title text-xl text-[#FBF7F0] font-normal">
-                Who Attends EUROXPRO?
-              </h3>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                EUROXPRO is convened specifically for <strong>AIESEC in Europe</strong> entity leadership:
-              </p>
-              <ul className="space-y-1.5 text-sm text-[#D6C8BC]">
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>Member Committee (MC) Presidents &amp; VPs</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>Local Committee (LC) Presidents &amp; Executive Boards</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>National functional managers &amp; team leaders</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>Invited international partners, trainers &amp; alumni</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <span className="text-[11px] text-[#E0647D] block">
-                Application Flow
-              </span>
-              <h3 className="font-serif-title text-xl text-[#FBF7F0] font-normal">
-                National Quotas &amp; Allocations
-              </h3>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                Participation spots are managed via national delegations. Individual members apply through their respective <strong>Member Committee</strong> delegation manager:
-              </p>
-              <div className="pl-4 border-l-2 border-[#7D1A30] text-sm text-[#D6C8BC] space-y-1">
-                <span className="font-semibold block text-[#FBF7F0]">Status: Registration Opening Soon</span>
-                <p className="text-[#D6C8BC]">
-                  Official registration fees, rooming tiers, and national allocation quotas will be announced in official communiqués to all MCs.
-                </p>
-              </div>
-            </div>
-
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <span className="text-[11px] text-[#E0647D] block">
-                Package Inclusions
-              </span>
-              <h3 className="font-serif-title text-xl text-[#FBF7F0] font-normal">
-                Standard Delegate Package
-              </h3>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                Once confirmed, official delegate packages typically cover:
-              </p>
-              <ul className="space-y-1.5 text-sm text-[#D6C8BC]">
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>Accreditation &amp; access to all plenary and breakout tracks</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>Congress accommodation according to chosen tier</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>Daily meals (breakfast, lunch, dinner &amp; coffee breaks)</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#E0647D] font-bold">•</span>
-                  <span>Official congress social evenings</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 1. TRAVEL & VISA RESOURCES ── */}
-      <section id="travel-visa" className="py-20 bg-black border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Entry Formalities"
-            title="Passport and visa"
-            description="Check this early. Some countries need an e-Visa."
-          />
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Passport Validity Card */}
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <div className="flex items-center gap-2.5 text-[#FBF7F0]">
-                <h3 className="font-serif-title text-xl font-normal">Passport Validity Rules</h3>
-              </div>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                Turkish immigration requires ordinary passports to have at least <strong className="text-[#FBF7F0]">6 months of validity</strong> remaining from your planned date of entry, with at least one blank page for entry/exit stamps.
-              </p>
-              <div className="pl-4 border-l-2 border-[#7D1A30] text-sm text-[#D6C8BC]">
-                <strong>Rule of Thumb:</strong> If your passport expires within 6 months of the congress, renew it before traveling.
-              </div>
-            </div>
-
-            {/* Official e-Visa Portal */}
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <div className="flex items-center gap-2.5 text-[#FBF7F0]">
-                <h3 className="font-serif-title text-xl font-normal">Official e-Visa Portal</h3>
-              </div>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                Many European and worldwide citizens can obtain an electronic visa online in approximately 3 minutes.
-              </p>
-              <div className="space-y-2">
-                <a
-                  href="https://www.evisa.gov.tr/en/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-between w-full p-2.5 bg-[#7D1A30] text-white text-sm font-semibold rounded-xl hover:bg-[#A3304A] transition-colors"
-                >
-                  <span>Official e-Visa Portal (evisa.gov.tr)</span>
-                  <ExternalLink size={13} />
-                </a>
-                <a
-                  href="https://www.mfa.gov.tr/visa-information-for-foreigners.en.mfa"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-between w-full p-2.5 border border-white/10 text-[#FBF7F0] text-sm font-semibold rounded-xl hover:border-white transition-colors"
-                >
-                  <span>MFA Visa Requirements Directory</span>
-                  <ExternalLink size={13} />
-                </a>
-              </div>
-              <p className="text-[11px] text-[#8C7A72] italic">
-                *Caution: Always apply through official Republic of Türkiye government portals (.gov.tr) to avoid third-party agency surcharges.
-              </p>
-            </div>
-
-            {/* OC Support Letters */}
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <div className="flex items-center gap-2.5 text-[#FBF7F0]">
-                <h3 className="font-serif-title text-xl font-normal">Congress Visa Letters</h3>
-              </div>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                If your consular authority requires an official invitation or visa support document from the host entity:
-              </p>
-              <ul className="text-sm text-[#D6C8BC] space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 bg-[#7D1A30] mt-2 flex-shrink-0" />
-                  <span>Obtain your confirmed registration receipt</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 bg-[#7D1A30] mt-2 flex-shrink-0" />
-                  <span>Contact the OC via the <a href="/contact" className="text-[#E0647D] font-semibold underline">Contact page</a> specifying passport details</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 bg-[#7D1A30] mt-2 flex-shrink-0" />
-                  <span>Allow at least 7-10 business days for processing</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 2. AIRPORTS & GROUND TRANSPORTATION ── */}
-      <section id="airports-transit" className="py-20 bg-[#141012] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Arrival Logistics"
-            title="Airport and getting around"
-            description="Fly to Antalya Airport (AYT). Here is how to get to town."
-          />
-
-          <div className="grid lg:grid-cols-2 gap-8 mb-12">
-            {/* AYT Airport Card */}
-            <div className="border-t border-white/25 pt-6 sm:pt-8">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <span className="text-[11px] text-[#E0647D] block">Primary Gateway</span>
-                  <h3 className="font-serif-title text-2xl text-[#FBF7F0]">Antalya Airport (AYT)</h3>
-                </div>
-                <Badge variant="navy">International Hub</Badge>
-              </div>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed mb-6">
-                Located ~13 km northeast of central Antalya. AYT features two modern International Terminals (T1 and T2) and a dedicated Domestic Terminal with frequent European flights.
-              </p>
-              <div className="space-y-3 text-sm text-[#D6C8BC]">
-                <div className="pl-4 border-l-2 border-[#7D1A30]">
-                  <strong className="block text-[#FBF7F0] mb-1 flex items-center gap-1.5">
-                    AntRay Light Rail Tram:
-                  </strong>
-                  The airport tram station (directly opposite Terminal 1 / Domestic) connects straight into central Antalya (İsmetpaşa / Kaleiçi), Meydan, and the intercity bus terminal (Otogar). Contactless bank cards and AntalyaKart accepted.
-                </div>
-                <div className="pl-4 border-l-2 border-[#7D1A30]">
-                  <strong className="block text-[#FBF7F0] mb-1 flex items-center gap-1.5">
-                    Havaş Airport Express Coaches:
-                  </strong>
-                  Scheduled express coaches depart after incoming flights, running via the central coastal highway to 5M Migros in Konyaaltı. Tickets purchased curbside before boarding.
-                </div>
-              </div>
-            </div>
-
-            {/* OC Welcome Desk & Shuttles Card */}
-            <div className="border-t border-white/25 pt-6 sm:pt-8">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <span className="text-[11px] text-[#E0647D] block">Arrival Operations</span>
-                  <h3 className="font-serif-title text-2xl text-[#FBF7F0]">Arrival Day Welcome &amp; Shuttles</h3>
-                </div>
-                <Badge variant="burgundy">31 March 2027</Badge>
-              </div>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed mb-6">
-                On 31 March, the Organizing Committee will operate greeting desks at AYT arrivals to welcome international delegations.
-              </p>
-              <div className="space-y-3 text-sm text-[#D6C8BC]">
-                <div className="pl-4 border-l-2 border-[#7D1A30]">
-                  <strong className="block text-[#FBF7F0] mb-1 flex items-center gap-1.5">
-                    Coordinated Hotel Shuttles:
-                  </strong>
-                  Designated delegate group transfers from AYT directly to the congress resort will operate throughout arrival day for registered delegate flights.
-                </div>
-                <div className="pl-4 border-l-2 border-[#7D1A30]">
-                  <strong className="block text-[#FBF7F0] mb-1 flex items-center gap-1.5">
-                    Flight Scheduling Advice:
-                  </strong>
-                  Direct flights to AYT operate from major European hubs. Alternatively, book connecting flights via Istanbul (IST or SAW) with a short 1-hour domestic transfer.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* AntalyaKart & Taxi Rules */}
-          <div className="border border-[#3A2A2A] bg-[#141012] text-white p-6 sm:p-8 rounded-xl">
-            <h4 className="font-serif-title text-xl text-white mb-4">Essential Antalya Public Transit Guidelines</h4>
-            <div className="grid sm:grid-cols-3 gap-6 text-sm text-[#B8A69C] leading-relaxed">
-              <div>
-                <strong className="text-white block mb-1">AntalyaKart &amp; Contactless:</strong>
-                A reloadable smart card accepted across all AntRay trams, the nostalgic tramway, and city buses. Contactless Visa/Mastercard bank cards can also be tapped directly at turnstiles.
-              </div>
-              <div>
-                <strong className="text-white block mb-1">Official Taxis (Sarı Taksi):</strong>
-                Always take official licensed yellow cabs with digital taximeters from designated ranks. Verify that the meter starts when the vehicle pulls away.
-              </div>
-              <div>
-                <strong className="text-white block mb-1">Ride-Hailing (BiTaksi):</strong>
-                The <strong className="text-white/20">BiTaksi</strong> smartphone app connects you with licensed yellow taxis across Antalya, offering upfront fare estimates and in-app cashless payment.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 3. ACCOMMODATION TRANSPARENCY STATUS ── */}
-      <section id="accommodation" className="py-20 bg-black border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Lodging & Venue"
-            title="Hotel"
-            description="What we know so far."
-          />
-
-          <p className="mb-10 pl-4 border-l-2 border-[#7D1A30] text-base text-[#D6C8BC] leading-relaxed max-w-3xl">
-            The hotel and congress venue are still being finalised with partners in Antalya. As soon as the contracts are signed, we will email booking details and room arrangements to every registered delegate.
-          </p>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { label: "Host Hotel", val: siteConfig.hotelName, status: "To Be Confirmed" },
-              { label: "Hotel Address", val: siteConfig.hotelAddress, status: "To Be Confirmed" },
-              { label: "Check-in / Check-out", val: "Standard 14:00 In / 12:00 Out", status: "Indicative Policy" },
-              { label: "Congress Venue", val: siteConfig.venueName, status: "To Be Confirmed" }
-            ].map((item) => (
-              <div key={item.label} className="border-t border-white/25 pt-5">
-                <span className="text-[10px] text-[#E0647D] block mb-1">
-                  {item.status}
+      <section className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-12 sm:py-20">
+        <ul data-stagger className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {topics.map(({ id, icon: Icon, title, points, link }) => (
+            <li key={id} id={id} className="reveal scroll-mt-24">
+              <div className="spot glass h-full rounded-[28px] p-6 flex flex-col">
+                <span className="w-12 h-12 rounded-[14px] bg-[#7D1A30] flex items-center justify-center">
+                  <Icon size={24} className="text-white" aria-hidden="true" />
                 </span>
-                <p className="text-xs text-[#8C7A72] font-semibold">{item.label}</p>
-                <p className="text-sm font-semibold text-[#FBF7F0] mt-1">{item.val}</p>
+                <h2 className="mt-5 text-2xl">{title}</h2>
+                <ul className="mt-3 space-y-2 text-[15px] text-[#D6C8BC]">
+                  {points.map((p) => (
+                    <li key={p} className="flex gap-2">
+                      <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[#E0647D] flex-shrink-0" aria-hidden="true" />
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+                {link && (
+                  <a
+                    href={link.href}
+                    target={link.external ? "_blank" : undefined}
+                    rel={link.external ? "noopener noreferrer" : undefined}
+                    className="mt-auto pt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#E0647D] hover:text-white"
+                  >
+                    {link.label} {link.external && <ExternalLink size={14} aria-hidden="true" />}
+                  </a>
+                )}
               </div>
-            ))}
-          </div>
-        </div>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* ── 4. SEASONAL WEATHER GUIDANCE ── */}
-      <section id="weather-seasons" className="py-20 bg-[#141012] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Meteorology & Planning"
-            title="Weather"
-            description="Mild and sunny. Bring a jacket for the evening."
-          />
-
-          <div className="pl-4 border-l-2 border-[#7D1A30] mb-10 text-base text-[#D6C8BC] max-w-3xl">
-            EUROXPRO&apos;27 runs from <strong>31 March to 4 April 2027</strong>. Early April in Antalya is usually sunny and mild, warm enough for a walk by the sea in the afternoon, cool enough for a jacket in the evening.
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                season: "Congress Window (31 Mar – 4 Apr)",
-                temp: "18°C – 23°C (64°F – 73°F)",
-                climate: "Sunny Mediterranean days, pleasant coastal breezes, mild evenings.",
-                packing: "Sunglasses, high SPF sunscreen, lightweight layers, light jacket for coastal evenings."
-              },
-              {
-                season: "Spring (Apr – May)",
-                temp: "20°C – 26°C (68°F – 79°F)",
-                climate: "Warm and bright with blossoming citrus trees and comfortable humidity.",
-                packing: "Breathable clothing, trainers, casual evening wear."
-              },
-              {
-                season: "Summer (Jun – Aug)",
-                temp: "30°C – 38°C (86°F – 100°F)",
-                climate: "Hot and sunny Mediterranean summer with high sea temperatures.",
-                packing: "Swimwear, sun protection, linen and cotton garments."
-              },
-              {
-                season: "Autumn (Sep – Nov)",
-                temp: "22°C – 28°C (72°F – 82°F)",
-                climate: "Golden autumn warmth, calm coastal waters, pleasant walking weather.",
-                packing: "Light cardigans, layered daytime wear, comfortable shoes."
-              }
-            ].map((w) => (
-              <div key={w.season} className="border-t border-white/25 pt-6">
-                <h4 className="font-serif-title text-xl text-[#FBF7F0] mb-1">{w.season}</h4>
-                <p className="text-sm font-bold text-[#E0647D] mb-3">{w.temp}</p>
-                <p className="text-sm text-[#D6C8BC] mb-3 leading-relaxed">{w.climate}</p>
-                <div className="pt-3 border-t border-white/10 text-[11px] text-[#D6C8BC]">
-                  <strong>What to Pack:</strong> {w.packing}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 5. CURRENCY, CARDS & BANKING ── */}
-      <section id="money-banking" className="py-20 bg-black border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Financial Practicalities"
-            title="Money"
-            description="Cards, cash and tips."
-          />
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="border-t border-white/25 pt-6 space-y-3">
-              <h4 className="font-serif-title text-lg text-[#FBF7F0]">Currency: Turkish Lira (TRY / ₺)</h4>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                All daily expenses in Antalya are billed in Turkish Lira. While some bazaar stores accept Euros or USD, payment in local TRY avoids disadvantageous merchant conversion rates.
-              </p>
-            </div>
-
-            <div className="border-t border-white/25 pt-6 space-y-3">
-              <h4 className="font-serif-title text-lg text-[#FBF7F0]">Credit &amp; Debit Cards</h4>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                Contactless Visa and Mastercard are nearly universal in supermarkets, transit, hotels, and cafes. Always select <strong>&ldquo;Pay in TRY&rdquo;</strong> on card terminals to avoid dynamic currency conversion (DCC) markups.
-              </p>
-            </div>
-
-            <div className="border-t border-white/25 pt-6 space-y-3">
-              <h4 className="font-serif-title text-lg text-[#FBF7F0]">ATMs &amp; Cash Exchange</h4>
-              <p className="text-sm text-[#D6C8BC] leading-relaxed">
-                Withdraw TRY directly from major bank ATMs (İşbank, Garanti BBVA, Akbank, Yapı Kredi) rather than independent standalone kiosks that impose hefty non-client withdrawal commissions.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 6. CONNECTIVITY, ESIM & ELECTRICAL PLUGS ── */}
-      <section id="connectivity" className="py-20 bg-[#141012] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Technical Readiness"
-            title="Phone and internet"
-            description="SIM, eSIM and plugs."
-          />
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <h4 className="font-serif-title text-xl text-[#FBF7F0] flex items-center gap-2">
-                Mobile Data &amp; Local eSIM
-              </h4>
-              <ul className="text-sm text-[#D6C8BC] space-y-3 leading-relaxed">
-                <li>
-                  <strong className="text-[#FBF7F0]">eSIM (Recommended):</strong> Providers like Airalo, Maya Mobile, or Holafly allow you to purchase a prepaid Turkish data package before landing without swapping physical cards.
-                </li>
-                <li>
-                  <strong className="text-[#FBF7F0]">Physical Tourist SIM:</strong> Available at AYT arrival halls and official operator stores (Turkcell, Vodafone, Türk Telekom). Passport registration is legally required.
-                </li>
-                <li>
-                  <strong className="text-[#FBF7F0]">EU Roaming:</strong> Note that Türkiye is outside the European Union. Standard &ldquo;Roam Like at Home&rdquo; rules generally do not apply unless your carrier explicitly includes Türkiye.
-                </li>
-              </ul>
-            </div>
-
-            <div className="border-t border-white/25 pt-6 space-y-4">
-              <h4 className="font-serif-title text-xl text-[#FBF7F0] flex items-center gap-2">
-                Electricity &amp; Voltage
-              </h4>
-              <div className="space-y-3 text-sm text-[#D6C8BC] leading-relaxed">
-                <p>
-                  <strong className="text-[#FBF7F0]">Plug Type:</strong> Type C and Type F (standard European two-round-pin sockets).
-                </p>
-                <p>
-                  <strong className="text-[#FBF7F0]">Standard Voltage:</strong> 220V, 50Hz. Delegates from the UK, US, or other regions will require a plug pin adapter. Dual-voltage laptop/phone chargers operate automatically.
-                </p>
-                <div className="pl-4 border-l-2 border-[#7D1A30] text-[11px] text-[#D6C8BC]">
-                  <strong>Congress Pro-Tip:</strong> Bring a compact portable power bank (10,000–20,000 mAh) for full-day congress sessions and city transit.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7. HEALTH, SAFETY & EMERGENCY SERVICES ── */}
-      <section id="health-safety" className="py-20 bg-[#141012] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Delegate Welfare"
-            title="Health and safety"
-            description="Emergency number: 112."
-            light
-          />
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* 112 Unified Service */}
-            <div className="border-t border-[#3A2A2A] pt-6 space-y-4">
-              <span className="text-[11px] text-[#E0647D] block">Unified Emergency</span>
-              <div className="flex items-baseline gap-3">
-                <span className="font-serif-title text-5xl text-white font-bold">112</span>
-                <span className="text-sm text-[#B8A69C]">Toll-Free 24/7 Dispatch</span>
-              </div>
-              <p className="text-sm text-[#B8A69C] leading-relaxed">
-                In Türkiye, <strong>112</strong> serves as the unified emergency hotline covering Ambulance, Police (Polis), Fire (İtfaiye), and Coast Guard. English-speaking dispatchers are available.
-              </p>
-            </div>
-
-            {/* Pharmacies (Eczane) */}
-            <div className="border-t border-[#3A2A2A] pt-6 space-y-4">
-              <span className="text-[11px] text-[#E0647D] block">Medical Services</span>
-              <h4 className="font-serif-title text-xl text-white">Pharmacies (Eczane)</h4>
-              <p className="text-sm text-[#B8A69C] leading-relaxed">
-                Turkish pharmacies are easily identified by a red illuminated <strong>&ldquo;E&rdquo;</strong> sign. Pharmacists can dispense many common remedies. Outside business hours and on Sundays, a designated <em>&ldquo;Nöbetçi Eczane&rdquo;</em> (Duty Pharmacy) in each neighborhood remains open all night.
-              </p>
-            </div>
-
-            {/* Dietary & Allergies */}
-            <div className="border-t border-[#3A2A2A] pt-6 space-y-4">
-              <span className="text-[11px] text-[#E0647D] block">Nutrition &amp; Dietary</span>
-              <h4 className="font-serif-title text-xl text-white">Dietary &amp; Food Allergens</h4>
-              <p className="text-sm text-[#B8A69C] leading-relaxed">
-                Turkish cuisine widely utilizes nuts (pistachios, walnuts), gluten, and dairy. Halal meat is standard nationwide. If you have severe celiac, vegan, or anaphylactic allergies, inform the OC via registration forms.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 8. INTERACTIVE PACKING CHECKLIST ── */}
-      <section id="checklist" className="py-20 bg-black border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Interactive Preparation"
-            title="Packing list"
-            description="Tick things off as you pack."
-          />
+      <section id="checklist" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-20 scroll-mt-24">
+        <h2 className="reveal text-4xl sm:text-5xl">Packing list</h2>
+        <p className="reveal mt-2 text-lg text-[#B8A69C]">Tick things off as you pack.</p>
+        <div className="mt-8">
           <DelegateChecklist />
         </div>
       </section>
 
-      {/* ── 9. IMPORTANT ANNOUNCEMENTS & FAQ LINKS ── */}
-      <section id="announcements-faq" className="py-20 bg-[#141012]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow="Support & Updates"
-            title="Official Bulletins & Knowledge Base"
-            description="News and answers."
-          />
-
-          <div className="grid sm:grid-cols-2 gap-8">
-            <div className="border-t border-white/25 pt-6 flex flex-col justify-between">
-              <div>
-                <h3 className="font-serif-title text-2xl text-[#FBF7F0] font-normal mb-2">
-                  Official Announcements Bulletin
-                </h3>
-                <p className="text-sm text-[#D6C8BC] leading-relaxed mb-6">
-                  Read official circulars from the Organizing Committee, including host destination updates, schedule releases, and logistics briefings.
-                </p>
-              </div>
-              <div>
-                <a
-                  href="/announcements"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#E0647D] hover:underline"
-                >
-                  View all announcements <ArrowRight size={14} />
-                </a>
-              </div>
-            </div>
-
-            <div className="border-t border-white/25 pt-6 flex flex-col justify-between">
-              <div>
-                <h3 className="font-serif-title text-2xl text-[#FBF7F0] font-normal mb-2">
-                  Frequently Asked Questions
-                </h3>
-                <p className="text-sm text-[#D6C8BC] leading-relaxed mb-6">
-                  Browse categorized answers covering travel visas, Antalya Airport transit, card payments, packing necessities, and emergency contacts.
-                </p>
-              </div>
-              <div>
-                <a
-                  href="/faq"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#E0647D] hover:underline"
-                >
-                  Search delegate FAQ <ArrowRight size={14} />
-                </a>
-              </div>
-            </div>
-          </div>
+      <section className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pb-20 sm:pb-28">
+        <div className="reveal grid sm:grid-cols-2 gap-3 sm:gap-4">
+          <Link href="/faq" className="spot glass rounded-[24px] px-6 py-5 flex items-center justify-between gap-4 hover:bg-white/10 transition-colors">
+            <span className="text-xl font-semibold">More questions?</span>
+            <ChevronRight size={20} className="text-white/50" aria-hidden="true" />
+          </Link>
+          <Link href="/contact" className="spot glass rounded-[24px] px-6 py-5 flex items-center justify-between gap-4 hover:bg-white/10 transition-colors">
+            <span className="inline-flex items-center gap-3 text-xl font-semibold">
+              <Phone size={20} className="text-[#E0647D]" aria-hidden="true" /> Write to us
+            </span>
+            <ChevronRight size={20} className="text-white/50" aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </div>

@@ -3,7 +3,6 @@ import Image from "next/image";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { PageHero } from "@/components/ui/PageHero";
 import { CongressSchedule } from "@/components/congress/CongressSchedule";
-import { PreviousEditions } from "@/components/common/PreviousEditions";
 import { PartnersSection } from "@/components/common/PartnersSection";
 import { siteConfig } from "@/lib/config";
 import { schedule, isDraftSchedule, isSchedulePublished } from "@/lib/schedule";
@@ -44,75 +43,46 @@ export default function CongressPage() {
         </dl>
       </PageHero>
 
-      {/* ── ABOUT & OBJECTIVES (EDITORIAL TWO-COLUMN) ── */}
-      <section className="py-20 sm:py-24 bg-[#141012]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-            
-            <div className="lg:col-span-6 space-y-6">
-              <SectionHeader
-                eyebrow={about.eyebrow}
-                title={about.title}
-                description={about.description}
-              />
-              <div className="space-y-4 text-base text-[#D6C8BC] leading-relaxed">
-                {about.paragraphs.map((paragraph, i) => (
-                  <p key={i}>
-                    <RichText text={paragraph} />
-                  </p>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:col-span-6 lg:pt-2">
-              <p className="kicker mb-2">{about.objectivesTitle}</p>
-              <ol>
-                {about.objectives.map(({ title, desc }, i) => (
-                  <li key={i} className="border-t border-white/15 py-6 last:border-b">
-                    <div>
-                      <h3 className="font-serif-title text-xl sm:text-2xl text-[#FBF7F0] font-normal leading-snug">{title}</h3>
-                      <p className="mt-2 text-sm text-[#B8A69C] leading-relaxed">{desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-          </div>
+      {/* ── ABOUT ── */}
+      <section className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-12 sm:py-20">
+        <div className="reveal px-1 max-w-2xl">
+          <h2 className="text-4xl sm:text-5xl">{about.title}</h2>
+          <p className="mt-3 text-lg sm:text-xl text-[#D6C8BC]">
+            {about.description}{" "}
+            {about.paragraphs.map((paragraph, i) => (
+              <RichText key={i} text={paragraph} />
+            ))}
+          </p>
         </div>
+        <ul data-stagger className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {about.objectives.map(({ title, desc }, i) => (
+            <li key={i} className="reveal spot glass rounded-[24px] p-5 sm:p-6">
+              <h3 className="text-xl sm:text-2xl">{title}</h3>
+              <p className="mt-2 text-sm sm:text-base text-[#B8A69C]">{desc}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* ── PREVIOUS EDITIONS RETROSPECTIVE ── */}
-      <PreviousEditions />
-
-      {/* ── CONGRESS SCHEDULE & TIMETABLE (DEEP NAVY) ── */}
-      <section id="schedule" className="py-24 bg-[#141012] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow={scheduleText.eyebrow}
-            title={scheduleText.title}
-            description={isSchedulePublished ? scheduleText.description : undefined}
-            light
-          />
-
+      {/* ── PROGRAMME ── */}
+      <section id="schedule" className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pb-12 sm:pb-20 scroll-mt-24">
           {!isSchedulePublished && (
-            <div className="reveal grid lg:grid-cols-12 gap-6 lg:gap-12 border-t border-[#3A2A2A] pt-10">
-              <p className="lg:col-span-4 font-serif-title italic text-2xl text-[#E0647D]">{scheduleText.comingSoonBadge}</p>
-              <div className="lg:col-span-8 max-w-2xl">
-                <h3 className="font-serif-title text-3xl sm:text-4xl text-white font-normal leading-tight">
-                  {scheduleText.comingSoonTitle}
-                </h3>
-                <p className="mt-4 text-base text-[#D6C8BC] leading-relaxed">
-                  <RichText text={scheduleText.comingSoonText} />
-                </p>
-                <Link
-                  href="/announcements"
-                  className="mt-8 inline-flex items-center gap-2 text-white font-semibold link-underline decoration-[#E0647D] hover:decoration-white"
-                >
-                  {scheduleText.comingSoonButton} <ArrowRight size={16} />
-                </Link>
-              </div>
+            <div className="reveal relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(140deg,#A3304A_0%,#7D1A30_50%,#2A0A14_100%)] p-6 sm:p-10">
+              <h2 className="text-4xl sm:text-5xl">{scheduleText.title}</h2>
+              <p className="mt-3 text-lg text-[#F4EDE2]/85">
+                {scheduleText.comingSoonTitle}. <RichText text={scheduleText.comingSoonText} />
+              </p>
+              <Link
+                href="/announcements"
+                className="sheen mt-6 inline-flex items-center gap-2 rounded-full bg-[#F4EDE2] text-[#7D1A30] font-semibold px-6 h-12"
+              >
+                {scheduleText.comingSoonButton} <ArrowRight size={18} aria-hidden="true" />
+              </Link>
             </div>
+          )}
+
+          {isSchedulePublished && (
+            <h2 className="reveal px-1 mb-8 text-4xl sm:text-5xl">{scheduleText.title}</h2>
           )}
 
           {isSchedulePublished && isDraftSchedule && (
@@ -125,7 +95,6 @@ export default function CongressPage() {
           )}
 
           {isSchedulePublished && <CongressSchedule days={schedule} />}
-        </div>
       </section>
 
       {/* ── EVENING SOCIAL EVENTS WITH RICH PHOTOGRAPHY ── */}

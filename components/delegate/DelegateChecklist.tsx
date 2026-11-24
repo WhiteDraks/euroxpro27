@@ -72,7 +72,7 @@ export function DelegateChecklist() {
           />
         </div>
         <p className="text-[#B8A69C] text-[11px] mt-2">
-          Progress is automatically synchronized to your local browser storage.
+          Saved on this device.
         </p>
       </div>
 

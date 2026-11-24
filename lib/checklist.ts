@@ -8,60 +8,58 @@ export const checklistItems: ChecklistItem[] = [
   // Documents
   {
     id: "doc-1",
-    label: "Valid passport (check expiry — 6+ months beyond travel dates)",
+    label: "Passport (valid 6+ months)",
     category: "Documents",
   },
   {
     id: "doc-2",
-    label: "Visa or e-Visa (if required for your nationality)",
-    detail: "Check evisa.gov.tr for requirements",
+    label: "Visa or e-Visa, if you need one",
     category: "Documents",
   },
   {
     id: "doc-3",
-    label: "Congress registration confirmation",
+    label: "Registration confirmation",
     category: "Documents",
   },
   {
     id: "doc-4",
-    label: "Travel insurance documents",
+    label: "Travel insurance",
     category: "Documents",
   },
   {
     id: "doc-5",
-    label: "Flight tickets (digital or printed)",
+    label: "Flight tickets",
     category: "Documents",
   },
   {
     id: "doc-6",
-    label: "Hotel confirmation details",
+    label: "Hotel details",
     category: "Documents",
   },
   {
     id: "doc-7",
-    label: "Emergency contact information",
+    label: "Emergency contacts",
     category: "Documents",
   },
   // Health & Wellness
   {
     id: "health-1",
-    label: "Personal medications (sufficient supply + extra)",
-    detail: "Bring original packaging and prescriptions if possible",
+    label: "Your medicines",
     category: "Health",
   },
   {
     id: "health-2",
-    label: "Any required vaccinations up to date",
+    label: "Vaccinations up to date",
     category: "Health",
   },
   {
     id: "health-3",
-    label: "Basic first aid items (painkillers, plasters, etc.)",
+    label: "Painkillers and plasters",
     category: "Health",
   },
   {
     id: "health-4",
-    label: "Sunscreen (Antalya is sunny and Mediterranean!)",
+    label: "Sunscreen",
     category: "Health",
   },
   // Technology
@@ -72,51 +70,48 @@ export const checklistItems: ChecklistItem[] = [
   },
   {
     id: "tech-2",
-    label: "Travel adapter (Türkiye uses Type F/C plugs, 220V)",
-    detail: "Standard European plugs work in Türkiye",
+    label: "Plug adapter (European two-pin)",
     category: "Technology",
   },
   {
     id: "tech-3",
-    label: "Portable power bank",
+    label: "Power bank",
     category: "Technology",
   },
   {
     id: "tech-4",
-    label: "International roaming enabled or eSIM arranged",
-    detail: "Consider a Turkish SIM card or eSIM for local data",
+    label: "eSIM or roaming",
     category: "Technology",
   },
   {
     id: "tech-5",
-    label: "Headphones or earbuds",
+    label: "Headphones",
     category: "Technology",
   },
   // Clothing
   {
     id: "clothes-1",
-    label: "Smart casual clothing for congress sessions",
+    label: "Smart casual clothes",
     category: "Clothing",
   },
   {
     id: "clothes-2",
-    label: "Formal outfit for the Turkish Night Gala",
-    detail: "Dress code: Formal / Traditional Attire",
+    label: "Formal outfit for the gala night",
     category: "Clothing",
   },
   {
     id: "clothes-3",
-    label: "Comfortable walking shoes for city exploration",
+    label: "Comfortable shoes",
     category: "Clothing",
   },
   {
     id: "clothes-4",
-    label: "Light jacket or cardigan (evenings can be cool)",
+    label: "Light jacket",
     category: "Clothing",
   },
   {
     id: "clothes-5",
-    label: "Cover-up for visiting mosques (shoulders and knees covered)",
+    label: "Scarf or cover-up for mosques",
     category: "Clothing",
   },
   // Congress Essentials
@@ -132,29 +127,28 @@ export const checklistItems: ChecklistItem[] = [
   },
   {
     id: "congress-3",
-    label: "Business cards or contact cards",
+    label: "Business cards",
     category: "Congress Essentials",
   },
   {
     id: "congress-4",
-    label: "Laptop or tablet (if needed for workshops)",
+    label: "Laptop or tablet",
     category: "Congress Essentials",
   },
   // Money
   {
     id: "money-1",
-    label: "Notify your bank of your travel dates",
+    label: "Tell your bank you are travelling",
     category: "Money",
   },
   {
     id: "money-2",
-    label: "Some Turkish Lira cash for small purchases",
-    detail: "ATMs are widely available in Antalya and at AYT airport",
+    label: "A little Turkish Lira cash",
     category: "Money",
   },
   {
     id: "money-3",
-    label: "Credit/debit card accepted in most places",
+    label: "Bank card",
     category: "Money",
   },
 ];

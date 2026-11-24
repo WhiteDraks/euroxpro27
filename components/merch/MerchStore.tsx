@@ -111,11 +111,10 @@ export function MerchStore({
     <div className="pt-10 sm:pt-14 pb-20 sm:pb-28 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Notice on illustrative nature */}
-        <div className="mb-10 pl-4 border-l-2 border-[#7D1A30] max-w-3xl text-base text-[#D6C8BC] leading-relaxed">
+        <div className="mb-10 rounded-[20px] bg-[#1C1416] border border-white/10 px-5 py-4 max-w-3xl text-base text-[#D6C8BC]">
           <p>
-            <strong className="font-semibold text-[#FBF7F0]">This is a preview, not a shop yet.</strong> Designs and prices
-            are still being worked on. Sending a pre-order request just tells the Organizing Committee what you would like;
-            nothing is charged here, and AIESEC in Türkiye will share how to pay once the collection is final.
+            <strong className="font-semibold text-[#FBF7F0]">Preview only.</strong> Nothing is charged here. Tell us what you
+            want and we will share how to pay later.
           </p>
         </div>
 
