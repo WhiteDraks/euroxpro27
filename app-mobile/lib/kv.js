@@ -165,6 +165,10 @@ function memCmd(args) {
                 return [];
             return [...v.entries()].flat();
         }
+        case "HGET":
+            return v instanceof Map ? v.get(rest[0]) ?? null : null;
+        case "HLEN":
+            return v instanceof Map ? v.size : 0;
         case "HSET": {
             const m = v instanceof Map ? v : new Map();
             for (let i = 0; i < rest.length; i += 2)

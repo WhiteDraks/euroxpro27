@@ -2714,3 +2714,136 @@ button.msg-name { align-self: flex-start; border: 0; background: none; padding: 
 .report-quote p { margin: 4px 0 0; overflow-wrap: anywhere; }
 .report-sheet .btn { width: 100%; }
 .msg:not(.mine) .bubble { -webkit-touch-callout: none; }
+
+/* ---------------------------------------------------------------- my programme */
+.icon svg.filled { fill: currentColor; }
+.session-wrap { position: relative; }
+.session-wrap .session { padding-right: 56px; }
+.session-wrap + .session-wrap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 16px;
+  border-top: 0.5px solid var(--sep);
+  z-index: 1;
+}
+.plan-star {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--label-3);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.plan-star:hover { color: var(--label-2); }
+.plan-star.on { color: var(--tint); }
+.plan-star.on .icon { animation: star-pop 0.32s cubic-bezier(0.2, 1.4, 0.4, 1) backwards; }
+.plan-star:focus-visible { outline: 2px solid var(--tint); outline-offset: -4px; }
+@keyframes star-pop { from { transform: scale(0.5); } }
+.session-wrap.planned .session-time > span:first-child { color: var(--tint); }
+.plan-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--card);
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--label-2);
+}
+.plan-hint > span:not(.icon) { flex: 1 1 200px; }
+.plan-hint-ic { color: var(--tint); width: 22px; height: 22px; }
+.plan-cta { margin: 14px 0 6px; }
+.plan-cta .btn { width: 100%; gap: 8px; margin-top: 0; }
+.plan-cta .fineprint { margin-top: 8px; }
+@media (prefers-reduced-motion: reduce) { .plan-star.on .icon { animation: none; } }
+
+/* ---------------------------------------------------------------- announcement audience */
+.ann-target { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--tint); }
+.ann-countries { padding: 10px 16px 12px; }
+.ann-countries .chips { max-height: 220px; overflow-y: auto; }
+.ann-target .icon { width: 16px; height: 16px; }
+
+/* ---------------------------------------------------------------- QR business card */
+.vcard { padding: 8px 16px 0; }
+.vcard-face {
+  position: relative;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 18px 18px 14px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #8f2340 0%, var(--bordeaux) 45%, #2a0a12 100%);
+  color: #fbf7f0;
+  box-shadow: 0 18px 40px -18px rgba(125, 26, 48, 0.7);
+  overflow: hidden;
+}
+.vcard-face::before {
+  content: "";
+  position: absolute;
+  inset: -40% -30% auto auto;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 237, 226, 0.22), transparent 70%);
+  pointer-events: none;
+}
+.vcard-who { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.vcard-who .avatar { width: 48px; height: 48px; box-shadow: 0 0 0 2px rgba(251, 247, 240, 0.6); }
+.vcard-text { min-width: 0; }
+.vcard-name { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.vcard-sub { margin: 2px 0 0; font-size: 14px; opacity: 0.8; overflow-wrap: anywhere; }
+.vcard-qr { position: relative; margin: 16px auto 10px; width: min(100%, 260px); aspect-ratio: 1; border-radius: 16px; background: #fff; padding: 8px; display: grid; place-items: center; }
+.vcard-qr .loading { height: 100%; width: 100%; }
+.vcard-qr .empty { color: #444; padding: 12px; font-size: 14px; }
+.vcard-qr-img, .vcard-qr-img svg { display: block; width: 100%; height: auto; }
+.vcard-brand { position: relative; margin: 0; text-align: center; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.7; }
+.vcard-hint { max-width: 360px; margin: 12px auto 0; text-align: center; font-size: 14px; line-height: 1.4; color: var(--label-2); }
+.btn.vcard-scan { gap: 8px; margin-top: 16px; width: 100%; text-decoration: none; }
+.vcard-actions { max-width: 392px; margin: 0 auto; }
+.contacts-top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.contacts-top .btn.vcard-scan { margin-top: 0; padding: 0 10px; white-space: nowrap; font-size: 16px; }
+.vc-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 16px 0 4px; width: 100%; }
+.vc-act {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 72px;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--fill);
+  color: var(--tint);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.vc-act:active { background: var(--card-press); }
+.vc-details { width: 100%; margin-top: 12px; }
+.vc-val { overflow-wrap: anywhere; }
+.vc-note { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 14px; }
+.vc-note textarea { width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); font: inherit; font-size: 16px; resize: vertical; }
+.contact-sheet { max-height: 88vh; overflow-y: auto; }
+@media (min-width: 900px) {
+  .vcard-face { max-width: 380px; }
+}
+.day.has-plan { position: relative; }
+.day.has-plan::after { content: ""; position: absolute; top: 6px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--tint); }
+.day.on.has-plan::after { background: #fbf7f0; }
+.tile-pill { display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; margin-bottom: 6px; padding: 3px 10px 3px 8px; border-radius: 999px; background: rgba(251, 247, 240, 0.18); color: #fbf7f0; font-size: 12px; font-weight: 600; }
+.tile-pill .icon { width: 13px; height: 13px; }

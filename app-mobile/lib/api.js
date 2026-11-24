@@ -8,7 +8,7 @@ import { createHash, randomBytes, scrypt, scryptSync, timingSafeEqual } from "cr
 import { promisify } from "util";
 import seed from "./agenda-seed.js";
 import teamSeed from "./team-seed.js";
-import { countryOf } from "../public/countries.js";
+import { ALL_CODES, countryOf } from "../public/countries.js";
 import { cmd, hashToObject, isConfigured, parse, pipe } from "./kv.js";
 import { LANGS, isLang, peekMany, providerName, translate } from "./translate.js";
 import { approvalEnabled, provider as mailProvider, sendApprovedEmail, sendMail, sendSignupDigest, sendSignupEmail, signupRecipients } from "./mail.js";
@@ -601,7 +601,41 @@ route("PATCH", "me", async ({ req, user }) => {
     await saveUser(u);
     return json({ user: me(u) });
 }, "any");
-route("GET", "agenda", async ({ user }) => json({ agenda: await agendaFor(user.lang) }));
+route("GET", "agenda", async ({ user }) => {
+    const [agenda, plan] = await Promise.all([agendaFor(user.lang), cmd("SMEMBERS", "dplan:" + user.id)]);
+    return json({ agenda, plan });
+});
+// ------------------------------------------------------------ personal programme
+// Each delegate's starred sessions: dplan:<uid> (their sessions), and per
+// session dplanby:<sid> (who starred it), so a reminder reads one set
+// instead of every account. dplanners lists everyone with a programme:
+// they get reminders only for their own sessions, others by position.
+const PLAN_MAX = 120;
+route("POST", "plan", async ({ req, user }) => {
+    const b = await readJson(req);
+    const id = String(b.id || "");
+    const a = await loadAgenda();
+    if (!a.days.some((d) => d.sessions.some((s) => s.id === id)))
+        throw new HttpError(404, "not_found");
+    if (b.on === true) {
+        if ((await cmd("SCARD", "dplan:" + user.id)) >= PLAN_MAX)
+            throw new HttpError(400, "too_many");
+        await pipe(["SADD", "dplan:" + user.id, id], ["SADD", "dplanby:" + id, user.id], ["SADD", "dplanners", user.id]);
+    }
+    else {
+        const [, , left] = await pipe(["SREM", "dplan:" + user.id, id], ["SREM", "dplanby:" + id, user.id], ["SCARD", "dplan:" + user.id]);
+        if (!left)
+            await cmd("SREM", "dplanners", user.id);
+    }
+    return json({ plan: await cmd("SMEMBERS", "dplan:" + user.id) });
+});
+// Who hears about a session: people who starred it, and people without a
+// programme whose position it is for.
+async function planAudience(sid) {
+    const [by, planners] = await pipe(["SMEMBERS", "dplanby:" + sid], ["SMEMBERS", "dplanners"]);
+    const bySet = new Set(by || []), plannerSet = new Set(planners || []);
+    return (s, u) => bySet.has(u.id) || (!plannerSet.has(u.id) && forPosition(s, u.position));
+}
 route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
     if (user.role !== "admin")
         throw new HttpError(403, "forbidden");
@@ -641,8 +675,10 @@ route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
     const changed = status !== before.status || s.start !== before.start || s.location !== before.location;
     if (changed && sessionStart(day, s) + 3600000 > Date.now()) {
         const subject = pushSubject(req);
-        background(() => notify("changes", subject, async (u) => {
-            if (!forPosition(s, u.position))
+        background(async () => {
+          const wants = await planAudience(s.id);
+          await notify("changes", subject, async (u) => {
+            if (!wants(s, u))
                 return null;
             const parts = [];
             if (status !== before.status)
@@ -654,7 +690,8 @@ route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
             if (s.note)
                 parts.push(await tr(s.note, s.noteLang || "en", u));
             return { title: `${pt(u, "changed")}: ${short(await tr(s.title, "en", u), 70)}`, body: short(parts.join(" · ")), url: "/agenda/" + s.id, tag: "c-" + s.id };
-        }));
+          });
+        });
     }
     return json({ ok: true });
 });
@@ -795,7 +832,7 @@ route("GET", "sync", async ({ req, url, user }) => {
     const agendaChange = events.some((e) => e.type === "agenda" && e.sessionId);
     const matches = events.filter((e) => e.type === "match" && e.users?.includes(u.id)).map((e) => e.users.find((x) => x !== u.id));
     const matchUsers = (await Promise.all(matches.map(getUser))).filter(Boolean).map(publicUser);
-    const announce = events.some((e) => e.type === "announce");
+    const announce = events.some((e) => e.type === "announce" && annFor(e, u));
     const approvals = events.filter((e) => e.type === "approvals").reduce((a, e) => Math.max(a, e.at || 1), 0) || false;
     const quest = events.some((e) => e.type === "quest");
     // Organizers hear about new requests; the sender hears about replies.
@@ -1045,8 +1082,12 @@ async function translatedFields(reader, items, keys) {
     }));
     return items;
 }
+// Organizers can address an announcement to some countries only. A
+// delegate's country comes from their committee ("AIESEC in Poland").
+const countryCode = (u) => countryOf(u.entity)?.code || "";
+const annFor = (a, u) => !a.countries?.length || u.role === "admin" || a.countries.includes(countryCode(u));
 route("GET", "announcements", async ({ user }) => {
-    const list = await loadAnnouncements();
+    const list = (await loadAnnouncements()).filter((a) => annFor(a, user));
     return json({ announcements: await translatedFields(user, list, ["title", "body"]) });
 });
 route("POST", "announcements", async ({ req, user }) => {
@@ -1057,12 +1098,15 @@ route("POST", "announcements", async ({ req, user }) => {
     if (!title)
         throw new HttpError(400, "title_required");
     const deadline = DATETIME_RE.test(String(b.deadline || "")) ? String(b.deadline) : "";
-    const a = { id: newId(), title, body: clean(b.body, 1000), deadline, lang: user.lang, by: user.name, at: Date.now() };
+    const countries = Array.isArray(b.countries) ? [...new Set(b.countries.map((c) => String(c).toUpperCase()))].filter((c) => ALL_CODES.includes(c)).slice(0, 60) : [];
+    const a = { id: newId(), title, body: clean(b.body, 1000), deadline, lang: user.lang, by: user.name, at: Date.now(), ...(countries.length ? { countries } : {}) };
     await pipe(["LPUSH", "dann", JSON.stringify(a)], ["LTRIM", "dann", 0, 99]);
-    await pushEvent({ at: a.at, type: "announce" });
+    await pushEvent({ at: a.at, type: "announce", ...(countries.length ? { countries } : {}) });
     const subject = pushSubject(req);
-    background(() => notify("announce", subject, async (u) => ({ title: `${pt(u, "ann")}: ${short(await tr(a.title, a.lang, u), 80)}`, body: short(await tr(a.body, a.lang, u)), url: "/info", tag: "a-" + a.id })));
-    return json({ announcement: a }, 201);
+    background(() => notify("announce", subject, async (u) => (annFor(a, u) ? { title: `${pt(u, "ann")}: ${short(await tr(a.title, a.lang, u), 80)}`, body: short(await tr(a.body, a.lang, u)), url: "/info", tag: "a-" + a.id } : null)));
+    // How many delegates it reaches (everyone who can see it, organizers aside).
+    const reach = (await listedUsers()).filter((u) => !u.demo && u.role !== "admin" && annFor(a, u)).length;
+    return json({ announcement: a, reach }, 201);
 });
 route("POST", "announcements/([\\w-]+)/delete", async ({ user, m }) => {
     if (user.role !== "admin")
@@ -1071,6 +1115,127 @@ route("POST", "announcements/([\\w-]+)/delete", async ({ user, m }) => {
     const keep = list.filter((a) => a.id !== m[1]);
     await pipe(["DEL", "dann"], ...(keep.length ? [["RPUSH", "dann", ...keep.map((a) => JSON.stringify(a))]] : []));
     await pushEvent({ at: Date.now(), type: "announce" });
+    return json({ ok: true });
+});
+// ------------------------------------------------------------ QR business card
+// Each delegate has a card code (dctok:<token> -> id). Someone who scans it
+// saves them to their contacts (hash dcon:<uid>, contact id -> {at, note}).
+// The card's extra fields (phone, Instagram, LinkedIn, e-mail) are optional
+// and only shown to people who saved the card; they are read live, so a
+// field removed later disappears for everyone. A new code stops the old QR.
+const CONTACTS_MAX = 500;
+const PHONE_RE = /^\+?[0-9 ()-]{5,24}$/;
+const cardOf = (u) => ({ phone: u.card?.phone || "", instagram: u.card?.instagram || "", linkedin: u.card?.linkedin || "", showEmail: u.card?.showEmail === true });
+const instaHandle = (v) => {
+    const m = String(v || "").trim().match(/^(?:https?:\/\/(?:www\.)?instagram\.com\/)?@?([A-Za-z0-9._]{1,30})\/?$/);
+    return m ? m[1] : null;
+};
+const linkedinHandle = (v) => {
+    const m = String(v || "").trim().match(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?(?:linkedin\.com\/in\/)?([A-Za-z0-9\-_%]{3,100})\/?$/);
+    return m ? m[1] : null;
+};
+async function cardToken(u) {
+    if (u.cardTok)
+        return u.cardTok;
+    const tok = randomBytes(9).toString("base64url");
+    await cmd("SET", "dctok:" + tok, u.id);
+    u.cardTok = tok;
+    await saveUser(u);
+    return tok;
+}
+route("GET", "card", async ({ user }) => json({ token: await cardToken(user), card: cardOf(user) }));
+route("POST", "card", async ({ req, user }) => {
+    const b = await readJson(req);
+    const card = cardOf(user);
+    if (b.phone !== undefined) {
+        const v = clean(b.phone, 24);
+        if (v && !PHONE_RE.test(v))
+            throw new HttpError(400, "bad_phone");
+        card.phone = v;
+    }
+    if (b.instagram !== undefined) {
+        const v = String(b.instagram || "").trim();
+        const hdl = v ? instaHandle(v) : "";
+        if (hdl === null)
+            throw new HttpError(400, "bad_instagram");
+        card.instagram = hdl;
+    }
+    if (b.linkedin !== undefined) {
+        const v = String(b.linkedin || "").trim();
+        const hdl = v ? linkedinHandle(v) : "";
+        if (hdl === null)
+            throw new HttpError(400, "bad_linkedin");
+        card.linkedin = hdl;
+    }
+    if (typeof b.showEmail === "boolean")
+        card.showEmail = b.showEmail;
+    user.card = card;
+    await saveUser(user);
+    return json({ card });
+});
+route("POST", "card/rotate", async ({ user }) => {
+    if (await limited("crot:" + user.id, 10, 3600))
+        throw new HttpError(429, "rate_limited");
+    const old = user.cardTok;
+    const tok = randomBytes(9).toString("base64url");
+    await pipe(["SET", "dctok:" + tok, user.id], ...(old ? [["DEL", "dctok:" + old]] : []));
+    user.cardTok = tok;
+    await saveUser(user);
+    return json({ token: tok });
+});
+// What a contact sees: the public profile plus the card fields.
+const contactView = (u, rec, blocked) => ({
+    ...publicUser(u),
+    savedAt: rec.at || 0,
+    note: rec.note || "",
+    ...(blocked ? { blocked: true } : { ...cardOf(u), email: u.card?.showEmail ? u.email : "" }),
+});
+route("POST", "contacts/scan", async ({ req, user }) => {
+    if (await limited("scan:" + user.id, 60, 3600))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req);
+    const tok = String(b.token || "");
+    const id = /^[\w-]{8,24}$/.test(tok) ? await cmd("GET", "dctok:" + tok) : null;
+    const owner = id ? await getUser(id) : null;
+    if (!owner || !listed(owner) || owner.demo)
+        throw new HttpError(404, "card_invalid");
+    if (owner.id === user.id)
+        throw new HttpError(400, "self");
+    const blocked = await blockedBy(user);
+    if (blocked.has(owner.id))
+        throw new HttpError(404, "card_invalid");
+    const prev = parse(await cmd("HGET", "dcon:" + user.id, owner.id));
+    if (!prev && (await cmd("HLEN", "dcon:" + user.id)) >= CONTACTS_MAX)
+        throw new HttpError(400, "too_many");
+    const rec = prev || { at: Date.now(), note: "" };
+    if (!prev)
+        await cmd("HSET", "dcon:" + user.id, owner.id, JSON.stringify(rec));
+    return json({ contact: contactView(owner, rec, false), fresh: !prev });
+});
+route("GET", "contacts", async ({ user }) => {
+    const map = hashToObject(await cmd("HGETALL", "dcon:" + user.id));
+    const ids = Object.keys(map);
+    if (!ids.length)
+        return json({ contacts: [] });
+    const blocked = await blockedBy(user);
+    const users = await usersByIds(ids);
+    const contacts = users
+        .filter((u) => listed(u))
+        .map((u) => contactView(u, parse(map[u.id]) || {}, blocked.has(u.id)))
+        .sort((a, b) => b.savedAt - a.savedAt);
+    return json({ contacts });
+});
+route("POST", "contacts/([\\w-]+)/note", async ({ req, user, m }) => {
+    const rec = parse(await cmd("HGET", "dcon:" + user.id, m[1]));
+    if (!rec)
+        throw new HttpError(404, "not_found");
+    const b = await readJson(req);
+    rec.note = clean(b.note, 300);
+    await cmd("HSET", "dcon:" + user.id, m[1], JSON.stringify(rec));
+    return json({ ok: true, note: rec.note });
+});
+route("POST", "contacts/([\\w-]+)/delete", async ({ user, m }) => {
+    await cmd("HDEL", "dcon:" + user.id, m[1]);
     return json({ ok: true });
 });
 // ------------------------------------------------------------ own items (requests, reservations)
@@ -1519,7 +1684,8 @@ async function runReminders(subject, now = Date.now()) {
                 continue;
             if ((await cmd("SET", `drem:${s.id}:${day.date}T${s.start}`, "1", "EX", 2 * 86400, "NX")) !== "OK")
                 continue;
-            sent += await notify("sessions", subject, async (u) => forPosition(s, u.position)
+            const wants = await planAudience(s.id);
+            sent += await notify("sessions", subject, async (u) => wants(s, u)
                 ? { title: await tr(s.title, "en", u), body: `${s.start} · ${await tr(s.location, "en", u)} · ${pt(u, "soon")}`, url: "/agenda/" + s.id, tag: "s-" + s.id }
                 : null);
         }
@@ -1877,7 +2043,7 @@ route("POST", "admin/users/([\\w-]+)/delete", async ({ user, m }) => {
         throw new HttpError(403, "self");
     if (isOwner(u) && u.role === "admin")
         throw new HttpError(403, "owner");
-    await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id, "dblk:" + u.id, "dblkby:" + u.id, "dpush:" + u.id, "dqu:" + u.id, "dresu:" + u.id], ["SREM", "dusers", u.id], ["SREM", "dpushers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
+    await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id, "dblk:" + u.id, "dblkby:" + u.id, "dpush:" + u.id, "dqu:" + u.id, "dresu:" + u.id, "dplan:" + u.id, "dcon:" + u.id, ...(u.cardTok ? ["dctok:" + u.cardTok] : [])], ["SREM", "dplanners", u.id], ["SREM", "dusers", u.id], ["SREM", "dpushers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
     await pushEvent({ at: Date.now(), type: "users" });
     return json({ ok: true });
 });
