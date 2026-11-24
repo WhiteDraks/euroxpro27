@@ -47,7 +47,7 @@ export default function HomePage() {
         </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-14 sm:pt-20 lg:pt-24 text-center flex flex-col items-center">
           <p className="rise glass inline-flex rounded-full text-sm font-semibold px-4 py-1.5">{siteConfig.datesLabel}</p>
-          <h1 className="rise rise-2 title-gradient mt-6 text-[3.4rem] sm:text-8xl lg:text-[8.5rem] leading-[0.9] tracking-[-0.045em] pb-2">
+          <h1 className="rise rise-2 title-gradient mt-6 text-[3.4rem] sm:text-8xl lg:text-[8.5rem] leading-[0.9] tracking-[-0.045em]">
             {hero.title}
           </h1>
           <p className="rise rise-3 mt-5 text-lg sm:text-2xl text-[#F4EDE2]/85 max-w-xl">{hero.text}</p>
@@ -153,9 +153,9 @@ export default function HomePage() {
             {city.button} <ChevronRight size={18} aria-hidden="true" />
           </Link>
         </div>
-        <ul data-stagger className="mt-8 max-w-6xl mx-auto flex sm:grid sm:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible snap-x snap-mandatory px-4 sm:px-6 lg:px-8 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul className="reveal mt-8 max-w-6xl mx-auto flex sm:grid sm:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible snap-x snap-mandatory px-4 sm:px-6 lg:px-8 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {city.items.map((item, i) => (
-            <li key={i} className="reveal snap-start flex-shrink-0 w-[78%] sm:w-auto">
+            <li key={i} className="snap-start flex-shrink-0 w-[78%] sm:w-auto">
               <Link href="/explore-antalya" className="group relative block aspect-[3/4] rounded-[28px] overflow-hidden bg-[#1C1416] border border-white/10">
                 <Image src={item.image} alt={item.imageAlt} fill quality={60} sizes="(max-width: 640px) 80vw, 33vw" className="object-cover object-center transition-transform duration-500 group-hover:scale-105" />
                 <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" aria-hidden="true" />

@@ -127,6 +127,13 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    /* Gradient text is painted only inside the box, so give letters
+       like g, y and p room below the last line, and take the room back
+       so the layout doesn't move. */
+    padding-bottom: 0.22em;
+    margin-bottom: -0.22em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
 }
 

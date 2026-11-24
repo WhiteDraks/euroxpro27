@@ -27,7 +27,7 @@ export function PageHero({ title, intro, image, imageAlt, children, className }:
         />
         <div aria-hidden="true" className="drift-b pointer-events-none absolute right-[-10%] top-[-20%] h-[460px] w-[460px] rounded-full bg-[radial-gradient(closest-side,rgba(224,100,125,0.28),transparent)] blur-2xl" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[6.5rem] sm:pt-[8.5rem] lg:pt-36 pb-12 sm:pb-16">
-          <h1 className="rise title-gradient text-[3.2rem] leading-[0.92] sm:text-7xl lg:text-[6.5rem] lg:leading-[0.9] tracking-[-0.045em] max-w-4xl pb-1">{title}</h1>
+          <h1 className="rise title-gradient text-[3.2rem] leading-[0.92] sm:text-7xl lg:text-[6.5rem] lg:leading-[0.9] tracking-[-0.045em] max-w-4xl">{title}</h1>
           {intro && <p className="rise rise-2 mt-4 sm:mt-5 text-lg sm:text-xl text-[#F4EDE2]/85 max-w-2xl">{intro}</p>}
         </div>
       </div>
