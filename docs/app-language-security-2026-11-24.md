@@ -50,3 +50,16 @@ Dincer asked to remove the authenticator (TOTP) feature. The set-up screen, the 
 button, the login code box and the `/api/me/2fa/*` and `/api/admin/users/:id/2fa-reset` routes are gone, and
 `ADMIN_2FA` is no longer read. Accounts that had it on sign in with the password only; their stored secret is
 deleted at that sign-in. "Sign out all other devices" stays.
+
+## Second pass: security and traffic (evening)
+
+| Issue | Fix |
+| --- | --- |
+| Nothing stopped one signed-in account (or a script without one) from hammering any endpoint; only sign-in/sign-up were limited | Flood guard in the dispatcher, in memory per instance (no storage cost): 300 req/min per account, 600/min per address without a session (`RATE_USER_MIN`, `RATE_IP_MIN`) |
+| Store and Requests pages read up to 1000 / 500 records of everyone for each delegate | Per-person index sets `dresu:` / `dqu:`; older data indexed on first open |
+| Each pending sign-up, report and health alert read every account to find the organizers | Uses the shared 20 s cached list |
+| Profile could be rewritten without limit; every new intro is re-translated for each reader (translator quota, storage writes) | 40 edits / 10 min |
+| Photos up to 250 KB each in Redis (1000 photos ≈ 330 MB base64, over the database plan) | 120 KB cap (the app sends ~30-60 KB) |
+| With two-step sign-in gone, organizer accounts rely on the password alone | Common / repeated / e-mail-name passwords refused at sign-up; organizers get a push when their account signs in from a new device |
+
+Load test (local, 500 delegates): 0 errors, sync p95 3 ms.

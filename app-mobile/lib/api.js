@@ -70,6 +70,13 @@ async function checkPassword(password, u) {
     return timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(u.passHash, "hex"));
 }
 const DUMMY = hashPassword(randomBytes(12).toString("hex"));
+// Passwords people guess first, and ones that are just the e-mail name.
+const COMMON = new Set(["12345678", "123456789", "1234567890", "password", "password1", "qwertyui", "qwerty123", "11111111", "00000000", "12341234", "abcd1234", "iloveyou", "sifre123", "parola123", "aiesec123", "aiesec2027", "euroxpro", "euroxpro27", "euroxpro2027", "antalya07", "galatasaray", "fenerbahce", "besiktas1903", "trabzonspor"]);
+function weakPassword(password, email) {
+    const p = password.toLowerCase();
+    const name = email.toLowerCase().split("@")[0];
+    return COMMON.has(p) || /^(.)\1+$/.test(p) || (name.length >= 4 && p.includes(name));
+}
 function json(data, status = 200, headers = {}) {
     return new Response(JSON.stringify(data), {
         status,
@@ -401,6 +408,8 @@ route("POST", "auth/register", async ({ req }) => {
     if (await limited("reg:" + clientIp(req), IP_LIMIT.register, 3600))
         throw new HttpError(429, "rate_limited");
     const b = await readJson(req);
+    if (weakPassword(String(b.password || ""), String(b.email || "")))
+        throw new HttpError(400, "password_weak");
     // Bots: a hidden field people never see (bots fill every box), then
     // Cloudflare Turnstile once its keys are set on Vercel.
     if (b.website)
@@ -463,7 +472,7 @@ route("POST", "auth/register", async ({ req }) => {
         // Tell the organizers someone is waiting for them.
         const subject = pushSubject(req);
         background(async () => {
-            const admins = (await allUsers()).filter((x) => x.role === "admin").map((x) => x.id);
+            const admins = await organizerIds();
             if (admins.length)
                 await notify("messages", subject, (p) => ({ title: pt(p, "signup"), body: pt(p, "signupBody", { n: user.name + (user.entity ? ` · ${user.entity}` : "") }), url: "/admin", tag: "signup" }), admins);
         });
@@ -510,6 +519,13 @@ route("POST", "auth/login", async ({ req }) => {
         user.role = "admin";
     const dev = deviceCookie(req, user);
     await saveUser(user);
+    // Organizer accounts can approve and delete everyone: tell the owner when
+    // one of them is signed in from a phone or computer it hasn't used before.
+    if (!known && user.role === "admin" && !user.demo) {
+        const subject = pushSubject(req);
+        const when = new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+        background(() => notify("messages", subject, (p) => ({ title: pt(p, "newLogin"), body: pt(p, "newLoginBody", { t: when }), url: "/profile", tag: "login" }), [user.id]));
+    }
     return startSession(user, 200, [dev]);
 }, true);
 route("POST", "auth/logout", async ({ req }) => {
@@ -538,7 +554,11 @@ route("POST", "auth/logout-all", async ({ user }) => {
 route("GET", "me", ({ user }) => json({ user: me(user) }), "any");
 route("PATCH", "me", async ({ req, user }) => {
     const u = user;
-    const b = await readJson(req, 400 * 1024);
+    // Every new intro is translated for each reader; a script rewriting it
+    // non-stop would burn the translator's quota and storage writes.
+    if (await limited("me:" + u.id, 40, 600))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req, 200 * 1024);
     if (b.photo !== undefined) {
         // The app sends a small square JPEG (resized on the phone) as a data URL.
         if (b.photo === "") {
@@ -548,7 +568,8 @@ route("PATCH", "me", async ({ req, user }) => {
         else {
             const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(b.photo));
             const buf = m ? Buffer.from(m[1], "base64") : null;
-            if (!buf || buf.length > 250 * 1024 || buf[0] !== 0xff || buf[1] !== 0xd8)
+            // The phone sends 320x320 at ~30-60 KB; 120 KB leaves room and keeps 1000 photos well inside the database plan.
+            if (!buf || buf.length > 120 * 1024 || buf[0] !== 0xff || buf[1] !== 0xd8)
                 throw new HttpError(400, "bad_photo");
             await cmd("SET", "dph:" + u.id, m[1]);
             u.photoV = Date.now();
@@ -640,6 +661,9 @@ route("PATCH", "agenda/sessions/([\\w-]+)", async ({ req, user, m }) => {
 // the directory, the team page and the world map all start from it.
 const USERS_MEMO_MS = 20000;
 const listedUsers = () => cached("listed", USERS_MEMO_MS, async () => (await allUsers()).filter(listed));
+// Organizers are always active, so the shared list has them all: a burst of
+// sign-ups or reports doesn't read every account to find whom to notify.
+const organizerIds = async () => (await listedUsers()).filter((x) => x.role === "admin" && !x.demo).map((x) => x.id);
 route("GET", "people", async ({ user }) => {
     const people = (await listedUsers())
         .filter((x) => x.id !== user.id)
@@ -925,7 +949,7 @@ route("POST", "people/([\\w-]+)/report", async ({ req, user, m }) => {
     await pushEvent({ at: Date.now(), type: "report" });
     const subject = pushSubject(req);
     background(async () => {
-        const admins = (await allUsers()).filter((x) => x.role === "admin" && !x.demo).map((x) => x.id);
+        const admins = await organizerIds();
         await notify("messages", subject, (p) => ({ title: pt(p, "report"), body: pt(p, "reportBody", { n: target.name }), url: "/admin/reports", tag: "report" }), admins);
     });
     return json({ ok: true }, 201);
@@ -998,12 +1022,28 @@ route("POST", "announcements/([\\w-]+)/delete", async ({ user, m }) => {
     await pushEvent({ at: Date.now(), type: "announce" });
     return json({ ok: true });
 });
+// ------------------------------------------------------------ own items (requests, reservations)
+// Each delegate's own request and reservation ids sit in a set, so opening
+// those pages reads a few records instead of everyone's (up to 1000 each).
+// The "-" member marks a set as built; older data is indexed on first use.
+async function ownIds(uid, setKey, listKey, prefix, maxScan) {
+    const ids = await cmd("SMEMBERS", setKey + uid);
+    if (ids.length)
+        return ids.filter((x) => x !== "-");
+    const all = await cmd("LRANGE", listKey, 0, maxScan - 1);
+    const recs = all.length ? (await cmd("MGET", ...all.map((x) => prefix + x))).map((r) => parse(r)) : [];
+    const mine = all.filter((x, i) => recs[i]?.uid === uid);
+    await cmd("SADD", setKey + uid, "-", ...mine);
+    return mine;
+}
+async function recordsByIds(prefix, ids) {
+    return ids.length ? (await cmd("MGET", ...ids.map((x) => prefix + x))).map((r) => parse(r)).filter(Boolean) : [];
+}
 // ------------------------------------------------------------ requests and complaints (delegate -> organizers)
 const REQ_KINDS = ["request", "complaint", "lost"];
 route("GET", "requests", async ({ user }) => {
-    const ids = await cmd("LRANGE", "dqids", 0, 499);
-    const all = ids.length ? (await cmd("MGET", ...ids.map((x) => "dq:" + x))).map((r) => parse(r)).filter(Boolean) : [];
-    const mine = user.role === "admin" ? all : all.filter((q) => q.uid === user.id);
+    const ids = user.role === "admin" ? await cmd("LRANGE", "dqids", 0, 499) : await ownIds(user.id, "dqu:", "dqids", "dq:", 500);
+    const mine = (await recordsByIds("dq:", ids)).filter((q) => user.role === "admin" || q.uid === user.id).sort((a, b) => b.at - a.at);
     // Each reader sees text in their language: the request for organizers, the reply for the sender.
     await translatedFields(user, mine.filter((q) => q.uid !== user.id), ["text"]);
     const replies = mine.filter((q) => q.reply).map((q) => ({ q, reply: q.reply, lang: q.replyLang || q.lang }));
@@ -1021,7 +1061,8 @@ route("POST", "requests", async ({ req, user }) => {
     if (text.length < 3)
         throw new HttpError(400, "text_required");
     const q = { id: newId(), uid: user.id, name: user.name, entity: user.entity || "", kind: REQ_KINDS.includes(b.kind) ? b.kind : "request", text, lang: user.lang, at: Date.now(), status: "open", reply: "" };
-    await pipe(["SET", "dq:" + q.id, JSON.stringify(q)], ["LPUSH", "dqids", q.id], ["LTRIM", "dqids", 0, 499]);
+    await ownIds(user.id, "dqu:", "dqids", "dq:", 500); // build the index before adding to it
+    await pipe(["SET", "dq:" + q.id, JSON.stringify(q)], ["LPUSH", "dqids", q.id], ["LTRIM", "dqids", 0, 499], ["SADD", "dqu:" + user.id, q.id]);
     await pushEvent({ at: q.at, type: "request", to: "admins" });
     return json({ request: q }, 201);
 });
@@ -1260,8 +1301,9 @@ async function loadReservations() {
     return ids.length ? (await cmd("MGET", ...ids.map((x) => "dres:" + x))).map((r) => parse(r)).filter(Boolean) : [];
 }
 route("GET", "store", async ({ user }) => {
-    const [products, all] = await Promise.all([loadStore(), loadReservations()]);
-    return json({ products, reservations: user.role === "admin" ? all : all.filter((r) => r.uid === user.id) });
+    const admin = user.role === "admin";
+    const [products, list] = await Promise.all([loadStore(), admin ? loadReservations() : ownIds(user.id, "dresu:", "dresids", "dres:", 1000).then((ids) => recordsByIds("dres:", ids))]);
+    return json({ products, reservations: admin ? list : list.filter((r) => r.uid === user.id).sort((a, b) => b.at - a.at) });
 });
 route("POST", "store/reserve", async ({ req, user }) => {
     if (await limited("res:" + user.id, 10, 3600))
@@ -1281,7 +1323,8 @@ route("POST", "store/reserve", async ({ req, user }) => {
     if (!items.length)
         throw new HttpError(400, "empty");
     const r = { id: newId(), uid: user.id, name: user.name, entity: user.entity || "", items, total: items.reduce((a, x) => a + x.qty * x.price, 0), at: Date.now(), status: "reserved" };
-    await pipe(["SET", "dres:" + r.id, JSON.stringify(r)], ["LPUSH", "dresids", r.id]);
+    await ownIds(user.id, "dresu:", "dresids", "dres:", 1000);
+    await pipe(["SET", "dres:" + r.id, JSON.stringify(r)], ["LPUSH", "dresids", r.id], ["SADD", "dresu:" + user.id, r.id]);
     return json({ reservation: r }, 201);
 });
 route("POST", "store/reservations/([\\w-]+)", async ({ req, user, m }) => {
@@ -1385,9 +1428,9 @@ route("GET", "recap", async ({ user }) => {
 const NOTIFY_KINDS = ["sessions", "changes", "announce", "messages"];
 const notifyPrefs = (u) => Object.fromEntries(NOTIFY_KINDS.map((k) => [k, u.notify?.[k] !== false]));
 const PUSH_TEXT = {
-    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", signup: "Yeni kayıt onay bekliyor", signupBody: "{n} uygulamaya katılmak istiyor.", approved: "Hesabın onaylandı", approvedBody: "EUROXPRO'27'ye hoş geldin! Uygulamayı açabilirsin.", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek.", report: "Yeni bildirim (şikayet)", reportBody: "{n} hakkında bir bildirim geldi." },
-    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", signup: "New sign-up waiting", signupBody: "{n} wants to join the app.", approved: "Your account is approved", approvedBody: "Welcome to EUROXPRO'27! You can open the app now.", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here.", report: "New report", reportBody: "Someone reported {n}." },
-    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", signup: "Nowa rejestracja czeka", signupBody: "{n} chce dołączyć do aplikacji.", approved: "Twoje konto zostało zatwierdzone", approvedBody: "Witamy na EUROXPRO'27! Możesz już otworzyć aplikację.", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości.", report: "Nowe zgłoszenie", reportBody: "Ktoś zgłosił użytkownika {n}." },
+    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", signup: "Yeni kayıt onay bekliyor", signupBody: "{n} uygulamaya katılmak istiyor.", approved: "Hesabın onaylandı", approvedBody: "EUROXPRO'27'ye hoş geldin! Uygulamayı açabilirsin.", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek.", report: "Yeni bildirim (şikayet)", reportBody: "{n} hakkında bir bildirim geldi.", newLogin: "Yeni cihazdan giriş", newLoginBody: "Organizatör hesabına {t} saatinde yeni bir cihazdan girildi. Sen değilsen şifreni değiştir ve Profil > Diğer tüm cihazlardan çık'a dokun." },
+    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", signup: "New sign-up waiting", signupBody: "{n} wants to join the app.", approved: "Your account is approved", approvedBody: "Welcome to EUROXPRO'27! You can open the app now.", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here.", report: "New report", reportBody: "Someone reported {n}.", newLogin: "Sign-in from a new device", newLoginBody: "Your organizer account was signed in from a new device at {t}. If this wasn't you, change your password and tap Profile > Sign out all other devices." },
+    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", signup: "Nowa rejestracja czeka", signupBody: "{n} chce dołączyć do aplikacji.", approved: "Twoje konto zostało zatwierdzone", approvedBody: "Witamy na EUROXPRO'27! Możesz już otworzyć aplikację.", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości.", report: "Nowe zgłoszenie", reportBody: "Ktoś zgłosił użytkownika {n}.", newLogin: "Logowanie z nowego urządzenia", newLoginBody: "Na konto organizatora zalogowano się z nowego urządzenia ({t}). Jeśli to nie Ty, zmień hasło i wybierz Profil > Wyloguj inne urządzenia." },
 };
 const pt = (u, k, vars = {}) => (PUSH_TEXT[u.lang] || PUSH_TEXT.en)[k].replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? "");
 const short = (s, n = 140) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
@@ -1569,8 +1612,8 @@ async function runMonitor(subject, appUrl) {
         if ((await cmd("SET", "dmonal:" + c.id, "1", "EX", 3600, "NX")) === "OK")
             fresh.push(c);
     if (fresh.length) {
-        const admins = (await allUsers()).filter((x) => x.role === "admin" && !x.demo);
-        await notify("messages", subject, (p) => ({ title: monText(p.lang, "title"), body: fresh.map((c) => monText(p.lang, c.id, c.value)).join(" "), url: "/admin/health", tag: "health" }), admins.map((x) => x.id));
+        const admins = await organizerIds();
+        await notify("messages", subject, (p) => ({ title: monText(p.lang, "title"), body: fresh.map((c) => monText(p.lang, c.id, c.value)).join(" "), url: "/admin/health", tag: "health" }), admins);
         if (kind && (await mailQuota(1))) {
             const text = [...fresh.map((c) => "- " + monText("tr", c.id, c.value)), "", ...fresh.map((c) => "- " + monText("en", c.id, c.value)), "", `${appUrl}/admin/health`].join("\n");
             await sendMail({ to: signupRecipients(), subject: MON_TEXT.tr.title, text }).catch((e) => console.error("[monitor mail]", e.message));
@@ -1783,7 +1826,7 @@ route("POST", "admin/users/([\\w-]+)/delete", async ({ user, m }) => {
         throw new HttpError(403, "self");
     if (isOwner(u) && u.role === "admin")
         throw new HttpError(403, "owner");
-    await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id, "dblk:" + u.id, "dblkby:" + u.id, "dpush:" + u.id], ["SREM", "dusers", u.id], ["SREM", "dpushers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
+    await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id, "dblk:" + u.id, "dblkby:" + u.id, "dpush:" + u.id, "dqu:" + u.id, "dresu:" + u.id], ["SREM", "dusers", u.id], ["SREM", "dpushers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
     await pushEvent({ at: Date.now(), type: "users" });
     return json({ ok: true });
 });
@@ -1872,6 +1915,24 @@ function ensureDemo() {
     return demoReady;
 }
 // ------------------------------------------------------------ dispatcher
+// Requests per minute, counted in this server instance's memory (no storage
+// call, so it adds nothing to the hot sync path). A phone in an open chat
+// polls 15 times a minute and swipes at most 120; 300 is far above normal
+// use. Per address the bar is higher: a venue's Wi-Fi shares one.
+const USER_PER_MIN = Number(process.env.RATE_USER_MIN) || 300;
+const IP_PER_MIN = Number(process.env.RATE_IP_MIN) || 600;
+const floodMap = new Map();
+function flooding(key, max) {
+    const now = Date.now();
+    let e = floodMap.get(key);
+    if (!e || now - e.at > 60000) {
+        if (floodMap.size > 50000)
+            floodMap.clear();
+        e = { at: now, n: 0 };
+        floodMap.set(key, e);
+    }
+    return ++e.n > max;
+}
 function sameOrigin(req) {
     // Browsers mark every request with where it came from; only the app's own pages may change things.
     const site = req.headers.get("sec-fetch-site");
@@ -1905,6 +1966,12 @@ export async function handle(req, segments) {
             const user = r.open === true ? null : await currentUser(req);
             if (r.open !== true && !user)
                 return json({ error: "unauthorized" }, 401);
+            // A script hammering the API (one account, or one address without
+            // an account) is cut off here, before it costs storage reads.
+            if (flooding(user ? "u:" + user.id : "ip:" + clientIp(req), user ? USER_PER_MIN : IP_PER_MIN)) {
+                countStat("429");
+                return json({ error: "rate_limited" }, 429, { "retry-after": "30" });
+            }
             // Waiting, suspended and rejected accounts can only see who they are.
             if (user && r.open !== "any" && !isActive(user))
                 return json({ error: "not_approved", status: statusOf(user) }, 403);
