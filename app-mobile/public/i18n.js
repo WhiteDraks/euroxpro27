@@ -1078,6 +1078,40 @@ const T = {
   },
 };
 
+// Built-in names of quest stations, rewards and store products. They are
+// stored in English on the server (organizers may rename them; a renamed
+// item has no entry here and is shown as typed).
+const DATA = {
+  "Welcome Desk": { tr: "Karşılama Masası", pl: "Punkt powitalny" },
+  "Plenary Hall": { tr: "Genel Kurul Salonu", pl: "Sala plenarna" },
+  "Global Village": { tr: "Global Köy", pl: "Globalna Wioska" },
+  "Turkish Culture Corner": { tr: "Türk Kültürü Köşesi", pl: "Kącik kultury tureckiej" },
+  "Partner Expo": { tr: "Partner Fuarı", pl: "Strefa partnerów" },
+  "Merch Corner": { tr: "Ürün Köşesi", pl: "Kącik gadżetów" },
+  "Sunset Terrace": { tr: "Gün Batımı Terası", pl: "Taras o zachodzie słońca" },
+  "Workshop Rooms": { tr: "Atölye Salonları", pl: "Sale warsztatowe" },
+  "Photo Wall": { tr: "Fotoğraf Duvarı", pl: "Ścianka do zdjęć" },
+  "Exchange Hub": { tr: "Exchange Noktası", pl: "Strefa wymiany" },
+  "Gala Night": { tr: "Gala Gecesi", pl: "Wieczór galowy" },
+  "Closing Hall": { tr: "Kapanış Salonu", pl: "Sala zamknięcia" },
+  "Sticker pack": { tr: "Çıkartma paketi", pl: "Zestaw naklejek" },
+  "Limited edition pin": { tr: "Sınırlı sayıda rozet", pl: "Przypinka z limitowanej serii" },
+  "Coffee voucher": { tr: "Kahve kuponu", pl: "Kupon na kawę" },
+  "Conference bracelet": { tr: "Kongre bilekliği", pl: "Bransoletka konferencyjna" },
+  "Culture night keepsake": { tr: "Kültür gecesi hatırası", pl: "Pamiątka z wieczoru kultur" },
+  "EUROXPRO tote bag": { tr: "EUROXPRO bez çanta", pl: "Torba EUROXPRO" },
+  "Wristband · Azure": { tr: "Bileklik · Mavi", pl: "Opaska · Lazurowa" },
+  "Wristband · Coral": { tr: "Bileklik · Mercan", pl: "Opaska · Koralowa" },
+  "Wristband · Seafoam": { tr: "Bileklik · Deniz yeşili", pl: "Opaska · Morska" },
+  "EUROXPRO T-shirt": { tr: "EUROXPRO tişört", pl: "Koszulka EUROXPRO" },
+  "Mediterranean tote bag": { tr: "Akdeniz bez çanta", pl: "Torba śródziemnomorska" },
+  "Enamel pin": { tr: "Emaye rozet", pl: "Emaliowana przypinka" },
+  "Reusable bottle": { tr: "Tekrar kullanılabilir şişe", pl: "Butelka wielorazowa" },
+  Notebook: { tr: "Defter", pl: "Notes" },
+};
+
+export const dataText = (name) => DATA[name]?.[current] || name;
+
 let current = "en";
 
 export function detectLang() {
