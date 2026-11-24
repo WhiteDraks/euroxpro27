@@ -9,9 +9,9 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  burgundy: "bg-[#741F3D]/15 text-[#741F3D] border border-[#741F3D]/20",
-  navy: "bg-[#101B35]/10 text-[#101B35] border border-[#101B35]/20",
-  muted: "bg-[#A7AFBF]/15 text-[#A7AFBF] border border-[#A7AFBF]/20",
+  burgundy: "bg-[#7D1A30]/15 text-[#7D1A30] border border-[#7D1A30]/20",
+  navy: "bg-[#140D0E]/10 text-[#140D0E] border border-[#140D0E]/20",
+  muted: "bg-[#B8A69C]/15 text-[#B8A69C] border border-[#B8A69C]/20",
   success: "bg-green-500/15 text-green-700 border border-green-500/20",
   warning: "bg-amber-500/15 text-amber-700 border border-amber-500/20",
 };
@@ -20,7 +20,7 @@ export function Badge({ children, variant = "burgundy", className }: BadgeProps)
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-sm tracking-wide",
+        "inline-flex items-center px-2 py-0.5 text-xs font-medium rounded",
         variantStyles[variant],
         className
       )}

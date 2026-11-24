@@ -14,7 +14,7 @@ export function AccordionItem({ question, answer, defaultOpen = false }: Accordi
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-b border-[#D9D2C5]">
+    <div className="border-b border-[#CDBDA8]">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between gap-4 py-4 text-left group"
@@ -22,14 +22,14 @@ export function AccordionItem({ question, answer, defaultOpen = false }: Accordi
       >
         <span className={cn(
           "font-medium text-base transition-colors",
-          isOpen ? "text-[#741F3D]" : "text-[#101B35] group-hover:text-[#741F3D]"
+          isOpen ? "text-[#7D1A30]" : "text-[#140D0E] group-hover:text-[#7D1A30]"
         )}>
           {question}
         </span>
         <ChevronDown
           size={18}
           className={cn(
-            "flex-shrink-0 text-[#741F3D] transition-transform duration-200",
+            "flex-shrink-0 text-[#7D1A30] transition-transform duration-200",
             isOpen && "rotate-180"
           )}
         />

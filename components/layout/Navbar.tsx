@@ -8,15 +8,15 @@ import { Menu, X, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/config";
 
+// Grouped the way a delegate thinks: the event, the place, the trip.
+// Home is the logo; Contact sits apart as the one action in the bar.
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/congress", label: "The Congress" },
-  { href: "/team", label: "Team" },
-  { href: "/delegate-guide", label: "Delegate Guide" },
-  { href: "/explore-antalya", label: "Explore Antalya" },
+  { href: "/congress", label: "Congress" },
+  { href: "/explore-antalya", label: "Antalya" },
+  { href: "/delegate-guide", label: "Delegate guide" },
   { href: "/faq", label: "FAQ" },
-  { href: "/announcements", label: "Announcements" },
-  { href: "/contact", label: "Contact" },
+  { href: "/announcements", label: "News" },
+  { href: "/team", label: "Team" },
 ];
 
 export function Navbar() {
@@ -32,9 +32,8 @@ export function Navbar() {
 
   const closeMenu = () => setIsOpen(false);
 
-  // Only the home page has a full-bleed dark hero behind the header; every
-  // other page starts on a light background, so the bar must be solid there.
-  const solid = isScrolled || pathname !== "/";
+  // The bar is always solid navy; it only gains a shadow once scrolled.
+  const solid = isScrolled;
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -46,9 +45,8 @@ export function Navbar() {
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          solid
-            ? "bg-[#101B35] border-b border-white/10"
-            : "bg-transparent"
+          "bg-[#0E0909]",
+          solid ? "shadow-[0_6px_20px_-12px_rgba(0,0,0,0.6)]" : ""
         )}
       >
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,7 +60,7 @@ export function Navbar() {
             >
               <div className="relative h-8 sm:h-9 w-auto flex-shrink-0">
                 <Image
-                  src="/images/euroxpro-logo.png"
+                  src="/images/euroxpro-logo-light.png"
                   alt="EUROXPRO Türkiye"
                   width={130}
                   height={41}
@@ -70,14 +68,11 @@ export function Navbar() {
                   className="h-8 sm:h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
                 />
               </div>
-              <div className="hidden sm:flex lg:hidden xl:flex flex-col border-l border-[#2A3556] pl-2.5 py-0.5">
-                <span className="font-serif-title text-white text-base leading-none">
-                  EUROXPRO<span className="text-[#e58aa6]">&apos;27</span>
-                </span>
-                <span className="text-[#A7AFBF] text-[8.5px] tracking-[0.08em] uppercase leading-none mt-1">
-                  Antalya, Türkiye
-                </span>
-              </div>
+              <span className="hidden sm:block xl:block lg:hidden text-[#D6C8BC] text-xs leading-tight border-l border-[#3A2A2A] pl-3">
+                31.03 – 04.04.2027
+                <br />
+                Antalya, Türkiye
+              </span>
             </Link>
 
             {/* Desktop Nav */}
@@ -87,10 +82,10 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "px-2 xl:px-3 py-2 text-sm whitespace-nowrap transition-colors duration-200 underline-offset-[10px] decoration-2",
+                    "px-2.5 xl:px-3.5 py-2 text-[15px] font-medium whitespace-nowrap transition-colors duration-200 underline-offset-[12px] decoration-[3px]",
                     pathname === link.href
-                      ? "text-white underline decoration-[#e58aa6]"
-                      : "text-[#C9CED8] hover:text-white"
+                      ? "text-white underline decoration-[#7D1A30]"
+                      : "text-[#D6C8BC] hover:text-white"
                   )}
                 >
                   {link.label}
@@ -99,25 +94,35 @@ export function Navbar() {
             </div>
 
             {/* CTA + Mobile Toggle */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/merch"
                 onClick={closeMenu}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-sm transition-all duration-200",
-                  pathname === "/merch"
-                    ? "bg-[#51152D] text-white"
-                    : "bg-[#741F3D] text-white hover:bg-[#51152D]"
+                  "w-10 h-10 flex items-center justify-center rounded-md transition-colors",
+                  pathname === "/merch" ? "bg-[#FBF7F0]/15 text-white" : "text-[#D6C8BC] hover:text-white hover:bg-[#FBF7F0]/10"
                 )}
-                aria-label="Visit the Merch Store"
+                aria-label="Merch store"
+                title="Merch store"
               >
-                <ShoppingBag size={15} />
-                <span className="hidden sm:inline">Merch</span>
+                <ShoppingBag size={18} />
+              </Link>
+              <Link
+                href="/contact"
+                onClick={closeMenu}
+                className={cn(
+                  "hidden sm:inline-flex items-center px-4 py-2 text-sm font-semibold rounded-md border-2 transition-colors",
+                  pathname === "/contact"
+                    ? "bg-[#FBF7F0] text-[#140D0E] border-white"
+                    : "border-white/70 text-white hover:bg-[#FBF7F0] hover:text-[#140D0E]"
+                )}
+              >
+                Contact
               </Link>
 
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="lg:hidden p-2 text-[#A7AFBF] hover:text-white transition-colors"
+                className="lg:hidden p-2 text-[#B8A69C] hover:text-white transition-colors"
                 aria-label={isOpen ? "Close menu" : "Open menu"}
                 aria-expanded={isOpen}
               >
@@ -142,14 +147,14 @@ export function Navbar() {
         />
         <div
           className={cn(
-            "absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-[#101B35] shadow-2xl transition-transform duration-300",
+            "absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-[#140D0E] shadow-2xl transition-transform duration-300",
             isOpen ? "translate-x-0" : "translate-x-full"
           )}
         >
-          <div className="flex items-center justify-between p-5 border-b border-[#2A3556]">
+          <div className="flex items-center justify-between p-5 border-b border-[#3A2A2A]">
             <Link href="/" onClick={closeMenu} className="flex items-center gap-2">
               <Image
-                src="/images/euroxpro-logo.png"
+                src="/images/euroxpro-logo-light.png"
                 alt="EUROXPRO Türkiye"
                 width={128}
                 height={40}
@@ -158,7 +163,7 @@ export function Navbar() {
             </Link>
             <button
               onClick={closeMenu}
-              className="p-1 text-[#A7AFBF] hover:text-white"
+              className="p-1 text-[#B8A69C] hover:text-white"
               aria-label="Close menu"
             >
               <X size={22} />
@@ -172,27 +177,34 @@ export function Navbar() {
                 href={link.href}
                 onClick={closeMenu}
                 className={cn(
-                  "px-1 py-3 font-serif-title text-2xl border-b border-[#2A3556] transition-colors duration-200",
+                  "px-1 py-3 font-serif-title text-3xl border-b border-[#3A2A2A] transition-colors duration-200",
                   pathname === link.href
-                    ? "text-[#e58aa6]"
-                    : "text-white hover:text-[#e58aa6]"
+                    ? "text-[#E0647D]"
+                    : "text-white hover:text-[#E0647D]"
                 )}
               >
                 {link.label}
               </Link>
             ))}
             <Link
+              href="/contact"
+              onClick={closeMenu}
+              className="mt-6 flex items-center justify-center px-4 py-3 bg-[#7D1A30] text-white rounded-md font-semibold"
+            >
+              Contact the committee
+            </Link>
+            <Link
               href="/merch"
               onClick={closeMenu}
-              className="mt-4 flex items-center gap-2 px-4 py-3 bg-[#741F3D] text-white rounded-sm font-medium"
+              className="mt-3 flex items-center justify-center gap-2 px-4 py-3 border-2 border-white/40 text-white rounded-md font-semibold"
             >
               <ShoppingBag size={16} />
-              Merch Store
+              Merch store
             </Link>
           </nav>
 
           <div className="absolute bottom-8 left-5 right-5">
-            <p className="text-[#A7AFBF] text-xs">
+            <p className="text-[#B8A69C] text-xs">
               {siteConfig.name} · Antalya, Türkiye
             </p>
           </div>

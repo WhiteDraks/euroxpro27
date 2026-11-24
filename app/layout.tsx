@@ -5,21 +5,16 @@ import { Footer } from "@/components/layout/Footer";
 import { OfflineSupport } from "@/components/common/OfflineSupport";
 import { siteConfig } from "@/lib/config";
 import { Analytics } from "@vercel/analytics/next";
-import { Fraunces, Instrument_Sans } from "next/font/google";
+import { Archivo } from "next/font/google";
 
 // Fonts are downloaded at build time and served with the site, so they
 // keep working offline and never call Google from the visitor's browser.
-const display = Fraunces({
+// One family, two widths: condensed for headings (airport-signage feel),
+// normal width for reading.
+const archivo = Archivo({
   subsets: ["latin", "latin-ext"],
-  style: ["normal", "italic"],
-  axes: ["opsz", "SOFT"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-const body = Instrument_Sans({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-body",
+  axes: ["wdth"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -57,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`}>
+    <html lang="en" className={archivo.variable}>
       <body className="min-h-screen flex flex-col antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>

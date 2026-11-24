@@ -17,8 +17,8 @@ export default async function AdminPage() {
   if (!isAdminConfigured()) {
     return (
       <div className="pt-28 pb-20 px-4">
-        <div className="max-w-xl mx-auto bg-white border border-[#E5E1DA] rounded-sm p-8 space-y-3 text-sm text-[#374151]">
-          <h1 className="font-serif-title text-2xl text-[#101B35]">İçerik editörü henüz kurulmadı</h1>
+        <div className="max-w-xl mx-auto bg-white border border-[#DCCFBE] rounded-sm p-8 space-y-3 text-sm text-[#374151]">
+          <h1 className="font-serif-title text-2xl text-[#140D0E]">İçerik editörü henüz kurulmadı</h1>
           <p>
             Editörü açmak için sunucuda <code className="font-mono">ADMIN_PASSWORD</code> ortam değişkenini
             ayarlayın (Vercel → Project → Settings → Environment Variables). Kurulum adımları README dosyasında.
@@ -43,7 +43,7 @@ export default async function AdminPage() {
   return (
     <div className="pt-28 pb-20 px-4">
       <div className="max-w-xl mx-auto bg-white border border-red-200 rounded-sm p-8 space-y-3 text-sm text-[#374151]">
-        <h1 className="font-serif-title text-2xl text-[#101B35]">İçerik yüklenemedi</h1>
+        <h1 className="font-serif-title text-2xl text-[#140D0E]">İçerik yüklenemedi</h1>
         <p>
           GitHub&apos;dan içerik okunamadı. <code className="font-mono">GITHUB_TOKEN</code>,{" "}
           <code className="font-mono">GITHUB_REPO</code> ve <code className="font-mono">GITHUB_BRANCH</code> ayarlarını

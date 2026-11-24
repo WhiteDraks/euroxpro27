@@ -20,14 +20,14 @@ export function SectionHeader({
   return (
     <div className={cn("mb-12", centered && "text-center", className)}>
       {eyebrow && (
-        <p className={cn("kicker mb-4", light && "text-[#e58aa6]")}>
+        <p className={cn("kicker mb-4", light && "text-[#E0647D]")}>
           {eyebrow}
         </p>
       )}
       <h2
         className={cn(
-          "font-serif-title font-normal text-[2rem] md:text-5xl lg:text-[3.5rem] leading-[1.05]",
-          light ? "text-white" : "text-[#101B35]"
+          "font-serif-title text-[2.1rem] md:text-5xl lg:text-[3.6rem] leading-[1.02]",
+          light ? "text-white" : "text-[#140D0E]"
         )}
       >
         {title}
@@ -36,7 +36,7 @@ export function SectionHeader({
         <p
           className={cn(
             "mt-4 text-base md:text-lg leading-relaxed max-w-2xl",
-            light ? "text-[#C9CED8]" : "text-[#4B5563]",
+            light ? "text-[#D6C8BC]" : "text-[#4B5563]",
             centered && "mx-auto"
           )}
         >

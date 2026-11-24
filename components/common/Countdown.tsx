@@ -26,7 +26,7 @@ export function Countdown({ start, end, labels }: { start: string; end: string; 
 
   if (now !== null && now >= startAt) {
     return (
-      <p className="font-serif-title italic text-xl text-white">
+      <p className="text-sm font-semibold text-[#E0647D]">
         {now < endAt ? labels.liveText : labels.endedText}
       </p>
     );
@@ -41,15 +41,15 @@ export function Countdown({ start, end, labels }: { start: string; end: string; 
   ];
 
   return (
-    <div role="timer" aria-label={labels.label}>
-      <p className="text-xs text-white/70 mb-2">{labels.label}</p>
-      <div className="flex items-baseline gap-4 sm:gap-6 lg:justify-end">
+    <div role="timer" aria-label={labels.label} className="sm:text-right">
+      <p className="text-xs text-[#A8968D] mb-1">{labels.label}</p>
+      <div className="flex items-baseline gap-3 sm:justify-end">
         {units.map(({ label, value }, i) => (
-          <div key={i} className="flex items-baseline gap-1.5">
-            <span className="font-serif-title text-2xl sm:text-3xl text-white tabular-nums leading-none">
+          <div key={i} className="flex items-baseline gap-1">
+            <span className="text-lg sm:text-xl font-semibold text-white tabular-nums leading-none">
               {value === null ? "--" : i === 0 ? value : String(value).padStart(2, "0")}
             </span>
-            <span className="text-xs text-white/70">{label}</span>
+            <span className="text-[11px] text-[#A8968D]">{label}</span>
           </div>
         ))}
       </div>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 
 export default function NotFound() {
   return (
-    <div className="min-h-[80vh] bg-[#F7F3ED] text-[#101B35] pt-32 sm:pt-40 pb-24">
+    <div className="min-h-[80vh] bg-[#F4EDE2] text-[#140D0E] pt-32 sm:pt-40 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="kicker mb-4">Page not found</p>
         <h1 className="font-serif-title font-normal text-5xl sm:text-7xl leading-[1] max-w-3xl">

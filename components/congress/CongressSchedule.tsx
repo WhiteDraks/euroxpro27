@@ -9,20 +9,20 @@ const sessionTypeConfig = {
   plenary: { icon: Presentation, color: "text-blue-400", bg: "bg-blue-500/10", label: "Plenary" },
   workshop: { icon: Users, color: "text-green-400", bg: "bg-green-500/10", label: "Workshop" },
   networking: { icon: Users, color: "text-purple-400", bg: "bg-purple-500/10", label: "Networking" },
-  social: { icon: PartyPopper, color: "text-[#e58aa6]", bg: "bg-[#741F3D]/20", label: "Social" },
+  social: { icon: PartyPopper, color: "text-[#E0647D]", bg: "bg-[#7D1A30]/20", label: "Social" },
   break: { icon: Coffee, color: "text-amber-400", bg: "bg-amber-500/10", label: "Break" },
-  logistics: { icon: Truck, color: "text-[#A7AFBF]", bg: "bg-white/5", label: "Logistics" },
+  logistics: { icon: Truck, color: "text-[#B8A69C]", bg: "bg-[#FBF7F0]/5", label: "Logistics" },
 };
 
 function SessionCard({ session }: { session: ScheduleSession }) {
   const config = sessionTypeConfig[session.type] || sessionTypeConfig.plenary;
   const Icon = config.icon;
   return (
-    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 py-5 border-b border-[#2A3556] last:border-0">
+    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 py-5 border-b border-[#3A2A2A] last:border-0">
       <div className="sm:w-32 flex-shrink-0">
-        <span className="text-[#A7AFBF] text-sm">{session.time}</span>
+        <span className="text-[#B8A69C] text-sm">{session.time}</span>
         {session.endTime && (
-          <span className="block text-[#A7AFBF]/50 text-xs">{session.endTime}</span>
+          <span className="block text-[#B8A69C]/50 text-xs">{session.endTime}</span>
         )}
       </div>
       <div className="flex gap-3 sm:gap-4 flex-1 min-w-0">
@@ -37,21 +37,21 @@ function SessionCard({ session }: { session: ScheduleSession }) {
             </span>
           </div>
           {session.description && (
-            <p className="text-[#A7AFBF] text-sm mt-2 leading-relaxed">{session.description}</p>
+            <p className="text-[#B8A69C] text-sm mt-2 leading-relaxed">{session.description}</p>
           )}
           <div className="flex flex-wrap items-center gap-3 mt-2">
             {session.location && (
-              <span className="flex items-center gap-1 text-[#A7AFBF] text-xs">
+              <span className="flex items-center gap-1 text-[#B8A69C] text-xs">
                 <MapPin size={11} /> {session.location}
               </span>
             )}
             {session.speaker && (
-              <span className="flex items-center gap-1 text-[#A7AFBF] text-xs">
+              <span className="flex items-center gap-1 text-[#B8A69C] text-xs">
                 <User size={11} /> {session.speaker}
               </span>
             )}
             {session.dressCode && (
-              <span className="text-xs text-[#e58aa6] font-medium">
+              <span className="text-xs text-[#E0647D] font-medium">
                 Dress: {session.dressCode}
               </span>
             )}
@@ -77,8 +77,8 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
             className={cn(
               "px-5 py-2.5 text-sm font-medium rounded-sm transition-all duration-200",
               activeDay === index
-                ? "bg-[#741F3D] text-white"
-                : "bg-[#172443] text-[#A7AFBF] hover:text-white border border-[#2A3556]"
+                ? "bg-[#7D1A30] text-white"
+                : "bg-[#1F1415] text-[#B8A69C] hover:text-white border border-[#3A2A2A]"
             )}
           >
             <span className="block text-xs font-normal opacity-70">Day {day.day}</span>
@@ -89,16 +89,16 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
 
       {/* Day Content */}
       {currentDay && (
-        <div className="bg-[#172443] border border-[#2A3556] rounded-sm p-4 sm:p-8">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#2A3556]">
+        <div className="bg-[#1F1415] border border-[#3A2A2A] rounded-sm p-4 sm:p-8">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#3A2A2A]">
             <div>
-              <span className="text-[11px] uppercase tracking-[0.08em] text-[#741F3D] block mb-1">
+              <span className="text-[11px] text-[#7D1A30] block mb-1">
                 Day {currentDay.day} Focus
               </span>
               <h3 className="font-serif-title text-white text-2xl font-normal">{currentDay.label}</h3>
-              <p className="text-[#A7AFBF] text-xs mt-1">{currentDay.date}</p>
+              <p className="text-[#B8A69C] text-xs mt-1">{currentDay.date}</p>
             </div>
-            <Clock size={18} className="text-[#741F3D]" />
+            <Clock size={18} className="text-[#7D1A30]" />
           </div>
           <div>
             {currentDay.sessions.map((session) => (
@@ -106,9 +106,9 @@ export function CongressSchedule({ days }: { days: ScheduleDay[] }) {
             ))}
           </div>
 
-          <div className="mt-8 pt-4 border-t border-[#2A3556] flex items-center justify-between text-[11px] text-[#8F9AA0]">
+          <div className="mt-8 pt-4 border-t border-[#3A2A2A] flex items-center justify-between text-[11px] text-[#8C7A72]">
             <span>Times and flow subject to minor operational adjustments</span>
-            <span className="text-[#A7AFBF]">Antalya Local Time (UTC+3)</span>
+            <span className="text-[#B8A69C]">Antalya Local Time (UTC+3)</span>
           </div>
         </div>
       )}

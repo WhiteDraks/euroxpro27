@@ -27,49 +27,49 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
   };
 
   return (
-    <div className="pb-20 sm:pb-28 bg-[#F7F3ED]">
+    <div className="pb-20 sm:pb-28 bg-[#F4EDE2]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           {/* Contact Details */}
           <div>
-            <p className="font-serif-title text-2xl sm:text-3xl leading-snug text-[#101B35] max-w-md">
+            <p className="font-serif-title text-2xl sm:text-3xl leading-snug text-[#140D0E] max-w-md">
               The quickest way to reach us is by email. We usually reply within a few working days.
             </p>
-            <dl className="mt-10 border-b border-[#101B35]">
-              <div className="border-t border-[#101B35] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
-                <dt className="text-sm text-[#5A6478]">Email</dt>
+            <dl className="mt-10 border-b border-[#140D0E]">
+              <div className="border-t border-[#140D0E] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                <dt className="text-sm text-[#6B5B55]">Email</dt>
                 <dd>
-                  <a href={`mailto:${config.contactEmail}`} className="font-serif-title text-xl sm:text-2xl text-[#741F3D] link-underline break-all">
+                  <a href={`mailto:${config.contactEmail}`} className="font-serif-title text-xl sm:text-2xl text-[#7D1A30] link-underline break-all">
                     {config.contactEmail}
                   </a>
-                  <p className="text-sm text-[#5A6478] mt-1">General questions and partnerships</p>
+                  <p className="text-sm text-[#6B5B55] mt-1">General questions and partnerships</p>
                 </dd>
               </div>
-              <div className="border-t border-[#D9D2C5] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
-                <dt className="text-sm text-[#5A6478]">Hosted by</dt>
-                <dd className="text-base text-[#101B35]">AIESEC in Türkiye, Antalya</dd>
+              <div className="border-t border-[#CDBDA8] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                <dt className="text-sm text-[#6B5B55]">Hosted by</dt>
+                <dd className="text-base text-[#140D0E]">AIESEC in Türkiye, Antalya</dd>
               </div>
               {(config.social.instagram || config.social.linkedin) && (
-                <div className="border-t border-[#D9D2C5] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
-                  <dt className="text-sm text-[#5A6478]">Follow</dt>
+                <div className="border-t border-[#CDBDA8] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                  <dt className="text-sm text-[#6B5B55]">Follow</dt>
                   <dd className="flex gap-6 text-base">
                     {config.social.instagram && (
-                      <a href={config.social.instagram} target="_blank" rel="noopener noreferrer" className="text-[#101B35] link-underline hover:text-[#741F3D]">
+                      <a href={config.social.instagram} target="_blank" rel="noopener noreferrer" className="text-[#140D0E] link-underline hover:text-[#7D1A30]">
                         Instagram
                       </a>
                     )}
                     {config.social.linkedin && (
-                      <a href={config.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#101B35] link-underline hover:text-[#741F3D]">
+                      <a href={config.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#140D0E] link-underline hover:text-[#7D1A30]">
                         LinkedIn
                       </a>
                     )}
                   </dd>
                 </div>
               )}
-              <div className="border-t border-[#D9D2C5] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
-                <dt className="text-sm text-[#5A6478]">The team</dt>
+              <div className="border-t border-[#CDBDA8] py-5 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-6">
+                <dt className="text-sm text-[#6B5B55]">The team</dt>
                 <dd>
-                  <Link href="/team" className="inline-flex items-center gap-2 text-base text-[#101B35] link-underline hover:text-[#741F3D]">
+                  <Link href="/team" className="inline-flex items-center gap-2 text-base text-[#140D0E] link-underline hover:text-[#7D1A30]">
                     Meet the Organizing Committee <ArrowRight size={15} />
                   </Link>
                 </dd>
@@ -78,9 +78,9 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
           </div>
 
           {/* Form */}
-          <div className="bg-white p-6 sm:p-8">
-            <h3 className="font-serif-title font-normal text-2xl text-[#101B35] mb-2">Send a Message</h3>
-            <p className="text-xs text-[#5A6478] mb-6">
+          <div className="bg-[#FBF7F0] p-6 sm:p-8">
+            <h3 className="font-serif-title font-normal text-2xl text-[#140D0E] mb-2">Send a Message</h3>
+            <p className="text-xs text-[#6B5B55] mb-6">
               Select the appropriate department so your inquiry is routed directly to the responsible team lead.
             </p>
 
@@ -89,10 +89,10 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
                 <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check size={24} />
                 </div>
-                <h4 className="font-serif-title font-normal text-lg text-[#101B35] mb-2">Almost done</h4>
-                <p className="text-xs text-[#5A6478] leading-relaxed mb-6">
+                <h4 className="font-serif-title font-normal text-lg text-[#140D0E] mb-2">Almost done</h4>
+                <p className="text-xs text-[#6B5B55] leading-relaxed mb-6">
                   Thank you, {formData.name}. Your email app should have opened with your message ready to send. Press send there to reach the Organizing Committee, or write to{" "}
-                  <a href={`mailto:${config.contactEmail}`} className="text-[#741F3D] font-semibold">{config.contactEmail}</a> directly.
+                  <a href={`mailto:${config.contactEmail}`} className="text-[#7D1A30] font-semibold">{config.contactEmail}</a> directly.
                 </p>
                 <Button variant="outline" size="sm" onClick={() => setStatus("idle")}>
                   Submit Another Inquiry
@@ -102,36 +102,36 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#101B35] mb-1">Your Name</label>
+                    <label className="block text-xs font-semibold text-[#140D0E] mb-1">Your Name</label>
                     <input
                       type="text"
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="Jane Doe"
-                      className="w-full text-xs px-3 py-2 border border-[#E3E0DC] rounded-sm focus:outline-none focus:border-[#741F3D]"
+                      className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#101B35] mb-1">Your Email</label>
+                    <label className="block text-xs font-semibold text-[#140D0E] mb-1">Your Email</label>
                     <input
                       type="email"
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="jane@example.com"
-                      className="w-full text-xs px-3 py-2 border border-[#E3E0DC] rounded-sm focus:outline-none focus:border-[#741F3D]"
+                      className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#101B35] mb-1">Department</label>
+                    <label className="block text-xs font-semibold text-[#140D0E] mb-1">Department</label>
                     <select
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full text-xs px-3 py-2 border border-[#E3E0DC] rounded-sm focus:outline-none focus:border-[#741F3D] bg-white"
+                      className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30] bg-[#FBF7F0]"
                     >
                       <option value="general">General Inquiries</option>
                       <option value="logistics">Logistics &amp; Travel</option>
@@ -140,27 +140,27 @@ export function ContactSection({ config }: { config: typeof siteConfig }) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#101B35] mb-1">Subject</label>
+                    <label className="block text-xs font-semibold text-[#140D0E] mb-1">Subject</label>
                     <input
                       type="text"
                       required
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       placeholder="e.g. Visa Support Request"
-                      className="w-full text-xs px-3 py-2 border border-[#E3E0DC] rounded-sm focus:outline-none focus:border-[#741F3D]"
+                      className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#101B35] mb-1">Message</label>
+                  <label className="block text-xs font-semibold text-[#140D0E] mb-1">Message</label>
                   <textarea
                     rows={4}
                     required
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="Provide details about your query..."
-                    className="w-full text-xs px-3 py-2 border border-[#E3E0DC] rounded-sm focus:outline-none focus:border-[#741F3D]"
+                    className="w-full text-xs px-3 py-2 border border-[#DCCFBE] rounded-sm focus:outline-none focus:border-[#7D1A30]"
                   />
                 </div>
 

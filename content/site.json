@@ -6,14 +6,14 @@
       "eyebrow": "AIESEC in Europe's regional conference, hosted by AIESEC in Türkiye",
       "titleLine1": "Where Europe meets",
       "titleLine2": "the Mediterranean.",
-      "supportingLine": "One region. Different realities. A shared ambition to create more global opportunities.",
+      "supportingLine": "Five days in Antalya for the people who run AIESEC across Europe. Plans for the year get made here, and so do friendships.",
       "themeNote": "Working theme, not yet confirmed",
       "primaryButton": "About the congress",
-      "secondaryButton": "Delegate handbook",
-      "tertiaryButton": "Discover Antalya"
+      "secondaryButton": "Get ready to travel",
+      "photoCaption": "Kaleiçi and the old Roman harbour, a ten-minute walk from the city centre."
     },
     "countdown": {
-      "label": "Until we open in Antalya",
+      "label": "Until the opening plenary",
       "daysLabel": "Days",
       "hoursLabel": "Hours",
       "minutesLabel": "Minutes",
@@ -21,36 +21,31 @@
       "liveText": "EUROXPRO'27 is happening now in Antalya",
       "endedText": "Thank you for joining EUROXPRO'27 in Antalya"
     },
-    "bulletin": {
-      "label": "Latest",
-      "linkText": "Read more"
+    "news": {
+      "title": "From the organizing committee",
+      "linkText": "All announcements"
     },
     "dimensions": {
-      "eyebrow": "What EUROXPRO is",
-      "title": "Five days of work, ideas and friendship by the sea",
-      "intro": "EUROXPRO is where the people running AIESEC across Europe sit down together. It is a working conference first: plans get made, partnerships get signed. And because it is in Antalya this year, there will be sea air and long dinners too.",
+      "title": "What EUROXPRO is",
+      "intro": "Once a year, the national and local leaders of AIESEC in Europe meet for a week. It is a working conference: entities agree on priorities, sign partnerships and plan how to send more young people abroad. In 2027 that week happens on the Turkish coast.",
       "items": [
         {
-          "label": "Purpose",
-          "title": "Stronger AIESEC in Europe",
-          "text": "National and local leaders agree on shared priorities and work out how to send more young people abroad through *Global Volunteer, Global Talent* and *Global Teacher*."
+          "title": "For the people running AIESEC",
+          "text": "Member Committee boards, local committee presidents, team leaders and alumni from more than 50 entities."
         },
         {
-          "label": "Place",
-          "title": "Antalya, between sea and mountains",
-          "text": "An old harbour town under the Taurus mountains. Kaleiçi's narrow streets, Roman gates and cliffs over the water are a short walk from each other."
+          "title": "Built around exchange",
+          "text": "Most sessions are about growing *Global Volunteer, Global Talent* and *Global Teacher*: more experiences, and better ones."
         },
         {
-          "label": "People",
-          "title": "Hundreds of young leaders, one table",
-          "text": "Delegates from more than 50 countries, hosted the Turkish way: generous food, late conversations and friendships that outlast the week."
+          "title": "Hosted the Turkish way",
+          "text": "Long dinners, tea at every break, a gala night with folk dance. AIESEC in Türkiye has hosted Europe before and knows how to look after a crowd."
         }
       ]
     },
     "pillars": {
-      "eyebrow": "The programme",
-      "title": "What happens during the week",
-      "intro": "The full agenda comes later. These are the four things the week is built around.",
+      "title": "What the week is built around",
+      "intro": "The detailed agenda is published closer to March. These four things will fill most of it.",
       "items": [
         {
           "title": "Regional alignment",
@@ -71,60 +66,54 @@
       ]
     },
     "destination": {
-      "eyebrow": "The host city",
-      "title": "Antalya",
-      "intro": "Orange trees, a Roman harbour and a long pebble beach facing snow on the mountains. Most of the city's best corners are within walking distance of each other.",
-      "buttonText": "Read the full Antalya guide",
+      "title": "Antalya, between the sea and the Taurus",
+      "intro": "Orange trees in the streets, a Roman harbour, cliffs dropping into turquoise water and snow on the mountains across the bay. Most of it is walking distance from the old town.",
+      "buttonText": "Read the Antalya guide",
       "items": [
         {
           "image": "https://images.unsplash.com/photo-1654162148114-a04db0a49616?auto=format&fit=crop&w=800&q=80",
           "imageAlt": "Kaleiçi clock tower and old town rooftops, Antalya",
-          "label": "Historic Walled Quarter",
           "title": "Kaleiçi & Roman Marina",
           "text": "Ottoman houses and old stone walls around the little harbour where fishing boats still tie up."
         },
         {
           "image": "https://images.unsplash.com/photo-1673011732639-c717f5650456?auto=format&fit=crop&w=800&q=80",
           "imageAlt": "Lower Düden Waterfall pouring into the Mediterranean, Antalya",
-          "label": "Natural Wonder",
           "title": "Düden Coastal Cascades",
           "text": "The Düden river drops about 40 metres off the cliffs straight into the sea. Best at sunset."
         },
         {
           "image": "https://images.unsplash.com/photo-1768123678872-b6a826b7bac5?auto=format&fit=crop&w=800&q=80",
           "imageAlt": "Antalya old harbor with the Taurus Mountains behind",
-          "label": "Harbor & Mountain Panorama",
           "title": "Old Harbor & Taurus Range",
           "text": "Boats in the old harbour, with the limestone peaks of the Taurus range across the bay."
         }
       ]
     },
     "delegatePrep": {
-      "eyebrow": "Before you travel",
-      "title": "Getting ready for Antalya",
-      "text": "Visa rules and the e-Visa link, how to get in from the airport, money, phones and a packing list you can tick off as you go.",
-      "primaryButton": "Read the delegate handbook",
-      "secondaryButton": "Open the packing list"
+      "title": "Before you fly",
+      "text": "Check if you need a visa, plan how to get from the airport, sort out money and a SIM card, and tick off the packing list.",
+      "primaryButton": "Delegate guide",
+      "secondaryButton": "Packing list",
+      "tertiaryButton": "Airport, hotel and visa"
     },
     "merch": {
-      "eyebrow": "Merch",
-      "title": "Something to take home",
+      "title": "Congress merch",
       "linkText": "See all items",
       "badge": "sample design",
       "itemLinkText": "Pre-order →"
     },
     "closing": {
-      "eyebrow": "Questions?",
-      "title": "Ask us anything about the congress",
-      "text": "Member Committees, local presidents, partners: if something isn't clear, write to the Organizing Committee and we'll help.",
+      "title": "Something not clear?",
+      "text": "Member Committees, local presidents and partners can write to the organizing committee directly. Most questions are already answered in the FAQ.",
       "primaryButton": "Contact the committee",
       "secondaryButton": "Read the FAQ"
     }
   },
   "congress": {
     "hero": {
-      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=2000&q=80",
-      "imageAlt": "International congress auditorium in session",
+      "image": "https://images.unsplash.com/photo-1768123678872-b6a826b7bac5?auto=format&fit=crop&w=2000&q=80",
+      "imageAlt": "Antalya's old harbour with the Taurus Mountains across the bay",
       "eyebrow": "The congress",
       "title": "About EUROXPRO'27",
       "intro": "Five days in Antalya for the people who run AIESEC across Europe: national boards, local presidents, team leaders and alumni. Hosted by AIESEC in Türkiye.",

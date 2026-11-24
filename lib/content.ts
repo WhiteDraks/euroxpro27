@@ -26,7 +26,7 @@ export type SiteContent = {
       themeNote: string;
       primaryButton: string;
       secondaryButton: string;
-      tertiaryButton: string;
+      photoCaption: string;
     };
     countdown: {
       label: string;
@@ -37,24 +37,22 @@ export type SiteContent = {
       liveText: string;
       endedText: string;
     };
-    bulletin: { label: string; linkText: string };
+    news: { title: string; linkText: string };
     dimensions: {
-      eyebrow: string;
       title: string;
       intro: string;
-      items: { label: string; title: string; text: string }[];
+      items: { title: string; text: string }[];
     };
-    pillars: { eyebrow: string; title: string; intro: string; items: TitledText[] };
+    pillars: { title: string; intro: string; items: TitledText[] };
     destination: {
-      eyebrow: string;
       title: string;
       intro: string;
       buttonText: string;
-      items: { image: string; imageAlt: string; label: string; title: string; text: string }[];
+      items: { image: string; imageAlt: string; title: string; text: string }[];
     };
-    delegatePrep: { eyebrow: string; title: string; text: string; primaryButton: string; secondaryButton: string };
-    merch: { eyebrow: string; title: string; linkText: string; badge: string; itemLinkText: string };
-    closing: { eyebrow: string; title: string; text: string; primaryButton: string; secondaryButton: string };
+    delegatePrep: { title: string; text: string; primaryButton: string; secondaryButton: string; tertiaryButton: string };
+    merch: { title: string; linkText: string; badge: string; itemLinkText: string };
+    closing: { title: string; text: string; primaryButton: string; secondaryButton: string };
   };
   congress: {
     hero: {

@@ -54,7 +54,7 @@ export default async function OpengraphImage() {
 
   const png = await new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: "#101B35" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: "#140D0E" }}>
         {photo && (
           <img src={photo} alt="" width={size.width} height={size.height} style={{ position: "absolute", top: 0, left: 0 }} />
         )}
@@ -84,11 +84,11 @@ export default async function OpengraphImage() {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1, display: "flex", flexDirection: "column" }}>
               <span>{hero.titleLine1}</span>
-              <span style={{ color: "#F2B8CA" }}>{hero.titleLine2}</span>
+              <span style={{ color: "#E0647D" }}>{hero.titleLine2}</span>
             </div>
             <div style={{ display: "flex", gap: 16, marginTop: 36, fontSize: 28 }}>
-              <span style={{ background: "#741F3D", padding: "10px 20px", borderRadius: 4 }}>{siteConfig.datesLabel}</span>
-              <span style={{ background: "rgba(23,36,67,0.9)", border: "1px solid #233152", padding: "10px 20px", borderRadius: 4 }}>
+              <span style={{ background: "#7D1A30", padding: "10px 20px", borderRadius: 4 }}>{siteConfig.datesLabel}</span>
+              <span style={{ background: "rgba(23,36,67,0.9)", border: "1px solid #3A2A2A", padding: "10px 20px", borderRadius: 4 }}>
                 {siteConfig.venueCity}
               </span>
             </div>

@@ -7,17 +7,17 @@ interface CardProps {
 }
 
 const variantStyles = {
-  white: "bg-white border border-[#E3E0DC]",
-  ivory: "bg-[#F7F3ED] border border-[#E3E0DC]",
-  navy: "bg-[#172443] border border-[#2A3556] text-[#F7F3ED]",
-  outlined: "bg-transparent border border-[#E3E0DC]",
+  white: "bg-[#FBF7F0] border border-[#DCCFBE]",
+  ivory: "bg-[#F4EDE2] border border-[#DCCFBE]",
+  navy: "bg-[#1F1415] border border-[#3A2A2A] text-[#F4EDE2]",
+  outlined: "bg-transparent border border-[#DCCFBE]",
 };
 
 export function Card({ children, className, variant = "white" }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-[8px] overflow-hidden",
+        "rounded-lg overflow-hidden",
         variantStyles[variant],
         className
       )}

@@ -7,7 +7,7 @@ import { content } from "@/lib/content";
 export function PreviousEditions() {
   const text = content.previousEditions;
   return (
-    <section className="py-20 sm:py-28 bg-[#F7F3ED] text-[#101B35]">
+    <section className="py-20 sm:py-28 bg-[#F4EDE2] text-[#140D0E]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="reveal grid lg:grid-cols-12 gap-6 lg:gap-12 items-end mb-10 sm:mb-14">
           <div className="lg:col-span-7">
@@ -21,7 +21,7 @@ export function PreviousEditions() {
           </p>
         </div>
 
-        <div className="border-b border-[#101B35]">
+        <div className="border-b border-[#140D0E]">
           {historicalEditions.map((edition) => {
             const place = edition.location === edition.country ? edition.country : `${edition.location}, ${edition.country}`;
             const figures = [
@@ -32,14 +32,14 @@ export function PreviousEditions() {
             return (
               <article
                 key={edition.year}
-                className="reveal grid md:grid-cols-12 gap-x-8 lg:gap-x-12 gap-y-5 border-t border-[#101B35] py-8 sm:py-12"
+                className="reveal grid md:grid-cols-12 gap-x-8 lg:gap-x-12 gap-y-5 border-t border-[#140D0E] py-8 sm:py-12"
               >
                 <div className="md:col-span-3">
                   <p className="font-serif-title text-6xl sm:text-7xl leading-none tabular-nums">{edition.year}</p>
                   <p className="mt-3 text-sm text-[#4B5563]">{place}</p>
                 </div>
 
-                <div className="md:col-span-4 relative aspect-[3/2] overflow-hidden bg-[#101B35]">
+                <div className="md:col-span-4 relative aspect-[3/2] overflow-hidden bg-[#140D0E]">
                   <Image
                     src={edition.image}
                     alt={`EUROXPRO ${edition.year} in ${place}`}
@@ -56,12 +56,12 @@ export function PreviousEditions() {
                       &ldquo;{edition.theme}&rdquo;
                     </h3>
                   )}
-                  <p className="mt-2 text-sm font-semibold text-[#741F3D]">{figures.join(" · ")}</p>
+                  <p className="mt-2 text-sm font-semibold text-[#7D1A30]">{figures.join(" · ")}</p>
                   <p className="mt-3 text-base text-[#4B5563] leading-relaxed">{edition.summary}</p>
                   {edition.highlights.length > 0 && (
                     <ul className="mt-4 space-y-1.5 text-sm text-[#374151]">
                       {edition.highlights.map((h, i) => (
-                        <li key={i} className="pl-4 relative before:content-['–'] before:absolute before:left-0 before:text-[#741F3D]">
+                        <li key={i} className="pl-4 relative before:content-['–'] before:absolute before:left-0 before:text-[#7D1A30]">
                           {h}
                         </li>
                       ))}
@@ -74,7 +74,7 @@ export function PreviousEditions() {
         </div>
 
         {text.disclaimer && (
-          <p className="mt-6 text-xs text-[#5A6478] leading-relaxed max-w-3xl">{text.disclaimer}</p>
+          <p className="mt-6 text-xs text-[#6B5B55] leading-relaxed max-w-3xl">{text.disclaimer}</p>
         )}
       </div>
     </section>

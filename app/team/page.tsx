@@ -29,10 +29,10 @@ export default function TeamPage() {
     <div className="pt-16 lg:pt-20">
       <PageHero eyebrow={hero.eyebrow} title={hero.title} intro={hero.intro} />
 
-      <section className="pb-20 sm:pb-28 bg-[#F7F3ED]">
+      <section className="pb-20 sm:pb-28 bg-[#F4EDE2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {hasPlaceholders && notice && (
-            <p className="mb-10 text-sm text-[#5A6478] italic">{notice}</p>
+            <p className="mb-10 text-sm text-[#6B5B55] italic">{notice}</p>
           )}
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-12">
@@ -40,7 +40,7 @@ export default function TeamPage() {
               const name = member.name.trim();
               return (
                 <article key={i} className="reveal flex flex-col group">
-                  <div className="aspect-square relative overflow-hidden bg-[#E6DED1]">
+                  <div className="aspect-square relative overflow-hidden bg-[#E5D8C5]">
                     {member.image ? (
                       <Image
                         src={member.image}
@@ -52,26 +52,26 @@ export default function TeamPage() {
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="font-serif-title italic text-6xl sm:text-8xl text-[#101B35]/20">
+                        <span className="font-serif-title italic text-6xl sm:text-8xl text-[#140D0E]/20">
                           {name ? initials(name) : member.department.charAt(0)}
                         </span>
                       </div>
                     )}
                   </div>
-                  <p className="mt-4 text-xs text-[#741F3D] font-semibold">{member.department}</p>
-                  <h2 className="font-serif-title font-normal text-xl sm:text-2xl text-[#101B35] mt-1 leading-snug">
-                    {name || <span className="italic text-[#8F9AA0]">{comingSoonLabel}</span>}
+                  <p className="mt-4 text-xs text-[#7D1A30] font-semibold">{member.department}</p>
+                  <h2 className="font-serif-title font-normal text-xl sm:text-2xl text-[#140D0E] mt-1 leading-snug">
+                    {name || <span className="italic text-[#8C7A72]">{comingSoonLabel}</span>}
                   </h2>
-                  <p className="text-sm text-[#101B35] mt-0.5">{member.role}</p>
-                  <p className="text-sm text-[#5A6478] leading-relaxed mt-2 hidden sm:block">{member.bio}</p>
+                  <p className="text-sm text-[#140D0E] mt-0.5">{member.role}</p>
+                  <p className="text-sm text-[#6B5B55] leading-relaxed mt-2 hidden sm:block">{member.bio}</p>
                 </article>
               );
             })}
           </div>
 
-          <div className="reveal mt-20 border-t border-[#101B35] pt-8 grid md:grid-cols-12 gap-6 items-end">
+          <div className="reveal mt-20 border-t border-[#140D0E] pt-8 grid md:grid-cols-12 gap-6 items-end">
             <div className="md:col-span-8">
-              <h2 className="font-serif-title font-normal text-3xl sm:text-4xl text-[#101B35]">{contactTitle}</h2>
+              <h2 className="font-serif-title font-normal text-3xl sm:text-4xl text-[#140D0E]">{contactTitle}</h2>
               <p className="text-base text-[#4B5563] max-w-xl leading-relaxed mt-3">{contactText}</p>
             </div>
             <Link href="/contact" className="md:col-span-4 md:justify-self-end">

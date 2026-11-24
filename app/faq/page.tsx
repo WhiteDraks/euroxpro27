@@ -21,25 +21,24 @@ export default function FAQ() {
 
       {/* ── TRAVEL ESSENTIALS: AIRPORT, HOTEL, VISA ── */}
       {travel.items.length > 0 && (
-        <section id="travel" className="py-20 bg-white border-b border-[#E5E1DA] scroll-mt-20">
+        <section id="travel" className="py-20 bg-[#FBF7F0] border-b border-[#DCCFBE] scroll-mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="reveal max-w-2xl mb-12">
-              <span className="text-xs font-semibold tracking-[0.08em] text-[#741F3D] uppercase block mb-3">
+              <span className="text-xs font-semibold text-[#7D1A30] block mb-3">
                 {travel.eyebrow}
               </span>
-              <h2 className="font-serif-title text-3xl sm:text-4xl text-[#101B35] font-normal leading-tight">
+              <h2 className="font-serif-title text-3xl sm:text-4xl text-[#140D0E] font-normal leading-tight">
                 {travel.title}
               </h2>
-              <p className="text-sm sm:text-base text-[#5A6478] mt-3 leading-relaxed">{travel.intro}</p>
+              <p className="text-sm sm:text-base text-[#6B5B55] mt-3 leading-relaxed">{travel.intro}</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-x-10 border-t border-[#101B35]">
+            <div className="grid md:grid-cols-3 gap-x-10 border-t border-[#140D0E]">
               {travel.items.map((item, i) => {
                 const external = /^https?:\/\//.test(item.link);
                 return (
-                  <div key={i} className="reveal flex flex-col py-8 border-b border-[#E5E1DA] md:border-b-0">
-                    <span className="font-serif-title italic text-2xl text-[#741F3D] leading-none">{i + 1}.</span>
-                    <h3 className="font-serif-title text-2xl text-[#101B35] mt-4 mb-3">{item.title}</h3>
+                  <div key={i} className="reveal flex flex-col py-8 border-b border-[#DCCFBE] md:border-b-0">
+                    <h3 className="font-serif-title text-2xl text-[#140D0E] mb-3">{item.title}</h3>
                     <p className="text-base text-[#4B5563] leading-relaxed flex-1">
                       <RichText text={item.text} />
                     </p>
@@ -50,14 +49,14 @@ export default function FAQ() {
                             href={item.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#741F3D] link-underline"
+                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#7D1A30] link-underline"
                           >
                             {item.linkText} <ExternalLink size={14} />
                           </a>
                         ) : (
                           <Link
                             href={item.link}
-                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#741F3D] link-underline"
+                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#7D1A30] link-underline"
                           >
                             {item.linkText} <ArrowRight size={14} />
                           </Link>
