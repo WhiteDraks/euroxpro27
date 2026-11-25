@@ -76,6 +76,12 @@ function memCmd(args) {
             mem.data.set(key, String(n));
             return n;
         }
+        case "TTL": {
+            if (v === undefined)
+                return -2;
+            const at = mem.exp.get(key);
+            return at ? Math.max(0, Math.ceil((at - Date.now()) / 1000)) : -1;
+        }
         case "EXPIRE":
             if (v !== undefined)
                 mem.exp.set(key, Date.now() + Number(rest[0]) * 1000);
