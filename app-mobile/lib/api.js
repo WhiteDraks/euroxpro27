@@ -1615,7 +1615,25 @@ route("POST", "store/products/([\\w-]+)", async ({ req, user, m }) => {
 // delegates from different countries who matched in Meet or started a chat.
 // Reads every delegate's matches and chats, so the answer is built at most
 // once a minute per instance and shared by everyone who opens the map.
-route("GET", "world", async () => json(await cached("world", 60000, worldMap)));
+// Building the map reads every account and two sets per person, so the
+// result is shared in Redis for 60 s: one instance builds it, the rest read
+// one key. (The per-instance copy alone meant a cold instance rebuilt it.)
+async function sharedWorld() {
+    const raw = await cmd("GET", "dworldc");
+    if (raw)
+        return parse(raw) || worldMap();
+    if ((await cmd("SET", "dworldlock", "1", "EX", 15, "NX")) !== "OK") {
+        // Someone else is building it: use theirs if it lands soon.
+        await new Promise((r) => setTimeout(r, 400));
+        const again = parse(await cmd("GET", "dworldc"));
+        if (again)
+            return again;
+    }
+    const w = await worldMap();
+    await pipe(["SET", "dworldc", JSON.stringify(w), "EX", 60], ["DEL", "dworldlock"]);
+    return w;
+}
+route("GET", "world", async () => json(await cached("world", 30000, sharedWorld)));
 async function worldMap() {
     const users = await listedUsers();
     const home = new Map(users.map((u) => [u.id, countryOf(u.entity)?.code || ""]));
