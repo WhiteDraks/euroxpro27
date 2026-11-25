@@ -183,9 +183,10 @@
 }
 /* The light grid floor under the home title slides toward you. */
 @keyframes grid-run {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 0 64px, 0 0; }
+  from { transform: translateY(0); }
+  to { transform: translateY(64px); }
 }
+
 /* Endless ticker. */
 @keyframes marquee {
   from { transform: translateX(0); }
@@ -202,15 +203,25 @@
   to { transform: none; opacity: 1; }
 }
 
+/* The lines live on ::before and slide with a transform: the GPU moves
+   them without repainting the page every frame (animating
+   background-position repainted this wide 3D layer 60 times a second). */
 .grid-floor {
-  background-image:
-    linear-gradient(rgba(224, 100, 125, 0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(224, 100, 125, 0.5) 1px, transparent 1px);
-  background-size: 64px 64px, 64px 64px;
+  overflow: hidden;
   transform: perspective(520px) rotateX(62deg);
   transform-origin: 50% 100%;
   -webkit-mask-image: radial-gradient(ellipse 60% 90% at 50% 100%, #000 10%, transparent 70%);
   mask-image: radial-gradient(ellipse 60% 90% at 50% 100%, #000 10%, transparent 70%);
+}
+.grid-floor::before {
+  content: "";
+  position: absolute;
+  inset: -64px 0 0 0;
+  background-image:
+    linear-gradient(rgba(224, 100, 125, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(224, 100, 125, 0.5) 1px, transparent 1px);
+  background-size: 64px 64px, 64px 64px;
+  will-change: transform;
 }
 
 /* Pointer light on cards. */
@@ -248,7 +259,7 @@
   .glow { animation: glow 9s ease-in-out infinite; }
   .drift-a { animation: drift-a 22s ease-in-out infinite; }
   .drift-b { animation: drift-b 28s ease-in-out infinite; }
-  .grid-floor { animation: grid-run 2.4s linear infinite; }
+  .grid-floor::before { animation: grid-run 2.4s linear infinite; }
   .marquee-track { animation: marquee 38s linear infinite; }
   .sheen:hover::after { animation: sheen 0.9s ease-out; }
 

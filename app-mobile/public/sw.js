@@ -3,7 +3,7 @@
 // Bump VERSION with every release so installed apps pick up the new files
 // (fetched past the browser's HTTP cache).
 // API calls always go to the network; map tiles are kept in a small cache.
-const VERSION = "v30";
+const VERSION = "v31";
 const SHELL = `app-shell-${VERSION}`;
 const TILES = `app-tiles-${VERSION}`;
 const MAX_TILES = 300;
@@ -72,15 +72,26 @@ self.addEventListener("fetch", (e) => {
 
   if (url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
 
-  // Pages: always the app shell (client-side routing), fresh when online.
+  // Pages: always the app shell (client-side routing). The saved copy opens
+  // at once, so the app starts instantly on crowded venue Wi-Fi; a fresh
+  // copy is fetched in the background for next time. Each release bumps
+  // VERSION, which saves a new shell on install.
   if (req.mode === "navigate") {
     e.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res.ok) caches.open(SHELL).then((c) => c.put("/index.html", res.clone()));
-          return res;
-        })
-        .catch(() => caches.match("/index.html"))
+      caches.open(SHELL).then(async (c) => {
+        const hit = await c.match("/index.html");
+        const fresh = fetch(req)
+          .then((res) => {
+            if (res.ok) c.put("/index.html", res.clone());
+            return res;
+          })
+          .catch(() => hit);
+        if (hit) {
+          e.waitUntil(fresh.catch(() => {}));
+          return hit;
+        }
+        return fresh;
+      })
     );
     return;
   }
