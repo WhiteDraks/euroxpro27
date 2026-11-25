@@ -122,10 +122,13 @@ async function withLock(key, fn) {
     }
 }
 async function limited(key, max, windowSec) {
-    const n = (await cmd("INCR", "drl:" + key));
-    if (n === 1)
+    // INCR and TTL in one round trip. A counter left without an expiry
+    // (say the function stopped between the two calls) would lock someone
+    // out for good, so any counter without one gets it here.
+    const [n, ttl] = await pipe(["INCR", "drl:" + key], ["TTL", "drl:" + key]);
+    if (Number(ttl) < 0)
         await cmd("EXPIRE", "drl:" + key, windowSec);
-    return n > max;
+    return Number(n) > max;
 }
 // E-mail goes out through a provider with a daily free quota (Resend 100,
 // Gmail 500), so the app keeps its own count and stops a little before it.
