@@ -108,6 +108,19 @@ function clientIp(req) {
 // because a venue's Wi-Fi puts hundreds of phones behind one address;
 // raise them on Vercel if the whole congress shares one connection.
 const IP_LIMIT = { register: Number(process.env.RATE_IP_REGISTER) || 500, login: Number(process.env.RATE_IP_LOGIN) || 500 };
+// One change at a time per key: two taps at once (or a script sending many
+// requests together) must not both read the same balance and both spend it.
+async function withLock(key, fn) {
+    const lock = "dlock:" + key;
+    if ((await cmd("SET", lock, "1", "EX", 10, "NX")) !== "OK")
+        throw new HttpError(409, "busy");
+    try {
+        return await fn();
+    }
+    finally {
+        await cmd("DEL", lock).catch(() => { });
+    }
+}
 async function limited(key, max, windowSec) {
     const n = (await cmd("INCR", "drl:" + key));
     if (n === 1)
@@ -1366,13 +1379,18 @@ route("POST", "quest/checkin", async ({ req, user }) => {
     const st = q.stations.find((s) => s.code === code);
     if (!st)
         throw new HttpError(404, "bad_code");
-    const mine = await questOf(user.id);
-    const fresh = !mine.done.includes(st.id);
+    const { mine, fresh } = await withLock("qst:" + user.id, async () => {
+        const mine = await questOf(user.id);
+        const fresh = !mine.done.includes(st.id);
+        if (fresh) {
+            mine.done.push(st.id);
+            mine.points += st.pts;
+            mine.lastAt = Date.now();
+            await pipe(["SET", "dqst:" + user.id, JSON.stringify(mine)], ["SADD", "dqplayers", user.id]);
+        }
+        return { mine, fresh };
+    });
     if (fresh) {
-        mine.done.push(st.id);
-        mine.points += st.pts;
-        mine.lastAt = Date.now();
-        await pipe(["SET", "dqst:" + user.id, JSON.stringify(mine)], ["SADD", "dqplayers", user.id]);
         forget("qboard");
         await pushEvent({ at: Date.now(), type: "quest" });
     }
@@ -1384,15 +1402,17 @@ route("POST", "quest/claim", async ({ req, user }) => {
     const r = q.rewards.find((x) => x.id === b.rewardId);
     if (!r)
         throw new HttpError(404, "not_found");
-    const mine = await questOf(user.id);
-    if (mine.claims.some((c) => c.rid === r.id))
-        throw new HttpError(409, "already_claimed");
-    if (mine.points - mine.spent < r.cost)
-        throw new HttpError(400, "not_enough_points");
-    mine.spent += r.cost;
-    mine.claims.push({ rid: r.id, at: Date.now(), status: "pending" });
-    await cmd("SET", "dqst:" + user.id, JSON.stringify(mine));
-    return json({ ok: true, balance: mine.points - mine.spent });
+    return withLock("qst:" + user.id, async () => {
+        const mine = await questOf(user.id);
+        if (mine.claims.some((c) => c.rid === r.id))
+            throw new HttpError(409, "already_claimed");
+        if (mine.points - mine.spent < r.cost)
+            throw new HttpError(400, "not_enough_points");
+        mine.spent += r.cost;
+        mine.claims.push({ rid: r.id, at: Date.now(), status: "pending" });
+        await cmd("SET", "dqst:" + user.id, JSON.stringify(mine));
+        return json({ ok: true, balance: mine.points - mine.spent });
+    });
 });
 // Organizers: who claimed what, and mark it handed over.
 route("GET", "quest/claims", async ({ user }) => {
@@ -1412,13 +1432,15 @@ route("GET", "quest/claims", async ({ user }) => {
 route("POST", "quest/claims/([\\w-]+)/([\\w-]+)", async ({ user, m }) => {
     if (user.role !== "admin")
         throw new HttpError(403, "forbidden");
-    const mine = await questOf(m[1]);
-    const c = mine.claims.find((x) => x.rid === m[2]);
-    if (!c)
-        throw new HttpError(404, "not_found");
-    c.status = c.status === "given" ? "pending" : "given";
-    await cmd("SET", "dqst:" + m[1], JSON.stringify(mine));
-    return json({ ok: true, status: c.status });
+    return withLock("qst:" + m[1], async () => {
+        const mine = await questOf(m[1]);
+        const c = mine.claims.find((x) => x.rid === m[2]);
+        if (!c)
+            throw new HttpError(404, "not_found");
+        c.status = c.status === "given" ? "pending" : "given";
+        await cmd("SET", "dqst:" + m[1], JSON.stringify(mine));
+        return json({ ok: true, status: c.status });
+    });
 });
 // ------------------------------------------------------------ approvals league (LC/MC race, like AIESEC's "top performing LCs")
 // Per LC and product: approvals (apd), realizations (re), completes (co).
@@ -2043,6 +2065,10 @@ route("POST", "admin/users/([\\w-]+)/delete", async ({ user, m }) => {
         throw new HttpError(403, "self");
     if (isOwner(u) && u.role === "admin")
         throw new HttpError(403, "owner");
+    // Take them off the "who starred it" list of each session in their programme.
+    const planned = await cmd("SMEMBERS", "dplan:" + u.id);
+    if (planned.length)
+        await pipe(...planned.map((sid) => ["SREM", "dplanby:" + sid, u.id]));
     await pipe(["DEL", "du:" + u.id, "dph:" + u.id, "dsw:" + u.id, "dlk:" + u.id, "dmatch:" + u.id, "dqst:" + u.id, "dr:" + u.id, "dblk:" + u.id, "dblkby:" + u.id, "dpush:" + u.id, "dqu:" + u.id, "dresu:" + u.id, "dplan:" + u.id, "dcon:" + u.id, ...(u.cardTok ? ["dctok:" + u.cardTok] : [])], ["SREM", "dplanners", u.id], ["SREM", "dusers", u.id], ["SREM", "dpushers", u.id], ["SREM", "dqplayers", u.id], ["ZREM", "dpres", u.id], ...(u.email ? [["DEL", "de:" + u.email]] : []));
     await pushEvent({ at: Date.now(), type: "users" });
     return json({ ok: true });
