@@ -6,6 +6,7 @@ import { makeAdmin, at as adminText, SHIELD_ICON } from "./admin.js";
 import { KVKK_VERSION, kvkkText } from "./kvkk.js";
 import { makeSecurity, st } from "./secure.js";
 import { makeCard, ct } from "./card.js";
+import { makeTransfer, tt, BUS_ICON } from "./transfer.js";
 
 const root = document.getElementById("app");
 // Set to e.g. "/app" if the app is ever served from a sub-folder.
@@ -80,6 +81,8 @@ const ICON = {
   check: '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
   tv: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 20.5h8"/></svg>',
   trophy: '<svg viewBox="0 0 24 24"><path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0zM7.5 6H4.5a3 3 0 0 0 3 4M16.5 6h3a3 3 0 0 1-3 4M12 13.5V17M8.5 20.5h7M9.5 17h5v3.5h-5z"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  bus: BUS_ICON,
   bag: '<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12.5H6z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>',
   compass: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
   sparkle: '<svg viewBox="0 0 24 24"><path d="M12 3.5c.6 4.2 2.3 5.9 6.5 6.5-4.2.6-5.9 2.3-6.5 6.5-.6-4.2-2.3-5.9-6.5-6.5 4.2-.6 5.9-2.3 6.5-6.5zM18.5 15.5c.3 1.8 1 2.5 2.8 2.8-1.8.3-2.5 1-2.8 2.8-.3-1.8-1-2.5-2.8-2.8 1.8-.3 2.5-1 2.8-2.8z"/></svg>',
@@ -271,6 +274,8 @@ const ROUTES = [
   { path: "/card", view: (s) => CARD.viewCard(s), tab: "home" },
   { path: "/contacts", view: (s) => CARD.viewContacts(s), tab: "home" },
   { path: "/c/:token", view: (s, p) => CARD.viewCardLink(s, p), tab: "home" },
+  { path: "/transfer", view: (s) => TRANSFER.viewTransfer(s), tab: "home" },
+  { path: "/transfer/admin", view: (s) => TRANSFER.viewTransferAdmin(s), tab: "home" },
   { path: "/admin", view: (s) => ADMIN.panel(s), tab: "home" },
   { path: "/admin/users", view: (s) => ADMIN.users(s), tab: "home" },
   { path: "/admin/users/:id", view: (s, p) => ADMIN.user(s, p), tab: "home" },
@@ -1833,6 +1838,7 @@ async function poll() {
       if (d.signup && !here().startsWith("/admin")) toast(adminText("newSignupToast"));
       if (d.approvals) window.dispatchEvent(new CustomEvent("approvals-updated", { detail: d.approvals }));
       if (d.quest) window.dispatchEvent(new Event("quest-updated"));
+      if (d.transfer) window.dispatchEvent(new Event("transfer-updated"));
       if (d.request) {
         window.dispatchEvent(new Event("requests-updated"));
         if (here() !== "/requests") toast(t("requestToast"));
@@ -3788,6 +3794,7 @@ function viewHome(screen) {
   const recapT = tile("/recap", "sparkle", t("recapTitle"), "wide recap-tile");
   const gcT = tile("/connections", "globe", t("gcTitle"), "wide gc-tile");
   const cardT = tile("/contacts", "card", ct("myCard"), "wide card-tile");
+  const busT = tile("/transfer", "bus", tt("title"), "wide bus-tile");
   const adminT = u.role === "admin" ? tile("/admin", "shield", adminText("adminTitle"), "wide dark admin-tile") : null;
   if (adminT) {
     adminT.sub.textContent = adminText("adminTile");
@@ -3811,6 +3818,7 @@ function viewHome(screen) {
   reqT.sub.textContent = t("requestsHint");
   mapT.sub.textContent = t("mapTile");
   cardT.sub.textContent = ct("cardTile");
+  busT.sub.textContent = tt("tile");
 
   const nudge = h("div", { class: "push-nudge-slot" });
   pushStatus().then((st) => {
@@ -3868,7 +3876,7 @@ function viewHome(screen) {
   screen.append(
     hero,
     nudge,
-    h("div", { class: "bento" + (homeSeen ? " seen" : ""), onpointermove: spot, onpointerdown: spot, onpointerout: unspot }, [...(adminT ? [adminT] : []), ...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, peopleT, hallT, cardT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
+    h("div", { class: "bento" + (homeSeen ? " seen" : ""), onpointermove: spot, onpointerdown: spot, onpointerout: unspot }, [...(adminT ? [adminT] : []), ...(nowMs() > CONGRESS_END - 864e5 ? [recapT] : []), agendaT, busT, peopleT, hallT, cardT, gcT, meetT, questT, apprT, storeT, teamT, annT, reqT, mapT].map((x, i) => {
       x.el.style.setProperty("--i", i);
       return x.el;
     }))
@@ -4426,6 +4434,10 @@ async function ADMIN_LOGOUT() {
 
 const CARD = makeCard({
   h, api, toast, errText, icon, state, navBar, avatar, loadScript, go, openScanner, gcSheet, haptic, celebrate, posLabel, locale,
+});
+
+const TRANSFER = makeTransfer({
+  h, api, toast, errText, icon, state, navBar, avatar, go, gcSheet, haptic, posLabel, locale, openPerson,
 });
 
 const SECURITY = makeSecurity({

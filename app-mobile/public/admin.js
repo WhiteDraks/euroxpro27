@@ -3,6 +3,7 @@
 // The server checks the organizer role on every admin call, so hiding these
 // screens from delegates is only for tidiness, not for safety.
 import { getLang, locale } from "./i18n.js";
+import { tt, BUS_ICON } from "./transfer.js";
 import { st } from "./secure.js";
 
 const S = {
@@ -650,7 +651,8 @@ export function makeAdmin(ctx) {
             tool("/approvals/edit", "trophy", a("toolAppr"), a("toolApprSub")),
             tool("/approvals/live", "tv", a("toolLive"), a("toolLiveSub")),
             tool("/store/admin", "list", a("toolStore"), a("toolStoreSub")),
-            tool("/store", "bag", a("toolProducts"), a("toolProductsSub")))
+            tool("/store", "bag", a("toolProducts"), a("toolProductsSub")),
+            tool("/transfer/admin", BUS_ICON, tt("adminTitle"), tt("adminTile")))
         );
       } catch (e) {
         body.replaceChildren(h("p", { class: "empty" }, errText(e)));
