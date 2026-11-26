@@ -300,7 +300,7 @@ export function makeTransfer(ctx) {
   const fmtFlight = (f) => (f ? [f.no, f.at && `${fmtDay(f.at.slice(0, 10))} ${f.at.slice(11)}`].filter(Boolean).join(" · ") : "");
   const statusPill = (b) => h("span", { class: "bus-status st-" + (b.status || "scheduled") }, tt("st_" + (b.status || "scheduled")));
   const mapsUrl = (q) => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
-  const fold = (s) => String(s || "").toLocaleLowerCase(locale()).normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const fold = (s) => String(s || "").replace(/İ/g, "i").toLowerCase().replace(/ı/g, "i").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   const listen = (fn) => {
     window.addEventListener("transfer-updated", fn);
@@ -415,7 +415,17 @@ export function makeTransfer(ctx) {
         if (changed) toast(tt("updated"));
       }).catch((e) => body.replaceChildren(h("p", { class: "empty" }, err(e))));
     load();
-    return listen(() => load(true));
+    // Every open phone hears about a change at once: spread the reloads over a
+    // couple of seconds so they don't all reach the server in the same moment.
+    let pending = 0;
+    const off = listen(() => {
+      clearTimeout(pending);
+      pending = setTimeout(() => load(true), Math.random() * 2500);
+    });
+    return () => {
+      clearTimeout(pending);
+      off();
+    };
   }
 
   // ---------------------------------------------------------------- organizer view

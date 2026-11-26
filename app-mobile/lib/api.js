@@ -857,7 +857,7 @@ route("GET", "sync", async ({ req, url, user }) => {
     const users = u.role === "admin" && events.some((e) => e.type === "signup" || e.type === "users");
     const removed = events.filter((e) => e.type === "msgdel" && canSee(u, e.conv)).map((e) => ({ conv: e.conv, id: e.id }));
     const report = u.role === "admin" && events.some((e) => e.type === "report");
-    const transfer = events.some((e) => e.type === "transfer");
+    const transfer = events.some((e) => e.type === "transfer" && (!e.admins || u.role === "admin"));
     return json({ now: lastAt, lite, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest, signup, users, removed, report, transfer });
 });
 // ------------------------------------------------------------ meet (swipe to get to know people)
@@ -1710,7 +1710,7 @@ async function editBuses(fn) {
                 const out = await fn(data);
                 data.at = Date.now();
                 await cmd("SET", "dbus", JSON.stringify(data));
-                forget("bus");
+                forget("bus", ...LANGS.map((l) => "busview:" + l));
                 return out;
             });
         }
@@ -1779,32 +1779,46 @@ function busPush(req, b, kind, uids = b.uids) {
     }), uids));
 }
 const fmtBusDay = (d, lang) => new Date(d + "T12:00:00Z").toLocaleDateString(lang === "tr" ? "tr-TR" : lang === "pl" ? "pl-PL" : "en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
-async function busEvent() {
-    await pushEvent({ at: Date.now(), type: "transfer" });
+// admins: only organizers' screens need it (boarding ticks), so a queue of
+// people getting on a bus doesn't make every open phone reload the list.
+async function busEvent(admins = false) {
+    await pushEvent({ at: Date.now(), type: "transfer", ...(admins ? { admins: true } : {}) });
 }
-route("GET", "transfers", async ({ user }) => {
-    const admin = user.role === "admin";
-    const [{ buses, at }, people] = await Promise.all([busesNow(), admin ? allUsers().then((l) => l.filter((u) => !(u.demo && !demoOn()))) : listedUsers()]);
+function busView(buses, people, lang, admin) {
     const byId = new Map(people.map((p) => [p.id, p]));
-    byId.set(user.id, user);
-    const mine = buses.find((b) => b.uids.includes(user.id));
-    const seated = new Set(buses.flatMap((b) => b.uids));
-    const out = sortBuses(buses.map((b) => {
-        const passengers = b.uids.map((id) => byId.get(id)).filter((p) => p && (admin || listed(p) || p.id === user.id))
+    return sortBuses(buses.map((b) => {
+        const passengers = b.uids.map((id) => byId.get(id)).filter(Boolean)
             .map((p) => ({ ...publicUser(p), boarded: b.boarded.includes(p.id), ...(admin ? { email: p.email, flight: flightOf(p), status: statusOf(p) } : {}) }))
-            .sort((x, y) => x.name.localeCompare(y.name, user.lang));
+            .sort((x, y) => x.name.localeCompare(y.name, lang));
         const { uids: _u, boarded: _b, phone, driver, ...rest } = b;
         // The driver's number is for the people on that bus (and organizers).
-        const crew = admin || b === mine ? { phone, driver } : {};
-        return { ...rest, ...crew, count: b.uids.length, boardedCount: b.boarded.filter((id) => b.uids.includes(id)).length, passengers };
+        return { ...rest, ...(admin ? { phone, driver } : {}), count: b.uids.length, boardedCount: b.boarded.filter((id) => b.uids.includes(id)).length, passengers };
     }));
+}
+// What delegates see is the same for everyone with the same language, so a
+// crowd opening the screen at once shares one build per instance for 3 s.
+const delegateBusView = (lang) => cached("busview:" + lang, 3000, async () => {
+    const [{ buses, at }, people] = await Promise.all([busesNow(), listedUsers()]);
+    const list = busView(buses, people, lang, false);
+    await translatedFields({ lang }, list.filter((b) => b.note), ["note"]);
+    return { list, at, crew: new Map(buses.map((b) => [b.id, { phone: b.phone, driver: b.driver, uids: new Set(b.uids) }])) };
+});
+route("GET", "transfers", async ({ user }) => {
+    if (user.role !== "admin") {
+        const { list, at, crew } = await delegateBusView(user.lang);
+        const mine = list.find((b) => crew.get(b.id)?.uids.has(user.id));
+        const { phone, driver } = mine ? crew.get(mine.id) : {};
+        const buses = mine ? list.map((b) => (b === mine ? { ...b, phone, driver } : b)) : list;
+        return json({ buses, mine: mine?.id || null, flight: flightOf(user), at: at || 0 });
+    }
+    const [{ buses, at }, people] = await Promise.all([busesNow(), allUsers().then((l) => l.filter((u) => !(u.demo && !demoOn())))]);
+    const out = busView(buses, people, user.lang, true);
     await translatedFields(user, out.filter((b) => b.note), ["note"]);
-    const unassigned = admin
-        ? people.filter((p) => !seated.has(p.id) && isActive(p) && !p.demo && p.role !== "admin")
-            .map((p) => ({ ...publicUser(p), email: p.email, flight: flightOf(p) }))
-            .sort((x, y) => (x.flight?.at || "9").localeCompare(y.flight?.at || "9") || x.name.localeCompare(y.name, user.lang))
-        : undefined;
-    return json({ buses: out, mine: mine?.id || null, flight: flightOf(user), at: at || 0, ...(admin ? { unassigned } : {}) });
+    const seated = new Set(buses.flatMap((b) => b.uids));
+    const unassigned = people.filter((p) => !seated.has(p.id) && isActive(p) && !p.demo && p.role !== "admin")
+        .map((p) => ({ ...publicUser(p), email: p.email, flight: flightOf(p) }))
+        .sort((x, y) => (x.flight?.at || "9").localeCompare(y.flight?.at || "9") || x.name.localeCompare(y.name, user.lang));
+    return json({ buses: out, mine: buses.find((b) => b.uids.includes(user.id))?.id || null, flight: flightOf(user), at: at || 0, unassigned });
 });
 // A delegate's own flight, so organizers can put them on the right bus.
 route("POST", "transfers/flight", async ({ req, user }) => {
@@ -1900,7 +1914,7 @@ route("POST", "transfers/board", async ({ req, user }) => {
             x.boarded.push(uid);
         return x;
     });
-    await busEvent();
+    await busEvent(true);
     return json({ boarded: bus.boarded.length });
 });
 // Paste from a spreadsheet: one person per line,
@@ -1917,7 +1931,9 @@ route("POST", "transfers/import", async ({ req, user }) => {
         throw new HttpError(400, "empty");
     const people = (await allUsers()).filter((u) => !u.demo);
     const byEmail = new Map(people.map((u) => [String(u.email || "").toLowerCase(), u]));
-    const fold = (s) => String(s).toLocaleLowerCase("tr").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+    // Names pasted in capitals must still match: "ZOFIA" (I, not İ) and
+    // "ÇAĞRI" fold to the same letters as "Zofia" and "Çağrı".
+    const fold = (s) => String(s).replace(/İ/g, "i").toLowerCase().replace(/ı/g, "i").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
     const byName = new Map();
     for (const u of people) {
         const k = fold(u.name);
