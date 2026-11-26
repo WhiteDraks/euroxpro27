@@ -857,7 +857,8 @@ route("GET", "sync", async ({ req, url, user }) => {
     const users = u.role === "admin" && events.some((e) => e.type === "signup" || e.type === "users");
     const removed = events.filter((e) => e.type === "msgdel" && canSee(u, e.conv)).map((e) => ({ conv: e.conv, id: e.id }));
     const report = u.role === "admin" && events.some((e) => e.type === "report");
-    return json({ now: lastAt, lite, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest, signup, users, removed, report });
+    const transfer = events.some((e) => e.type === "transfer");
+    return json({ now: lastAt, lite, messages: await forReader(u, msgs), agenda, agendaChange, matches: matchUsers, announce, request, approvals, quest, signup, users, removed, report, transfer });
 });
 // ------------------------------------------------------------ meet (swipe to get to know people)
 async function usersByIds(ids) {
@@ -1682,14 +1683,313 @@ route("GET", "recap", async ({ user }) => {
         players: board.length,
     });
 });
+// ------------------------------------------------------------ airport transfers (buses)
+// Organizers set up the buses that pick delegates up at the airport (name,
+// route, date and time, meeting point, plate, driver) and put delegates on
+// them: one by one, or by pasting a list from a spreadsheet. Every delegate
+// sees their own bus and who else rides it, plus the other buses, so friends
+// can find each other. Flight numbers are only seen by the delegate
+// themselves and organizers. All buses live in one record (dbus): a few
+// dozen buses with a few thousand seats is small, and one record means a
+// move from one bus to another can never leave someone on two.
+const BUS_STATUSES = ["scheduled", "boarding", "departed", "arrived", "cancelled"];
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const FLIGHT_RE = /^[A-Z0-9]{2,3} ?\d{1,4}[A-Z]?$/;
+const BUS_MAX = 80;
+async function loadBuses() {
+    return parse(await cmd("GET", "dbus")) || { buses: [] };
+}
+const busesNow = () => cached("bus", 3000, loadBuses);
+// Organizers editing at the same moment wait their turn for a moment
+// instead of getting an error (the record holds every bus).
+async function editBuses(fn) {
+    for (let i = 0; ; i++) {
+        try {
+            return await withLock("bus", async () => {
+                const data = await loadBuses();
+                const out = await fn(data);
+                data.at = Date.now();
+                await cmd("SET", "dbus", JSON.stringify(data));
+                forget("bus");
+                return out;
+            });
+        }
+        catch (e) {
+            if (e.status !== 409 || i >= 8)
+                throw e;
+            await new Promise((r) => setTimeout(r, 120 + Math.random() * 200));
+        }
+    }
+}
+const flightOf = (u) => (u.flight?.no || u.flight?.at ? { no: u.flight.no || "", at: u.flight.at || "" } : null);
+function cleanFlight(no, at) {
+    const n = clean(no, 12).toUpperCase().replace(/\s+/g, " ");
+    if (n && !FLIGHT_RE.test(n))
+        throw new HttpError(400, "bad_flight");
+    const a = String(at || "").trim();
+    if (a && !DATETIME_RE.test(a))
+        throw new HttpError(400, "bad_time");
+    return n || a ? { no: n, at: a } : null;
+}
+function busFields(b, src) {
+    const name = clean(src.name ?? b.name, 40);
+    if (!name)
+        throw new HttpError(400, "name_required");
+    const date = String(src.date ?? b.date ?? "");
+    const time = String(src.time ?? b.time ?? "");
+    if (date && !DATE_RE.test(date))
+        throw new HttpError(400, "bad_time");
+    if (time && !TIME_RE.test(time))
+        throw new HttpError(400, "bad_time");
+    const phone = clean(src.phone ?? b.phone, 24);
+    if (phone && !PHONE_RE.test(phone))
+        throw new HttpError(400, "bad_phone");
+    Object.assign(b, {
+        name, date, time, phone,
+        from: clean(src.from ?? b.from, 80),
+        to: clean(src.to ?? b.to, 80),
+        meet: clean(src.meet ?? b.meet, 160),
+        plate: clean(src.plate ?? b.plate, 16).toUpperCase(),
+        driver: clean(src.driver ?? b.driver, 60),
+        note: clean(src.note ?? b.note, 300),
+        cap: Math.max(0, Math.min(99, Math.round(Number(src.cap ?? b.cap) || 0))),
+    });
+    if (BUS_STATUSES.includes(src.status))
+        b.status = src.status;
+    b.status ||= "scheduled";
+    b.uids ||= [];
+    b.boarded ||= [];
+    return b;
+}
+const busStart = (b) => (b.date && b.time ? Date.parse(`${b.date}T${b.time}:00+03:00`) : Infinity);
+const sortBuses = (list) => list.sort((a, b) => busStart(a) - busStart(b) || a.name.localeCompare(b.name, "en", { numeric: true }));
+// Push to everyone on a bus (and only them) when it changes in a way they need to know.
+const BUS_PUSH_KEYS = ["time", "date", "meet", "status", "plate"];
+function busPush(req, b, kind, uids = b.uids) {
+    if (!uids.length)
+        return;
+    const subject = pushSubject(req);
+    background(() => notify("changes", subject, async (u) => ({
+        title: `${pt(u, "bus")}: ${b.name}`,
+        body: kind === "assigned"
+            ? [pt(u, "busAssigned"), [b.date && fmtBusDay(b.date, u.lang), b.time].filter(Boolean).join(" "), short(b.meet || b.from || "", 60)].filter(Boolean).join(" · ")
+            : b.status === "cancelled" ? pt(u, "cancelled") : [pt(u, "bus_" + b.status), b.time, short(b.meet || "", 60)].filter(Boolean).join(" · "),
+        url: "/transfer",
+        tag: "bus-" + b.id,
+    }), uids));
+}
+const fmtBusDay = (d, lang) => new Date(d + "T12:00:00Z").toLocaleDateString(lang === "tr" ? "tr-TR" : lang === "pl" ? "pl-PL" : "en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+async function busEvent() {
+    await pushEvent({ at: Date.now(), type: "transfer" });
+}
+route("GET", "transfers", async ({ user }) => {
+    const admin = user.role === "admin";
+    const [{ buses, at }, people] = await Promise.all([busesNow(), admin ? allUsers().then((l) => l.filter((u) => !(u.demo && !demoOn()))) : listedUsers()]);
+    const byId = new Map(people.map((p) => [p.id, p]));
+    byId.set(user.id, user);
+    const mine = buses.find((b) => b.uids.includes(user.id));
+    const seated = new Set(buses.flatMap((b) => b.uids));
+    const out = sortBuses(buses.map((b) => {
+        const passengers = b.uids.map((id) => byId.get(id)).filter((p) => p && (admin || listed(p) || p.id === user.id))
+            .map((p) => ({ ...publicUser(p), boarded: b.boarded.includes(p.id), ...(admin ? { email: p.email, flight: flightOf(p), status: statusOf(p) } : {}) }))
+            .sort((x, y) => x.name.localeCompare(y.name, user.lang));
+        const { uids: _u, boarded: _b, phone, driver, ...rest } = b;
+        // The driver's number is for the people on that bus (and organizers).
+        const crew = admin || b === mine ? { phone, driver } : {};
+        return { ...rest, ...crew, count: b.uids.length, boardedCount: b.boarded.filter((id) => b.uids.includes(id)).length, passengers };
+    }));
+    await translatedFields(user, out.filter((b) => b.note), ["note"]);
+    const unassigned = admin
+        ? people.filter((p) => !seated.has(p.id) && isActive(p) && !p.demo && p.role !== "admin")
+            .map((p) => ({ ...publicUser(p), email: p.email, flight: flightOf(p) }))
+            .sort((x, y) => (x.flight?.at || "9").localeCompare(y.flight?.at || "9") || x.name.localeCompare(y.name, user.lang))
+        : undefined;
+    return json({ buses: out, mine: mine?.id || null, flight: flightOf(user), at: at || 0, ...(admin ? { unassigned } : {}) });
+});
+// A delegate's own flight, so organizers can put them on the right bus.
+route("POST", "transfers/flight", async ({ req, user }) => {
+    const b = await readJson(req);
+    const flight = cleanFlight(b.no, b.at);
+    const u = await getUser(user.id);
+    if (flight)
+        u.flight = flight;
+    else
+        delete u.flight;
+    await saveUser(u);
+    return json({ flight: flightOf(u) });
+});
+route("POST", "transfers/buses", async ({ req, user }) => {
+    needAdmin(user);
+    const src = await readJson(req);
+    let before = null;
+    const bus = await editBuses((d) => {
+        let b = src.id ? d.buses.find((x) => x.id === src.id) : null;
+        if (src.id && !b)
+            throw new HttpError(404, "not_found");
+        if (!b) {
+            if (d.buses.length >= BUS_MAX)
+                throw new HttpError(400, "too_many");
+            b = { id: newId(), createdAt: Date.now() };
+            d.buses.push(b);
+        }
+        else
+            before = { ...b };
+        if (src.note !== undefined)
+            b.lang = user.lang;
+        return busFields(b, src);
+    });
+    await busEvent();
+    if (before && BUS_PUSH_KEYS.some((k) => before[k] !== bus[k]))
+        busPush(req, bus, "changed");
+    return json({ bus }, before ? 200 : 201);
+});
+route("POST", "transfers/buses/([\\w-]+)/delete", async ({ user, m }) => {
+    needAdmin(user);
+    await editBuses((d) => {
+        const n = d.buses.length;
+        d.buses = d.buses.filter((b) => b.id !== m[1]);
+        if (d.buses.length === n)
+            throw new HttpError(404, "not_found");
+    });
+    await busEvent();
+    return json({ ok: true });
+});
+// Put people on a bus (or take them off with bus ""). Moving someone takes
+// them off any other bus in the same write.
+route("POST", "transfers/assign", async ({ req, user }) => {
+    needAdmin(user);
+    const b = await readJson(req);
+    const uids = (Array.isArray(b.uids) ? b.uids : [b.uid]).map((x) => String(x || "")).filter((x) => /^[\w-]{1,40}$/.test(x)).slice(0, 500);
+    if (!uids.length)
+        throw new HttpError(400, "bad_request");
+    const known = new Set((await usersByIds(uids)).map((u) => u.id));
+    const ids = uids.filter((x) => known.has(x));
+    const target = String(b.bus || "");
+    const { bus, fresh } = await editBuses((d) => moveTo(d, ids, target));
+    await busEvent();
+    if (bus && fresh.length)
+        busPush(req, bus, "assigned", fresh);
+    return json({ ok: true, moved: fresh.length });
+});
+function moveTo(d, ids, target) {
+    const bus = target ? d.buses.find((x) => x.id === target) : null;
+    if (target && !bus)
+        throw new HttpError(404, "not_found");
+    const fresh = ids.filter((id) => !bus?.uids.includes(id));
+    for (const x of d.buses)
+        if (x !== bus) {
+            x.uids = x.uids.filter((id) => !ids.includes(id));
+            x.boarded = x.boarded.filter((id) => !ids.includes(id));
+        }
+    if (bus)
+        bus.uids.push(...fresh);
+    return { bus, fresh };
+}
+// Organizers tick people off as they get on the bus.
+route("POST", "transfers/board", async ({ req, user }) => {
+    needAdmin(user);
+    const b = await readJson(req);
+    const uid = String(b.uid || "");
+    const on = b.on === true;
+    const bus = await editBuses((d) => {
+        const x = d.buses.find((y) => y.id === b.bus);
+        if (!x || !x.uids.includes(uid))
+            throw new HttpError(404, "not_found");
+        x.boarded = x.boarded.filter((id) => id !== uid);
+        if (on)
+            x.boarded.push(uid);
+        return x;
+    });
+    await busEvent();
+    return json({ boarded: bus.boarded.length });
+});
+// Paste from a spreadsheet: one person per line,
+//   e-mail (or full name) ; bus name ; flight number ; arrival (YYYY-MM-DD HH:MM)
+// separated by tabs, semicolons or commas. Buses that don't exist yet are
+// made with just their name; organizers add the rest afterwards.
+route("POST", "transfers/import", async ({ req, user }) => {
+    needAdmin(user);
+    if (await limited("busimp:" + user.id, 30, 3600))
+        throw new HttpError(429, "rate_limited");
+    const b = await readJson(req, 200 * 1024);
+    const lines = String(b.text || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 3000);
+    if (!lines.length)
+        throw new HttpError(400, "empty");
+    const people = (await allUsers()).filter((u) => !u.demo);
+    const byEmail = new Map(people.map((u) => [String(u.email || "").toLowerCase(), u]));
+    const fold = (s) => String(s).toLocaleLowerCase("tr").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+    const byName = new Map();
+    for (const u of people) {
+        const k = fold(u.name);
+        byName.set(k, byName.has(k) ? null : u); // two people with one name: ask for the e-mail
+    }
+    const rows = [];
+    const missing = [];
+    const flights = new Map();
+    for (const line of lines) {
+        const cells = line.split(line.includes("\t") ? "\t" : line.includes(";") ? ";" : ",").map((c) => c.trim().replace(/^"|"$/g, ""));
+        const [who, busName = "", fno = "", fat = ""] = cells;
+        if (/^(e-?mail|eposta|e-posta|name|ad|isim)$/i.test(who))
+            continue; // header row
+        const u = byEmail.get(who.toLowerCase()) || byName.get(fold(who));
+        if (!u) {
+            missing.push(clean(who, 80) || "?");
+            continue;
+        }
+        if (fno || fat) {
+            const at = fat.replace(" ", "T").slice(0, 16);
+            try {
+                flights.set(u.id, cleanFlight(fno, DATETIME_RE.test(at) ? at : ""));
+            }
+            catch { }
+        }
+        rows.push({ uid: u.id, bus: clean(busName, 40) });
+    }
+    const pushes = [];
+    const result = await editBuses((d) => {
+        let created = 0, assigned = 0;
+        for (const r of rows) {
+            if (!r.bus)
+                continue;
+            let bus = d.buses.find((x) => fold(x.name) === fold(r.bus));
+            if (!bus) {
+                if (d.buses.length >= BUS_MAX)
+                    throw new HttpError(400, "too_many");
+                bus = busFields({ id: newId(), createdAt: Date.now() }, { name: r.bus });
+                d.buses.push(bus);
+                created++;
+            }
+            const { fresh } = moveTo(d, [r.uid], bus.id);
+            if (fresh.length) {
+                assigned++;
+                pushes.push([bus, r.uid]);
+            }
+        }
+        return { created, assigned };
+    });
+    for (const [uid, f] of flights) {
+        const u = await getUser(uid);
+        if (u && f) {
+            u.flight = f;
+            await saveUser(u);
+        }
+    }
+    await busEvent();
+    const perBus = new Map();
+    for (const [bus, uid] of pushes)
+        perBus.set(bus, [...(perBus.get(bus) || []), uid]);
+    for (const [bus, uids] of perBus)
+        busPush(req, bus, "assigned", uids);
+    return json({ ...result, flights: flights.size, matched: rows.length, missing: missing.slice(0, 50), missingCount: missing.length });
+});
 // ------------------------------------------------------------ push notifications
 // Kinds a delegate can turn off one by one in Profile.
 const NOTIFY_KINDS = ["sessions", "changes", "announce", "messages"];
 const notifyPrefs = (u) => Object.fromEntries(NOTIFY_KINDS.map((k) => [k, u.notify?.[k] !== false]));
 const PUSH_TEXT = {
-    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", signup: "Yeni kayıt onay bekliyor", signupBody: "{n} uygulamaya katılmak istiyor.", approved: "Hesabın onaylandı", approvedBody: "EUROXPRO'27'ye hoş geldin! Uygulamayı açabilirsin.", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek.", report: "Yeni bildirim (şikayet)", reportBody: "{n} hakkında bir bildirim geldi.", newLogin: "Yeni cihazdan giriş", newLoginBody: "Organizatör hesabına {t} saatinde yeni bir cihazdan girildi. Sen değilsen şifreni değiştir ve Profil > Diğer tüm cihazlardan çık'a dokun." },
-    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", signup: "New sign-up waiting", signupBody: "{n} wants to join the app.", approved: "Your account is approved", approvedBody: "Welcome to EUROXPRO'27! You can open the app now.", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here.", report: "New report", reportBody: "Someone reported {n}.", newLogin: "Sign-in from a new device", newLoginBody: "Your organizer account was signed in from a new device at {t}. If this wasn't you, change your password and tap Profile > Sign out all other devices." },
-    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", signup: "Nowa rejestracja czeka", signupBody: "{n} chce dołączyć do aplikacji.", approved: "Twoje konto zostało zatwierdzone", approvedBody: "Witamy na EUROXPRO'27! Możesz już otworzyć aplikację.", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości.", report: "Nowe zgłoszenie", reportBody: "Ktoś zgłosił użytkownika {n}.", newLogin: "Logowanie z nowego urządzenia", newLoginBody: "Na konto organizatora zalogowano się z nowego urządzenia ({t}). Jeśli to nie Ty, zmień hasło i wybierz Profil > Wyloguj inne urządzenia." },
+    tr: { soon: "10 dakika sonra başlıyor", ann: "Duyuru", changed: "Programda değişiklik", delayed: "Ertelendi", moved: "Yeri değişti", cancelled: "İptal edildi", scheduled: "Planlandığı gibi", newTime: "Yeni saat {t}", newPlace: "Yeni yer: {l}", reply: "Talebine yanıt geldi", match: "Yeni eşleşme", matchBody: "{n} ile eşleştin, merhaba de!", signup: "Yeni kayıt onay bekliyor", signupBody: "{n} uygulamaya katılmak istiyor.", approved: "Hesabın onaylandı", approvedBody: "EUROXPRO'27'ye hoş geldin! Uygulamayı açabilirsin.", test: "Bildirimler açık", testBody: "Oturumlar, duyurular ve mesajlar buraya gelecek.", report: "Yeni bildirim (şikayet)", reportBody: "{n} hakkında bir bildirim geldi.", newLogin: "Yeni cihazdan giriş", newLoginBody: "Organizatör hesabına {t} saatinde yeni bir cihazdan girildi. Sen değilsen şifreni değiştir ve Profil > Diğer tüm cihazlardan çık'a dokun.", bus: "Transfer", busAssigned: "Otobüsün belli oldu", bus_scheduled: "Yeni saat / bilgi", bus_boarding: "Biniş başladı", bus_departed: "Otobüs yola çıktı", bus_arrived: "Otobüs vardı" },
+    en: { soon: "Starts in 10 minutes", ann: "Announcement", changed: "Programme change", delayed: "Delayed", moved: "Moved", cancelled: "Cancelled", scheduled: "Back on schedule", newTime: "New time {t}", newPlace: "New place: {l}", reply: "Your request got a reply", match: "New match", matchBody: "You matched with {n}, say hi!", signup: "New sign-up waiting", signupBody: "{n} wants to join the app.", approved: "Your account is approved", approvedBody: "Welcome to EUROXPRO'27! You can open the app now.", test: "Notifications are on", testBody: "Sessions, announcements and messages will show up here.", report: "New report", reportBody: "Someone reported {n}.", newLogin: "Sign-in from a new device", newLoginBody: "Your organizer account was signed in from a new device at {t}. If this wasn't you, change your password and tap Profile > Sign out all other devices.", bus: "Transfer", busAssigned: "Your bus is set", bus_scheduled: "Updated time / details", bus_boarding: "Boarding now", bus_departed: "Bus has left", bus_arrived: "Bus has arrived" },
+    pl: { soon: "Zaczyna się za 10 minut", ann: "Ogłoszenie", changed: "Zmiana w programie", delayed: "Opóźnione", moved: "Przeniesione", cancelled: "Odwołane", scheduled: "Zgodnie z planem", newTime: "Nowa godzina {t}", newPlace: "Nowe miejsce: {l}", reply: "Twoje zgłoszenie ma odpowiedź", match: "Nowe dopasowanie", matchBody: "Masz dopasowanie z {n}, przywitaj się!", signup: "Nowa rejestracja czeka", signupBody: "{n} chce dołączyć do aplikacji.", approved: "Twoje konto zostało zatwierdzone", approvedBody: "Witamy na EUROXPRO'27! Możesz już otworzyć aplikację.", test: "Powiadomienia włączone", testBody: "Tu pojawią się sesje, ogłoszenia i wiadomości.", report: "Nowe zgłoszenie", reportBody: "Ktoś zgłosił użytkownika {n}.", newLogin: "Logowanie z nowego urządzenia", newLoginBody: "Na konto organizatora zalogowano się z nowego urządzenia ({t}). Jeśli to nie Ty, zmień hasło i wybierz Profil > Wyloguj inne urządzenia.", bus: "Transfer", busAssigned: "Twój autobus jest gotowy", bus_scheduled: "Nowa godzina / szczegóły", bus_boarding: "Trwa wsiadanie", bus_departed: "Autobus odjechał", bus_arrived: "Autobus dojechał" },
 };
 const pt = (u, k, vars = {}) => (PUSH_TEXT[u.lang] || PUSH_TEXT.en)[k].replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? "");
 const short = (s, n = 140) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
